@@ -2,7 +2,7 @@ using UnityEngine;
 
 public class MirrorController : MonoBehaviour
 {
-    public float rotationStep = 5f;
+    public float rotationStep = 1f;
 
     public void RotateLeft()
     {
