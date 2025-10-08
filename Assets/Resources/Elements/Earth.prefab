@@ -15,7 +15,7 @@ GameObject:
   - component: {fileID: 3014672705632296371}
   m_Layer: 0
   m_Name: Earth
-  m_TagString: Untagged
+  m_TagString: Earth
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -122,5 +122,6 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   idName: Earth
-  velocityMov: 5
+  velocityMov: 10
   weight: 8
+  elementType: 0

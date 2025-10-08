@@ -647,6 +647,52 @@ MonoBehaviour:
   m_SelectedFaces: 
   m_SelectedEdges: []
   m_SelectedVertices: 
+--- !u!1 &184132184
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 184132185}
+  - component: {fileID: 184132186}
+  m_Layer: 0
+  m_Name: Water
+  m_TagString: Water
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &184132185
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 184132184}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 808040558}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &184132186
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 184132184}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1a513042b47008848848cd3d64484a08, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  element: {fileID: 4595107794438353599, guid: 278acc918d61a82478e9e62966e3a478, type: 3}
+  firePoint: {fileID: 808040558}
 --- !u!1 &201011651
 GameObject:
   m_ObjectHideFlags: 0
@@ -1350,7 +1396,7 @@ BoxCollider:
     serializedVersion: 2
     m_Bits: 0
   m_LayerOverridePriority: 0
-  m_IsTrigger: 0
+  m_IsTrigger: 1
   m_ProvidesContacts: 0
   m_Enabled: 1
   serializedVersion: 3
@@ -1423,6 +1469,12 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   mirrorController: {fileID: 676879917}
   rotateLeft: 1
+  magicTags:
+  - Fire
+  - Earth
+  - Wind
+  - Water
+  useTrigger: 1
 --- !u!1 &293962861
 GameObject:
   m_ObjectHideFlags: 0
@@ -1491,7 +1543,7 @@ BoxCollider:
     serializedVersion: 2
     m_Bits: 0
   m_LayerOverridePriority: 0
-  m_IsTrigger: 0
+  m_IsTrigger: 1
   m_ProvidesContacts: 0
   m_Enabled: 1
   serializedVersion: 3
@@ -1579,6 +1631,12 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   mirrorController: {fileID: 1502105442}
   rotateLeft: 0
+  magicTags:
+  - Fire
+  - Earth
+  - Wind
+  - Water
+  useTrigger: 1
 --- !u!1 &333232738
 GameObject:
   m_ObjectHideFlags: 0
@@ -2089,7 +2147,7 @@ BoxCollider:
     serializedVersion: 2
     m_Bits: 0
   m_LayerOverridePriority: 0
-  m_IsTrigger: 0
+  m_IsTrigger: 1
   m_ProvidesContacts: 0
   m_Enabled: 1
   serializedVersion: 3
@@ -2162,6 +2220,12 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   mirrorController: {fileID: 2025316966}
   rotateLeft: 1
+  magicTags:
+  - Fire
+  - Earth
+  - Wind
+  - Water
+  useTrigger: 1
 --- !u!1 &467100455
 GameObject:
   m_ObjectHideFlags: 0
@@ -3782,7 +3846,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 7fc320d7e312a544dbc66a085f21d35e, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  rotationStep: 5
+  rotationStep: 15
 --- !u!1 &729270349
 GameObject:
   m_ObjectHideFlags: 0
@@ -4652,6 +4716,52 @@ MonoBehaviour:
   m_SelectedFaces: 
   m_SelectedEdges: []
   m_SelectedVertices: 
+--- !u!1 &769580516
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 769580517}
+  - component: {fileID: 769580518}
+  m_Layer: 0
+  m_Name: Earth
+  m_TagString: Wind
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &769580517
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 769580516}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 808040558}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &769580518
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 769580516}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1a513042b47008848848cd3d64484a08, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  element: {fileID: 4572421968904565393, guid: aec2d0ab7ab3d4d4bb073b6b7b210d2f, type: 3}
+  firePoint: {fileID: 808040558}
 --- !u!1 &789886130
 GameObject:
   m_ObjectHideFlags: 0
@@ -4772,7 +4882,7 @@ GameObject:
   - component: {fileID: 808040557}
   - component: {fileID: 808040556}
   - component: {fileID: 808040555}
-  - component: {fileID: 808040559}
+  - component: {fileID: 808040561}
   m_Layer: 0
   m_Name: PlayerCamera
   m_TagString: MainCamera
@@ -4901,10 +5011,14 @@ Transform:
   m_LocalPosition: {x: 40.8, y: 20.934782, z: 84.9}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
-  m_Children: []
+  m_Children:
+  - {fileID: 1510853053}
+  - {fileID: 184132185}
+  - {fileID: 1670510583}
+  - {fileID: 769580517}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 90, z: 0}
---- !u!114 &808040559
+--- !u!114 &808040561
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -4913,13 +5027,10 @@ MonoBehaviour:
   m_GameObject: {fileID: 808040554}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: e8a31ed3c4cad4e41a3fadd5e3c49389, type: 3}
+  m_Script: {fileID: 11500000, guid: 8a23d46115a10f5449951f46bec7fedf, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  maxDistance: 100
-  interactLayer:
-    serializedVersion: 2
-    m_Bits: 256
+  magic: {fileID: 769580518}
 --- !u!1 &808158010
 GameObject:
   m_ObjectHideFlags: 0
@@ -5444,7 +5555,7 @@ BoxCollider:
     serializedVersion: 2
     m_Bits: 0
   m_LayerOverridePriority: 0
-  m_IsTrigger: 0
+  m_IsTrigger: 1
   m_ProvidesContacts: 0
   m_Enabled: 1
   serializedVersion: 3
@@ -5517,6 +5628,12 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   mirrorController: {fileID: 1392778163}
   rotateLeft: 0
+  magicTags:
+  - Fire
+  - Earth
+  - Wind
+  - Water
+  useTrigger: 1
 --- !u!1 &867245476
 GameObject:
   m_ObjectHideFlags: 0
@@ -5818,7 +5935,7 @@ BoxCollider:
     serializedVersion: 2
     m_Bits: 0
   m_LayerOverridePriority: 0
-  m_IsTrigger: 0
+  m_IsTrigger: 1
   m_ProvidesContacts: 0
   m_Enabled: 1
   serializedVersion: 3
@@ -5891,6 +6008,12 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   mirrorController: {fileID: 2025316966}
   rotateLeft: 0
+  magicTags:
+  - Fire
+  - Earth
+  - Wind
+  - Water
+  useTrigger: 1
 --- !u!1 &1392778158
 GameObject:
   m_ObjectHideFlags: 0
@@ -6015,7 +6138,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 7fc320d7e312a544dbc66a085f21d35e, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  rotationStep: 5
+  rotationStep: 15
 --- !u!1 &1455664053
 GameObject:
   m_ObjectHideFlags: 0
@@ -6047,7 +6170,6 @@ Transform:
   m_Children:
   - {fileID: 292892715}
   - {fileID: 1688829382}
-  - {fileID: 1502105441}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1488709818
@@ -6265,12 +6387,12 @@ Transform:
   m_GameObject: {fileID: 1502105437}
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: -64.299995, y: 15.639999, z: -160}
+  m_LocalPosition: {x: -165.7, y: 32, z: -81.1}
   m_LocalScale: {x: 10, y: 80, z: 10}
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 1706764054}
-  m_Father: {fileID: 1455664054}
+  m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!114 &1502105442
 MonoBehaviour:
@@ -6450,6 +6572,52 @@ Mesh:
     offset: 0
     size: 0
     path: 
+--- !u!1 &1510853052
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1510853053}
+  - component: {fileID: 1510853054}
+  m_Layer: 0
+  m_Name: Fire
+  m_TagString: Fire
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &1510853053
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1510853052}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 808040558}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1510853054
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1510853052}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1a513042b47008848848cd3d64484a08, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  element: {fileID: 8364429593344965258, guid: 19d8338b3d4bbf9459d598fd1a8136f3, type: 3}
+  firePoint: {fileID: 808040558}
 --- !u!1 &1533217687
 GameObject:
   m_ObjectHideFlags: 0
@@ -6533,7 +6701,7 @@ BoxCollider:
     serializedVersion: 2
     m_Bits: 0
   m_LayerOverridePriority: 0
-  m_IsTrigger: 0
+  m_IsTrigger: 1
   m_ProvidesContacts: 0
   m_Enabled: 1
   serializedVersion: 3
@@ -6606,6 +6774,12 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   mirrorController: {fileID: 1392778163}
   rotateLeft: 1
+  magicTags:
+  - Fire
+  - Earth
+  - Wind
+  - Water
+  useTrigger: 1
 --- !u!1 &1574602195
 GameObject:
   m_ObjectHideFlags: 0
@@ -7343,6 +7517,52 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &1670510582
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1670510583}
+  - component: {fileID: 1670510584}
+  m_Layer: 0
+  m_Name: Wind
+  m_TagString: Wind
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &1670510583
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1670510582}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 808040558}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1670510584
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1670510582}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1a513042b47008848848cd3d64484a08, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  element: {fileID: 6017597049075293901, guid: 02dab11bc2d56aa4284925e09f4df8d8, type: 3}
+  firePoint: {fileID: 808040558}
 --- !u!1 &1688829381
 GameObject:
   m_ObjectHideFlags: 0
@@ -7393,7 +7613,7 @@ BoxCollider:
     serializedVersion: 2
     m_Bits: 0
   m_LayerOverridePriority: 0
-  m_IsTrigger: 0
+  m_IsTrigger: 1
   m_ProvidesContacts: 0
   m_Enabled: 1
   serializedVersion: 3
@@ -7466,6 +7686,12 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   mirrorController: {fileID: 676879917}
   rotateLeft: 0
+  magicTags:
+  - Fire
+  - Earth
+  - Wind
+  - Water
+  useTrigger: 1
 --- !u!1 &1695603957
 GameObject:
   m_ObjectHideFlags: 0
@@ -8833,7 +9059,7 @@ BoxCollider:
     serializedVersion: 2
     m_Bits: 0
   m_LayerOverridePriority: 0
-  m_IsTrigger: 0
+  m_IsTrigger: 1
   m_ProvidesContacts: 0
   m_Enabled: 1
   serializedVersion: 3
@@ -8921,6 +9147,12 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   mirrorController: {fileID: 1502105442}
   rotateLeft: 1
+  magicTags:
+  - Fire
+  - Earth
+  - Wind
+  - Water
+  useTrigger: 1
 --- !u!1 &2046391356
 GameObject:
   m_ObjectHideFlags: 0
@@ -8971,6 +9203,8 @@ SceneRoots:
   - {fileID: 1455664054}
   - {fileID: 2025316965}
   - {fileID: 2046391357}
+  - {fileID: 1502105441}
+  - {fileID: 1533217688}
   - {fileID: 1187714191}
   - {fileID: 1625844379}
   - {fileID: 1574602199}
@@ -8978,7 +9212,6 @@ SceneRoots:
   - {fileID: 1882904554}
   - {fileID: 64477960}
   - {fileID: 519267072}
-  - {fileID: 1533217688}
   - {fileID: 201011652}
   - {fileID: 808158014}
   - {fileID: 808040558}
