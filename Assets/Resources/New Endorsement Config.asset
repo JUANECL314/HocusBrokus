@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: b46c8df7aea9e0e4e88a4e63f2d12225, type: 3}
   m_Name: New Endorsement Config
   m_EditorClassIdentifier: 
-  apiBaseUrl: https://your.api.com
+  apiBaseUrl: http://127.0.0.1:8000
   batchPath: /api/endorsements/batch
   authHeaderName: Authorization
   authHeaderValue: Bearer <TOKEN>
