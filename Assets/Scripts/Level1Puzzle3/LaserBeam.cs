@@ -34,12 +34,14 @@ public class LaserBeam : MonoBehaviour
                 lr.positionCount++;
                 lr.SetPosition(lr.positionCount - 1, hit.point);
 
-                if (hit.collider.CompareTag("Mirror"))
+                 if (hit.collider.CompareTag("Mirror"))
                 {
+                    KPITracker.Instance?.MarkMirrorLit(hit.collider.transform); // +++
                     direction = Vector3.Reflect(direction, hit.normal);
                     position = hit.point;
                     continue;
                 }
+
                 else if (hit.collider.CompareTag("Target"))
                 {
                     Debug.Log("TARGET HIT!");

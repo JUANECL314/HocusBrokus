@@ -10,7 +10,9 @@ public class LaserTarget : MonoBehaviour
         {
             isActivated = true;
             Debug.Log("Puzzle Complete!");
-            // Add effects, sounds, etc.
+            KPITracker.Instance?.OnPuzzleCompleted(); 
+
         }
     }
+
 }
