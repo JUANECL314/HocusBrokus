@@ -50,6 +50,6 @@ public class Magic : MonoBehaviour
             rb.linearVelocity = forward.normalized * 10f;
         }
 
-        Destroy(spawned, 10f);
+        Destroy(spawned, 3f);
     }
 }
