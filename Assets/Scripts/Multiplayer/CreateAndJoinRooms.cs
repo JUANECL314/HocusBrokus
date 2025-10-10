@@ -12,6 +12,7 @@ public class CreateAndJoinRooms : MonoBehaviourPunCallbacks
     bool condicion = false;
     private void Start()
     {
+        IniciarSesion.instance.GuardarUsuario();
         ui.SetActive(false);
         ingresar.text = "Ingresar sala";
      }
