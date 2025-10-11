@@ -1,0 +1,21 @@
+using Photon.Pun;
+using UnityEngine;
+
+public class SpawnPointLobby : MonoBehaviour
+{
+    public Transform[] spawnPoints; // Asigna varios puntos en el inspector
+    public GameObject playerPrefab; // Prefab del jugador
+
+    void Start()
+    {
+        // Si aún no hay un jugador local instanciado
+        if (PhotonNetwork.IsConnectedAndReady)
+        {
+            // Puedes hacer que cada jugador use un spawn distinto basado en su actor number
+            int index = PhotonNetwork.LocalPlayer.ActorNumber % spawnPoints.Length;
+            Transform spawn = spawnPoints[index];
+
+            PhotonNetwork.Instantiate(playerPrefab.name, spawn.position, spawn.rotation);
+        }
+    }
+}

@@ -20,6 +20,7 @@ public class Magic : MonoBehaviour
     }
     public void launchElement()
     {
+        Debug.Log("Disparo");
         if (element == null)
         {
             Debug.LogWarning("Magic.launchElement: no element assigned.");

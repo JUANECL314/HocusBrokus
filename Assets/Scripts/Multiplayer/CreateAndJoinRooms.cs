@@ -1,4 +1,5 @@
 using Photon.Pun;
+using Photon.Voice.Unity;
 using TMPro;
 using Unity.VisualScripting;
 using UnityEngine;
@@ -12,10 +13,13 @@ public class CreateAndJoinRooms : MonoBehaviourPunCallbacks
     bool condicion = false;
     private void Start()
     {
-        IniciarSesion.instance.GuardarUsuario();
+
+        // IniciarSesion.instance.GuardarUsuario();
         ui.SetActive(false);
         ingresar.text = "Ingresar sala";
      }
+    
+
     public void abrirSala()
     {
         if (!condicion)
@@ -35,16 +39,28 @@ public class CreateAndJoinRooms : MonoBehaviourPunCallbacks
     }
     public void CreateRoom()
     {
-        PhotonNetwork.CreateRoom(createInput.text);
+        if (PhotonNetwork.IsConnectedAndReady)
+        {
+            PhotonNetwork.CreateRoom(createInput.text);
+        }
+        
     }
     public void JoinRoom()
     {
-        PhotonNetwork.JoinRoom(joinInput.text);
+        if (PhotonNetwork.IsConnectedAndReady)
+        {
+            PhotonNetwork.JoinRoom(joinInput.text);
+        }
     }
 
     public override void OnJoinedRoom()
     {
-        PhotonNetwork.LoadLevel("TownRoom");
+        if (PhotonNetwork.IsConnectedAndReady)
+        {
+            PhotonNetwork.LoadLevel("TownRoom");
+            
+            
+        }
     }
     
 

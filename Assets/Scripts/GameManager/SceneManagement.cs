@@ -14,10 +14,7 @@ public class SceneManagement : MonoBehaviour
     {
         Menu();
     }
-    public void CaveLevel()
-    {
-        PhotonNetwork.LoadLevel("Cave");
-    }
+    
 
     public void IniciarSesion()
     {

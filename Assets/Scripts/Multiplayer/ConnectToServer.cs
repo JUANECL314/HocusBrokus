@@ -1,23 +1,12 @@
 using UnityEngine;
 using Photon.Pun;
+using Photon.Voice.PUN;
 using UnityEngine.SceneManagement;
 public class ConnectToServer : MonoBehaviourPunCallbacks
 {
     // Start is called once before the first execution of Update after the MonoBehaviour is created
 
-    public static ConnectToServer instance;
-    private void Awake()
-    {
-        if (instance == null)
-        {
-            instance = this;
-            DontDestroyOnLoad(gameObject);
-        }
-        else
-        {
-            Destroy(gameObject);
-        }
-    }
+    
     public void conectarServidor()
     {
         PhotonNetwork.ConnectUsingSettings();
@@ -29,6 +18,9 @@ public class ConnectToServer : MonoBehaviourPunCallbacks
     }
     public override void OnJoinedLobby()
     {
-        SceneManager.LoadScene("Lobby");
+        // Conectar a Photon Voice antes de entrar a la sala
+
+
+        PhotonNetwork.LoadLevel("Lobby");
     }
 }

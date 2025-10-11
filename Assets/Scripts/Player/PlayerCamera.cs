@@ -5,7 +5,7 @@ public class PlayerCamera : MonoBehaviourPun
 {
     public Camera playerCamera;
     public AudioListener audioListener;
-    
+    public int entero = 2;
     void Start()
     {
         playerCamera = GetComponentInChildren<Camera>(true);
