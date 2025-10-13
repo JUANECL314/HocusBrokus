@@ -12,6 +12,11 @@ public class EndorsementUploader : MonoBehaviour
     public static EndorsementUploader Instance { get; private set; }
     [SerializeField] private EndorsementConfig config;
 
+    [Header("Seguridad (cola local)")]
+    [SerializeField] private bool encryptQueueFile = true;
+
+    [SerializeField] private string localEncryptionPassphrase = "Encryption";
+
     [Serializable]
     private class BatchWrapper
     {
@@ -45,17 +50,28 @@ public class EndorsementUploader : MonoBehaviour
 
         Instance = this;
         DontDestroyOnLoad(gameObject);
+
         if (config == null)
             config = Resources.Load<EndorsementConfig>("EndorsementConfig");
+
         EnsureQueueFile();
     }
 
     private void EnsureQueueFile()
     {
-        if (!File.Exists(QueuePath))
+        if (File.Exists(QueuePath)) return;
+
+        var q = new QueueFile();
+        var json = JsonConvert.SerializeObject(q, _jsonSettings);
+
+        if (encryptQueueFile)
         {
-            var q = new QueueFile();
-            File.WriteAllText(QueuePath, JsonConvert.SerializeObject(q, _jsonSettings));
+            var enc = AesCrypto.EncryptString(json, localEncryptionPassphrase);
+            File.WriteAllText(QueuePath, enc);
+        }
+        else
+        {
+            File.WriteAllText(QueuePath, json);
         }
     }
 
@@ -63,7 +79,35 @@ public class EndorsementUploader : MonoBehaviour
     {
         try
         {
-            return JsonConvert.DeserializeObject<QueueFile>(File.ReadAllText(QueuePath)) ?? new QueueFile();
+            if (!File.Exists(QueuePath)) return new QueueFile();
+
+            string content = File.ReadAllText(QueuePath);
+
+            // Si está cifrado, descifra. Si no, intenta parsear plano (migración).
+            if (encryptQueueFile)
+            {
+                try
+                {
+                    string json = AesCrypto.DecryptString(content, localEncryptionPassphrase);
+                    return JsonConvert.DeserializeObject<QueueFile>(json) ?? new QueueFile();
+                }
+                catch
+                {
+                    // Fallback: puede que sea JSON plano antiguo
+                    try
+                    {
+                        return JsonConvert.DeserializeObject<QueueFile>(content) ?? new QueueFile();
+                    }
+                    catch
+                    {
+                        return new QueueFile();
+                    }
+                }
+            }
+            else
+            {
+                return JsonConvert.DeserializeObject<QueueFile>(content) ?? new QueueFile();
+            }
         }
         catch
         {
@@ -73,7 +117,18 @@ public class EndorsementUploader : MonoBehaviour
 
     private void SaveQueue(QueueFile q)
     {
-        File.WriteAllText(QueuePath, JsonConvert.SerializeObject(q, _jsonSettings));
+        var json = JsonConvert.SerializeObject(q, _jsonSettings);
+
+        if (encryptQueueFile)
+        {
+            var enc = AesCrypto.EncryptString(json, localEncryptionPassphrase);
+            File.WriteAllText(QueuePath, enc);
+            Debug.Log("[Uploader] Datos encriptados: " + enc.Substring(0, 50) + "...");
+        }
+        else
+        {
+            File.WriteAllText(QueuePath, json);
+        }
     }
 
     public void EnqueueAndSend(List<EndorsementPayload> batch)
