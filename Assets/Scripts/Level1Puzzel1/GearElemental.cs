@@ -1,176 +1,92 @@
-﻿using System.Collections;
-using System.Collections.Generic;
+using System.Collections;
+using System.Collections.Generic;   
 using UnityEngine;
 
 public class GearElemental : MonoBehaviour
 {
     public enum MagicType { None, Air, Fire, Water, Earth }
 
-    [Header("Gear Settings")]
     public float rotationSpeed = 100f;
+    public float moveSpeed = 0.5f;
     public Color normalColor = Color.gray;
-    public Color hotColor = Color.red;
-    public Color coolColor = Color.cyan;
-    public Transform wallPosition;
-
-    private bool hasAir = false;
-    private bool hasFire = false;
-    private bool isRotating = false;
-    private bool isHot = false;
-    private bool isFalling = false;
-    private bool isAttached = false;
-    private bool hasDestroyedDoor = false;
-    private bool isLocked = false;
+    public Color heatedColor = Color.red;
+    public Vector3 initialPosition;
 
     private Renderer rend;
-    private Rigidbody rb;
+    private bool rotating = false;
+    private float heatProgress = 0f;
 
     void Start()
     {
         rend = GetComponent<Renderer>();
-        rb = GetComponent<Rigidbody>();
         rend.material.color = normalColor;
+        initialPosition = transform.position;
     }
 
     void Update()
     {
-        if (isRotating && isAttached)
-            transform.Rotate(Vector3.forward * rotationSpeed * Time.deltaTime);
-
-        if (isHot && !isFalling)
-            StartCoroutine(StartFalling());
-    }
-
-    IEnumerator StartFalling()
-    {
-        isFalling = true;
-        yield return new WaitForSeconds(3f);
-        if (isHot)
+        if (rotating)
         {
-            rb.isKinematic = false;
-            isAttached = false;
+            transform.Rotate(Vector3.up * rotationSpeed * Time.deltaTime);
+            transform.Translate(Vector3.left * moveSpeed * Time.deltaTime, Space.World);
+
+            if (heatProgress < 1f)
+            {
+                heatProgress += Time.deltaTime * 0.1f;
+                rend.material.color = Color.Lerp(normalColor, heatedColor, heatProgress);
+                if (heatProgress >= 1f)
+                    GearManager.Instance.StartOverheatCountdown();
+            }
         }
     }
 
-    public void ReceiveMagic(MagicType type)
+    public void StartRotation()
     {
-        switch (type)
-        {
-            case MagicType.Air:
-                hasAir = true;
-                TryActivateRotation();
-                break;
-
-            case MagicType.Fire:
-                hasFire = true;
-                HeatUp();
-                TryActivateRotation();
-                break;
-
-            case MagicType.Water:
-                if (isHot)
-                    CoolDown();
-                break;
-
-            case MagicType.Earth:
-                if (!isAttached)
-                    RestoreToWall();
-                break;
-        }
+        rotating = true;
     }
 
-    void TryActivateRotation()
+    public void StopRotation()
     {
-        if (hasAir && hasFire && isAttached && !isHot && !isRotating)
-        {
-            isRotating = true;
-            StartCoroutine(RotationTimer());
-        }
+        rotating = false;
     }
 
-    IEnumerator RotationTimer()
+    public void CoolDown()
     {
-        yield return new WaitForSeconds(3f);
-        if (isRotating && !hasDestroyedDoor)
-        {
-            DestroyDoors();
-            hasDestroyedDoor = true;
-        }
-    }
-
-    void DestroyDoors()
-    {
-        GameObject[] doors = GameObject.FindGameObjectsWithTag("puertasEGD");
-        foreach (GameObject door in doors)
-        {
-            Destroy(door);
-        }
-    }
-
-    void HeatUp()
-    {
-        isHot = true;
-        rend.material.color = hotColor;
-    }
-
-    void CoolDown()
-    {
-        isHot = false;
-        hasFire = false;
-        rend.material.color = coolColor;
-        StopAllCoroutines();
-        isFalling = false;
-        isRotating = hasAir;
-    }
-
-    void RestoreToWall()
-    {
-        if (wallPosition == null)
-            return;
-
-        rb.isKinematic = true;
-        transform.position = wallPosition.position;
-        transform.rotation = wallPosition.rotation;
+        heatProgress = 0f;
         rend.material.color = normalColor;
-        isAttached = true;
-        isFalling = false;
-        isHot = false;
-        hasAir = false;
-        hasFire = false;
-        isRotating = false;
-        hasDestroyedDoor = false;
-        isLocked = true;
+        rotating = true;
     }
 
-    private void OnCollisionEnter(Collision collision)
+    public void ResetGear()
     {
-        if (isLocked) return;
+        transform.position = initialPosition;
+        heatProgress = 0f;
+        rend.material.color = normalColor;
+        rotating = false;
+    }
 
-        if (collision.gameObject.CompareTag("Pared") && !isAttached)
+    /*private void OnTriggerEnter(Collider other)
+    {
+        if (other.CompareTag("Magic"))
         {
-            ContactPoint contact = collision.contacts[0];
-            Vector3 hitPoint = contact.point;
-            Vector3 normal = contact.normal;
+            MagicProjectile magic = other.GetComponent<MagicProjectile>();
 
-            AttachToWall(hitPoint, normal);
+            if (magic.type == MagicType.Air || magic.type == MagicType.Fire)
+            {
+                if (magic.type == MagicType.Air && magic.otherType == MagicType.Fire ||
+                    magic.type == MagicType.Fire && magic.otherType == MagicType.Air)
+                {
+                    GearManager.Instance.ActivateGears();
+                }
+            }
+            else if (magic.type == MagicType.Water)
+            {
+                GearManager.Instance.CoolDownGears();
+            }
+            else if (magic.type == MagicType.Earth)
+            {
+                GearManager.Instance.ResetAllGears();
+            }
         }
-    }
-
-    public void AttachToWall(Vector3 hitPoint, Vector3 normal)
-    {
-        if (isLocked) return;
-
-        rb.isKinematic = true;
-        isAttached = true;
-        transform.position = hitPoint;
-        transform.rotation = Quaternion.LookRotation(-normal);
-    }
-
-    public void Detach()
-    {
-        if (isLocked) return;
-
-        isAttached = false;
-        rb.isKinematic = false;
-    }
+    }*/
 }
