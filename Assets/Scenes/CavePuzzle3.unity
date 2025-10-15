@@ -900,13 +900,13 @@ LineRenderer:
   - {x: 0, y: 0, z: 1}
   m_Parameters:
     serializedVersion: 3
-    widthMultiplier: 1
+    widthMultiplier: 5
     widthCurve:
       serializedVersion: 2
       m_Curve:
       - serializedVersion: 3
-        time: 0.006745355
-        value: 0.41081607
+        time: 0.028626459
+        value: 0.715042
         inSlope: 0
         outSlope: 0
         tangentMode: 0
@@ -2234,7 +2234,7 @@ GameObject:
   - component: {fileID: 451799172}
   - component: {fileID: 451799175}
   m_Layer: 8
-  m_Name: RightButton
+  m_Name: UpButton
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -2343,6 +2343,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   mirrorController: {fileID: 2025316966}
   rotateLeft: 1
+  moveUpMode: 1
+  moveUpAmount: 1
   magicTags:
   - Wind
   useTrigger: 1
@@ -3600,6 +3602,37 @@ Mesh:
     offset: 0
     size: 0
     path: 
+--- !u!1 &605730489
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 605730490}
+  m_Layer: 9
+  m_Name: BeamSpawn
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &605730490
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 605730489}
+  serializedVersion: 2
+  m_LocalRotation: {x: -0, y: -0.73726296, z: -0, w: 0.6756059}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 808158014}
+  m_LocalEulerAnglesHint: {x: 0, y: -94.998, z: 0}
 --- !u!1 &611214463
 GameObject:
   m_ObjectHideFlags: 0
@@ -4109,7 +4142,15 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 7fc320d7e312a544dbc66a085f21d35e, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  rotationStep: 1
+  rotateAngle: 1
+  rotateAxis: {x: 0, y: 1, z: 0}
+  maxRotationOffset: 45
+  defaultMoveAmount: 0.2
+  maxUpOffset: 20
+  revertMoveSpeed: 5
+  revertDelay: 8
+  revertRotationSpeed: 5
+  forceMoveUpMode: 0
 --- !u!1 &717201879
 GameObject:
   m_ObjectHideFlags: 0
@@ -4751,7 +4792,8 @@ Transform:
   m_LocalPosition: {x: -200.3, y: 31.2, z: -8.8}
   m_LocalScale: {x: 51.641132, y: 97.27182, z: 40.301716}
   m_ConstrainProportionsScale: 0
-  m_Children: []
+  m_Children:
+  - {fileID: 605730490}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!114 &808158015
@@ -4768,6 +4810,17 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   requiredBeams: 2
   requiredDuration: 5
+  idleColor: {r: 1, g: 1, b: 1, a: 1}
+  yellowColor: {r: 1, g: 0.92156863, b: 0.015686275, a: 1}
+  blinkInterval: 0.5
+  fastBlinkInterval: 0.2
+  beamSpawnName: BeamSpawn
+  emittedBeamMaxDistance: 500
+  emittedBeamLayers:
+    serializedVersion: 2
+    m_Bits: 4294967295
+  emittedBeamWidth: 30
+  emittedBeamColor: {r: 1, g: 0.92156863, b: 0.015686275, a: 1}
 --- !u!1 &818321518
 GameObject:
   m_ObjectHideFlags: 0
@@ -5353,6 +5406,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   mirrorController: {fileID: 1392778163}
   rotateLeft: 0
+  moveUpMode: 1
+  moveUpAmount: 1
   magicTags:
   - Water
   useTrigger: 1
@@ -6170,6 +6225,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   mirrorController: {fileID: 2025316966}
   rotateLeft: 0
+  moveUpMode: 0
+  moveUpAmount: 1
   magicTags:
   - Fire
   useTrigger: 1
@@ -6189,7 +6246,7 @@ GameObject:
   - component: {fileID: 1351498642}
   m_Layer: 0
   m_Name: Cube
-  m_TagString: Untagged
+  m_TagString: SunMural
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -6759,7 +6816,15 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 7fc320d7e312a544dbc66a085f21d35e, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  rotationStep: 1
+  rotateAngle: 1
+  rotateAxis: {x: 0, y: 1, z: 0}
+  maxRotationOffset: 45
+  defaultMoveAmount: 0.2
+  maxUpOffset: 20
+  revertMoveSpeed: 5
+  revertDelay: 100
+  revertRotationSpeed: 5
+  forceMoveUpMode: 0
 --- !u!1 &1415071773
 GameObject:
   m_ObjectHideFlags: 0
@@ -6870,37 +6935,6 @@ MeshFilter:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1415071773}
   m_Mesh: {fileID: 10206, guid: 0000000000000000e000000000000000, type: 0}
---- !u!1 &1455664053
-GameObject:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
-  m_Component:
-  - component: {fileID: 1455664054}
-  m_Layer: 0
-  m_Name: Buttons2
-  m_TagString: Untagged
-  m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 1
---- !u!4 &1455664054
-Transform:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1455664053}
-  serializedVersion: 2
-  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: -101.4, y: 16.36, z: 78.9}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
-  m_Children: []
-  m_Father: {fileID: 0}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1502105437
 GameObject:
   m_ObjectHideFlags: 0
@@ -7025,7 +7059,15 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 7fc320d7e312a544dbc66a085f21d35e, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  rotationStep: 1
+  rotateAngle: 15
+  rotateAxis: {x: 0, y: 1, z: 0}
+  maxRotationOffset: 45
+  defaultMoveAmount: 0.2
+  maxUpOffset: 20
+  revertMoveSpeed: 2
+  revertDelay: 0.5
+  revertRotationSpeed: 0.1
+  forceMoveUpMode: 0
 --- !u!43 &1504420892
 Mesh:
   m_ObjectHideFlags: 0
@@ -7282,7 +7324,7 @@ GameObject:
   - component: {fileID: 1564664517}
   - component: {fileID: 1564664520}
   m_Layer: 8
-  m_Name: RightButton
+  m_Name: UpButton
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -7391,6 +7433,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   mirrorController: {fileID: 1392778163}
   rotateLeft: 1
+  moveUpMode: 0
+  moveUpAmount: 1
   magicTags:
   - Earth
   useTrigger: 1
@@ -8417,7 +8461,7 @@ LineRenderer:
   - {x: 0, y: 0, z: 1}
   m_Parameters:
     serializedVersion: 3
-    widthMultiplier: 1
+    widthMultiplier: 5
     widthCurve:
       serializedVersion: 2
       m_Curve:
@@ -9104,7 +9148,15 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 7fc320d7e312a544dbc66a085f21d35e, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  rotationStep: 1
+  rotateAngle: 1
+  rotateAxis: {x: 0, y: 1, z: 0}
+  maxRotationOffset: -45
+  defaultMoveAmount: 0.2
+  maxUpOffset: 20
+  revertMoveSpeed: 5
+  revertDelay: 100
+  revertRotationSpeed: 5
+  forceMoveUpMode: 0
 --- !u!1 &2046391356
 GameObject:
   m_ObjectHideFlags: 0
@@ -9261,10 +9313,9 @@ SceneRoots:
   - {fileID: 44092014}
   - {fileID: 1392778162}
   - {fileID: 1695603958}
-  - {fileID: 676879916}
-  - {fileID: 1455664054}
   - {fileID: 2025316965}
   - {fileID: 2046391357}
+  - {fileID: 676879916}
   - {fileID: 1502105441}
   - {fileID: 1533217688}
   - {fileID: 527655312}
