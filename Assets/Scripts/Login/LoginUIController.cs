@@ -17,8 +17,7 @@ public class LoginUIController : MonoBehaviour
     [SerializeField] private Button btnRegresar;
     [SerializeField] private TextMeshProUGUI lblEstado;
 
-    [Header("Navegación")]
-    [Tooltip("Panel que quieres mostrar cuando el usuario presiona 'Regresar'")]
+    [Header("Navegacion")]
     [SerializeField] private GameObject panelAlRegresar;
 
     [Header("Photon")]
@@ -125,7 +124,7 @@ public class LoginUIController : MonoBehaviour
 
         if (resp == null || string.IsNullOrEmpty(resp.token))
         {
-            SetEstado("No se recibió el token. Intenta de nuevo.");
+            SetEstado("No se recibio el token. Intenta de nuevo.");
             ToggleInteractable(true);
             yield break;
         }
@@ -192,7 +191,7 @@ public class LoginUIController : MonoBehaviour
                 return "Credenciales incorrectas.";
         }
 
-        // Fallback por código
+        // Fallback por codigo
         switch (status)
         {
             case 0: return "Sin conexión. Revisa tu red.";
@@ -228,7 +227,7 @@ public class LoginUIController : MonoBehaviour
     }
 }
 
-/// Estado de autenticación
+/// Estado de autenticacion
 public static class AuthState
 {
     public static string Token { get; private set; }
