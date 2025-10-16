@@ -6,14 +6,14 @@ public class GearBehavior : MonoBehaviour
     private Renderer rend;
     private Rigidbody rb;
     private bool isRotating = false;
-    private bool isFalling = false;
+    public bool isFalling = false;
     private bool destroyedDoors = false;
     private Vector3 initialPosition;
 
     public float rotationSpeed = 150f;
     public float timeToDestroyDoors = 20f;
     public float timeToAutoOff = 30f;
-    public float fallSpeed = 1f; // velocidad de caída controlada
+    public float fallSpeed = 2f; // velocidad máxima de caída
 
     void Start()
     {
@@ -25,24 +25,23 @@ public class GearBehavior : MonoBehaviour
             return;
         }
 
-        rb.isKinematic = true; // controla manualmente la posición para evitar que se vuele
+        rb.isKinematic = true; // inicial: control manual para que no se vuele
+        rb.collisionDetectionMode = CollisionDetectionMode.Continuous;
         initialPosition = transform.position;
         rend.material.color = Color.gray;
     }
 
     void Update()
     {
-        // Rotación mientras está activo
+        // Rotación
         if (isRotating)
-        {
             transform.Rotate(Vector3.up * rotationSpeed * Time.deltaTime);
-        }
 
-        // Caída controlada
+        // Si está cayendo, aplicar gravedad limitada
         if (isFalling)
         {
-            Vector3 target = new Vector3(transform.position.x, transform.position.y - fallSpeed * Time.deltaTime, transform.position.z);
-            transform.position = target;
+            rb.isKinematic = false;
+            rb.linearVelocity = new Vector3(0, -fallSpeed, 0); // caída controlada
         }
     }
 
@@ -56,10 +55,9 @@ public class GearBehavior : MonoBehaviour
     {
         isRotating = true;
 
-        // Secuencia de color gris → naranja → rojo
         rend.material.color = Color.gray;
         yield return new WaitForSeconds(0.5f);
-        rend.material.color = new Color(1f, 0.5f, 0f); // naranja
+        rend.material.color = new Color(1f, 0.5f, 0f);
         yield return new WaitForSeconds(0.5f);
         rend.material.color = Color.red;
 
@@ -91,36 +89,47 @@ public class GearBehavior : MonoBehaviour
 
     void OnCollisionEnter(Collision collision)
     {
-        // 💧 Si recibe Water
+        // Agua → solo cambia color
         if (collision.gameObject.CompareTag("Water") && isRotating)
         {
             rend.material.color = Color.gray;
         }
 
-        // 🌱 Si recibe Earth y está caído
+        // Tierra → vuelve a posición inicial si estaba cayendo
         if (collision.gameObject.CompareTag("Earth") && isFalling)
         {
             StartCoroutine(ReturnToInitialPosition());
         }
+
+        // Ground u otro objeto sólido → detener caída
+        if (collision.gameObject.CompareTag("Ground") && isFalling)
+        {
+            isFalling = false;
+            rb.isKinematic = true; // bloquea posición
+            rb.linearVelocity = Vector3.zero;
+            rb.angularVelocity = Vector3.zero;
+        }
     }
 
-    // Método para hacer caer el engranaje
     public void MakeFall()
     {
         if (!isFalling)
         {
             isFalling = true;
-            rb.isKinematic = true; // controlamos caída manualmente
+            rb.isKinematic = false;
+            rb.linearVelocity = Vector3.zero;
+            rb.angularVelocity = Vector3.zero;
         }
     }
 
     IEnumerator ReturnToInitialPosition()
     {
         isFalling = false;
+        rb.isKinematic = true;
 
         Vector3 start = transform.position;
         float elapsed = 0f;
-        float duration = 2f; // tiempo para volver a la posición
+        float duration = 2f;
         while (elapsed < duration)
         {
             transform.position = Vector3.Lerp(start, initialPosition, elapsed / duration);
