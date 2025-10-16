@@ -153,6 +153,12 @@ public class EndorsementUploader : MonoBehaviour
             File.WriteAllText(QueuePath, json);
         }
     }
+    public void SetAuthToken(string jwt)
+    {
+        if (config == null) return;
+        config.authHeaderName = "Authorization";
+        config.authHeaderValue = "Bearer " + jwt;
+    }
 
     // ===================== COMPATIBILITY: helpers de cola =====================
 
