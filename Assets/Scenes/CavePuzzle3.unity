@@ -2344,7 +2344,7 @@ MonoBehaviour:
   mirrorController: {fileID: 2025316966}
   rotateLeft: 1
   moveUpMode: 1
-  moveUpAmount: 1
+  moveUpAmount: 5
   magicTags:
   - Wind
   useTrigger: 1
@@ -4685,7 +4685,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 8a23d46115a10f5449951f46bec7fedf, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  magic: {fileID: 769580518}
+  magic: {fileID: 184132186}
 --- !u!1 &808158010
 GameObject:
   m_ObjectHideFlags: 0
@@ -5297,7 +5297,7 @@ GameObject:
   - component: {fileID: 862370337}
   - component: {fileID: 862370340}
   m_Layer: 8
-  m_Name: LeftButton
+  m_Name: UpButton
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -5407,7 +5407,7 @@ MonoBehaviour:
   mirrorController: {fileID: 1392778163}
   rotateLeft: 0
   moveUpMode: 1
-  moveUpAmount: 1
+  moveUpAmount: 5
   magicTags:
   - Water
   useTrigger: 1
@@ -5439,7 +5439,7 @@ Transform:
   m_GameObject: {fileID: 867245476}
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: -0.55099946, y: 0.7, z: -0.034000397}
+  m_LocalPosition: {x: -0.55099946, y: 0.23, z: -0.034000397}
   m_LocalScale: {x: 0.1, y: 0.42578518, z: 2.7812335}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -6576,7 +6576,7 @@ Transform:
   m_GameObject: {fileID: 1351498641}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: -293.00305, y: 64.273705, z: -3.779808}
+  m_LocalPosition: {x: -293.00305, y: 25.8, z: -3.779808}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -6818,12 +6818,12 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   rotateAngle: 1
   rotateAxis: {x: 0, y: 1, z: 0}
-  maxRotationOffset: 45
-  defaultMoveAmount: 0.2
-  maxUpOffset: 20
+  maxRotationOffset: 10
+  defaultMoveAmount: 5
+  maxUpOffset: 40
   revertMoveSpeed: 5
-  revertDelay: 100
-  revertRotationSpeed: 5
+  revertDelay: 1
+  revertRotationSpeed: 0.5
   forceMoveUpMode: 0
 --- !u!1 &1415071773
 GameObject:
@@ -7324,7 +7324,7 @@ GameObject:
   - component: {fileID: 1564664517}
   - component: {fileID: 1564664520}
   m_Layer: 8
-  m_Name: UpButton
+  m_Name: RightButton
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -7434,7 +7434,7 @@ MonoBehaviour:
   mirrorController: {fileID: 1392778163}
   rotateLeft: 1
   moveUpMode: 0
-  moveUpAmount: 1
+  moveUpAmount: 5
   magicTags:
   - Earth
   useTrigger: 1
@@ -8005,7 +8005,7 @@ Transform:
   m_GameObject: {fileID: 1751343191}
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: -0.55099946, y: 0.7, z: -0.034000397}
+  m_LocalPosition: {x: -0.55099946, y: 0.23, z: -0.034000397}
   m_LocalScale: {x: 0.1, y: 0.4607571, z: 3.1708477}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -9128,14 +9128,14 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 2025316961}
   serializedVersion: 2
-  m_LocalRotation: {x: -0, y: 0.3021126, z: -0, w: 0.9532722}
-  m_LocalPosition: {x: 160.87521, y: -14.9, z: -81.199196}
+  m_LocalRotation: {x: -0, y: 0.32556096, z: -0, w: 0.9455211}
+  m_LocalPosition: {x: 160.72845, y: -14.9, z: -81.34753}
   m_LocalScale: {x: 10, y: 80, z: 10}
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 867245477}
   m_Father: {fileID: 0}
-  m_LocalEulerAnglesHint: {x: 0, y: 35.169, z: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 37.999, z: 0}
 --- !u!114 &2025316966
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -9150,12 +9150,12 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   rotateAngle: 1
   rotateAxis: {x: 0, y: 1, z: 0}
-  maxRotationOffset: -45
+  maxRotationOffset: -10
   defaultMoveAmount: 0.2
-  maxUpOffset: 20
+  maxUpOffset: 40
   revertMoveSpeed: 5
-  revertDelay: 100
-  revertRotationSpeed: 5
+  revertDelay: 1
+  revertRotationSpeed: 0.5
   forceMoveUpMode: 0
 --- !u!1 &2046391356
 GameObject:
