@@ -178,6 +178,7 @@ public class LaserTarget : MonoBehaviour
 
             // 2+ rayos: ping "rápido" = TargetFastPing
             if (mode == BlinkMode.FastMulti)
+                Debug.Log("[LaserTarget] FastMulti tick ON/OFF");
                 SoundManager.Instance?.Play(SfxKey.TargetFastPing, transform.position);
 
             yield return new WaitForSeconds(interval);

@@ -150,8 +150,16 @@ public class SoundManager : MonoBehaviour
 
     void PlayInternal(SfxKey key, Vector3? worldPos, float pitch, SfxAreaOverride area)
     {
-        if (!_map.TryGetValue(key, out var e) || e.clip == null) return;
-
+        if (!_map.TryGetValue(key, out var e))
+        {
+            Debug.LogWarning($"[SoundManager] No hay entrada de clip para key '{key}'. Agrega esta key en Clips.");
+            return;
+        }
+        if (e.clip == null)
+        {
+            Debug.LogWarning($"[SoundManager] La key '{key}' no tiene AudioClip asignado.");
+            return;
+        }
         var src = GetFreeSource();
         src.clip = e.clip;
         src.volume = e.volume;
@@ -172,8 +180,16 @@ public class SoundManager : MonoBehaviour
     void StartLoopInternal(string loopId, SfxKey key, Vector3? worldPos, SfxAreaOverride area)
     {
         if (_loops.ContainsKey(loopId)) return;
-        if (!_map.TryGetValue(key, out var e) || e.clip == null || !e.loopable) return;
-
+        if (!_map.TryGetValue(key, out var e))
+        {
+            Debug.LogWarning($"[SoundManager] No hay entrada de clip para key '{key}'.");
+            return;
+        }
+        if (e.clip == null || !e.loopable)
+        {
+            Debug.LogWarning($"[SoundManager] La key '{key}' {(e == null ? "no tiene entrada" : "no tiene clip o no es loopable")}.");
+            return;
+        }
         var src = GetFreeSource();
         src.clip = e.clip;
         src.volume = e.volume;
