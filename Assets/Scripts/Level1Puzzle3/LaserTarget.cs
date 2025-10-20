@@ -9,8 +9,6 @@ public class LaserTarget : MonoBehaviour
 
     [Tooltip("How many seconds the required number of beams must continuously hit to trigger.")]
     public float requiredDuration = 5f;
-    private string LoopIdSingle => $"target_single_{GetInstanceID()}";
-    private string LoopIdHold => $"target_hold_{GetInstanceID()}";
 
     [Tooltip("Color when idle.")]
     public Color idleColor = Color.white;
@@ -88,17 +86,7 @@ public class LaserTarget : MonoBehaviour
         if (activeBeams.Add(beamId))
             Debug.Log($"LaserTarget: beam {beamId} started hitting. Count = {activeBeams.Count}");
 
-        // Audio: transiciones según cantidad
-        if (activeBeams.Count == 1)
-        {
-            SoundManager.Instance?.StopLoop(LoopIdHold);
-            SoundManager.Instance?.StartLoop(LoopIdSingle, SfxKey.TargetSingleBlinkLoop, transform);
-        }
-        else if (activeBeams.Count >= requiredBeams)
-        {
-            SoundManager.Instance?.StopLoop(LoopIdSingle);
-            SoundManager.Instance?.StartLoop(LoopIdHold, SfxKey.TargetHoldLoop, transform);
-        }
+        // ❌ Ya no usamos loops aquí. Solo el coroutine hará los pings.
     }
 
     public void Deactivate(int beamId)
@@ -106,17 +94,7 @@ public class LaserTarget : MonoBehaviour
         if (activeBeams.Remove(beamId))
             Debug.Log($"LaserTarget: beam {beamId} stopped hitting. Count = {activeBeams.Count}");
 
-        // Audio: si bajamos a 0, apagar todo; si bajamos a 1, volver al loop lento
-        if (activeBeams.Count <= 0)
-        {
-            SoundManager.Instance?.StopLoop(LoopIdSingle);
-            SoundManager.Instance?.StopLoop(LoopIdHold);
-        }
-        else if (activeBeams.Count == 1)
-        {
-            SoundManager.Instance?.StopLoop(LoopIdHold);
-            SoundManager.Instance?.StartLoop(LoopIdSingle, SfxKey.TargetSingleBlinkLoop, transform.position);
-        }
+        // ❌ Sin loops que apagar. El coroutine se encarga de parar cuando cambie el modo.
     }
 
     void Update()
@@ -185,9 +163,6 @@ public class LaserTarget : MonoBehaviour
         UpdateEmittedBeam();
     }
 
-    // >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-    // CAMBIO: sincronizar 2 pings por ciclo (ON y OFF) cuando mode == Single
-    // >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
     private IEnumerator BlinkGlow(float interval, BlinkMode mode)
     {
         while (!permanentlyGlowing && currentBlinkMode == mode &&
@@ -197,9 +172,13 @@ public class LaserTarget : MonoBehaviour
             // --- PARPADEO ON ---
             EnableGlow(true);
 
-            // Ping al encender (solo en modo Single = 1 rayo)
+            // 1 rayo: ping "lento" = LaserHitMirror
             if (mode == BlinkMode.Single)
                 SoundManager.Instance?.Play(SfxKey.LaserHitMirror, transform.position);
+
+            // 2+ rayos: ping "rápido" = TargetFastPing
+            if (mode == BlinkMode.FastMulti)
+                SoundManager.Instance?.Play(SfxKey.TargetFastPing, transform.position);
 
             yield return new WaitForSeconds(interval);
 
@@ -208,9 +187,11 @@ public class LaserTarget : MonoBehaviour
             // --- PARPADEO OFF ---
             EnableGlow(false);
 
-            // Ping al apagar (solo en modo Single = 1 rayo)
             if (mode == BlinkMode.Single)
                 SoundManager.Instance?.Play(SfxKey.LaserHitMirror, transform.position);
+
+            if (mode == BlinkMode.FastMulti)
+                SoundManager.Instance?.Play(SfxKey.TargetFastPing, transform.position);
 
             yield return new WaitForSeconds(interval);
         }
@@ -338,12 +319,10 @@ public class LaserTarget : MonoBehaviour
         Debug.Log($"LaserTarget: required {requiredBeams} beams held for {requiredDuration} seconds — SUCCESS!");
         EnsureEmittedBeamCreated();
 
-        // Audio: detener loops y tocar éxito
-        SoundManager.Instance?.StopLoop(LoopIdSingle);
-        SoundManager.Instance?.StopLoop(LoopIdHold);
-        SoundManager.Instance?.Play(SfxKey.TargetSuccess, transform.position);
+        // 🔊 Nuevo: one-shot al pasar a brillo permanente (no loop)
+        SoundManager.Instance?.Play(SfxKey.TargetIlluminate, transform.position);
 
-        // Opcional: duck corto del mix para que el stinger destaque (si configuraste snapshots)
-        SoundManager.Instance?.PunchSuccessDuck();
+        // (Si quieres además bajar un poco la mezcla por 0.6s, descomenta)
+        // SoundManager.Instance?.PunchSuccessDuck();
     }
 }

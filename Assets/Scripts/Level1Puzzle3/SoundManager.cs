@@ -8,9 +8,8 @@ public enum SfxKey
     MirrorRotate,
     MirrorMoveUp,
     LaserHitMirror,
-    TargetSingleBlinkLoop,
-    TargetHoldLoop,
-    TargetSuccess
+    TargetFastPing,     
+    TargetIlluminate    
 }
 
 public class SoundManager : MonoBehaviour

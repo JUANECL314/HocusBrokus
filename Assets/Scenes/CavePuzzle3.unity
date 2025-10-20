@@ -11001,10 +11001,10 @@ MonoBehaviour:
     loopable: 0
     spatialBlend: 1
     maxOneShotDuration: -1
-    pitchJitter: {x: 1, y: 1}
+    pitchJitter: {x: 0.75, y: 1.15}
   - key: 2
     clip: {fileID: 8300000, guid: 3ed01f2c6020aab4fb029bad2d0f2bbd, type: 3}
-    volume: 0.119
+    volume: 0.099
     spatial: 1
     loopable: 1
     spatialBlend: 1
@@ -24562,8 +24562,8 @@ MonoBehaviour:
   enabledOverride: 1
   spatialBlend: 1
   rolloff: 0
-  minDistance: 100
-  maxDistance: 100
+  minDistance: 1000
+  maxDistance: 1500
 --- !u!1 &810148019
 GameObject:
   m_ObjectHideFlags: 0
@@ -40685,6 +40685,7 @@ GameObject:
   - component: {fileID: 1392778160}
   - component: {fileID: 1392778159}
   - component: {fileID: 1392778163}
+  - component: {fileID: 1392778164}
   m_Layer: 0
   m_Name: Mirror_Pillar_1
   m_TagString: Untagged
@@ -40805,6 +40806,23 @@ MonoBehaviour:
   revertDelay: 200
   revertRotationSpeed: 0.5
   forceMoveUpMode: 0
+--- !u!114 &1392778164
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1392778158}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: bcce1a404159e8347bacb2645e493ffa, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  enabledOverride: 1
+  spatialBlend: 1
+  rolloff: 0
+  minDistance: 50
+  maxDistance: 80
 --- !u!1 &1393166379
 GameObject:
   m_ObjectHideFlags: 0
@@ -49395,7 +49413,6 @@ GameObject:
   - component: {fileID: 1751343195}
   - component: {fileID: 1751343194}
   - component: {fileID: 1751343193}
-  - component: {fileID: 1751343196}
   m_Layer: 9
   m_Name: Mirror
   m_TagString: Mirror
@@ -49492,23 +49509,6 @@ MeshFilter:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1751343191}
   m_Mesh: {fileID: 10202, guid: 0000000000000000e000000000000000, type: 0}
---- !u!114 &1751343196
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1751343191}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: bcce1a404159e8347bacb2645e493ffa, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  enabledOverride: 1
-  spatialBlend: 1
-  rolloff: 0
-  minDistance: 2
-  maxDistance: 50
 --- !u!1 &1762666934
 GameObject:
   m_ObjectHideFlags: 0
