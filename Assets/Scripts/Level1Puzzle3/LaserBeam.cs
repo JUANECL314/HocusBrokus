@@ -8,8 +8,6 @@ public class LaserBeam : MonoBehaviour
     public float maxDistance = 100f;
     public LayerMask reflectableLayers;
     private LineRenderer lr;
-    private float lastMirrorPingTime = -999f;
-    [SerializeField] private float mirrorPingCooldown = 0.15f;
 
     private LaserTarget lastHitTarget;
     private int beamId;
@@ -43,19 +41,14 @@ public class LaserBeam : MonoBehaviour
                 lr.positionCount++;
                 lr.SetPosition(lr.positionCount - 1, hit.point);
 
+                // Rebote en espejo (SIN SONIDO)
                 if (hit.collider.CompareTag("Mirror"))
                 {
-                    // Sfx con cooldown
-                    if (Time.time - lastMirrorPingTime > mirrorPingCooldown)
-                    {
-                        SoundManager.Instance?.Play(SfxKey.LaserHitMirror, hit.point);
-                        lastMirrorPingTime = Time.time;
-                    }
-
                     direction = Vector3.Reflect(direction, hit.normal);
                     position = hit.point;
                     continue;
                 }
+                // Impacta un Target (prisma final)
                 else if (hit.collider.CompareTag("Target"))
                 {
                     currentTarget = hit.collider.GetComponent<LaserTarget>();
@@ -72,6 +65,7 @@ public class LaserBeam : MonoBehaviour
 
                     break;
                 }
+                // Impacta un Pilar
                 else if (hit.collider.CompareTag("Pillar"))
                 {
                     if (lastHitTarget != null)
@@ -81,6 +75,7 @@ public class LaserBeam : MonoBehaviour
                     }
                     break;
                 }
+                // Otro obstáculo
                 else
                 {
                     if (lastHitTarget != null)

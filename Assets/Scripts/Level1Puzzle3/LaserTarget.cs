@@ -187,16 +187,33 @@ public class LaserTarget : MonoBehaviour
         UpdateEmittedBeam();
     }
 
+    // >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+    // CAMBIO: sincronizar 2 pings por ciclo (ON y OFF) cuando mode == Single
+    // >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
     private IEnumerator BlinkGlow(float interval, BlinkMode mode)
     {
         while (!permanentlyGlowing && currentBlinkMode == mode &&
                ((mode == BlinkMode.Single && activeBeams.Count == 1) ||
                 (mode == BlinkMode.FastMulti && activeBeams.Count >= requiredBeams)))
         {
+            // --- PARPADEO ON ---
             EnableGlow(true);
+
+            // Ping al encender (solo en modo Single = 1 rayo)
+            if (mode == BlinkMode.Single)
+                SoundManager.Instance?.Play(SfxKey.LaserHitMirror, transform.position);
+
             yield return new WaitForSeconds(interval);
+
             if (permanentlyGlowing || currentBlinkMode != mode) break;
+
+            // --- PARPADEO OFF ---
             EnableGlow(false);
+
+            // Ping al apagar (solo en modo Single = 1 rayo)
+            if (mode == BlinkMode.Single)
+                SoundManager.Instance?.Play(SfxKey.LaserHitMirror, transform.position);
+
             yield return new WaitForSeconds(interval);
         }
 
@@ -327,5 +344,8 @@ public class LaserTarget : MonoBehaviour
         SoundManager.Instance?.StopLoop(LoopIdSingle);
         SoundManager.Instance?.StopLoop(LoopIdHold);
         SoundManager.Instance?.Play(SfxKey.TargetSuccess, transform.position);
+
+        // Opcional: duck corto del mix para que el stinger destaque (si configuraste snapshots)
+        SoundManager.Instance?.PunchSuccessDuck();
     }
 }
