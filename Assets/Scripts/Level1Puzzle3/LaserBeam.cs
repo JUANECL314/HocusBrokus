@@ -9,9 +9,13 @@ public class LaserBeam : MonoBehaviour
     public LayerMask reflectableLayers;
     private LineRenderer lr;
 
+    private LaserTarget lastHitTarget;
+    private int beamId;
+
     void Start()
     {
         lr = GetComponent<LineRenderer>();
+        beamId = gameObject.GetInstanceID();
     }
 
     void Update()
@@ -27,9 +31,12 @@ public class LaserBeam : MonoBehaviour
         lr.positionCount = 1;
         lr.SetPosition(0, position);
 
+        bool hitTargetThisFrame = false;
+        LaserTarget currentTarget = null;
+
         for (int i = 0; i < maxReflections; i++)
         {
-            if (Physics.Raycast(position, direction, out RaycastHit hit, maxDistance, reflectableLayers))
+            if (Physics.Raycast(position, direction, out RaycastHit hit, maxDistance))
             {
                 lr.positionCount++;
                 lr.SetPosition(lr.positionCount - 1, hit.point);
@@ -44,12 +51,36 @@ public class LaserBeam : MonoBehaviour
 
                 else if (hit.collider.CompareTag("Target"))
                 {
-                    Debug.Log("TARGET HIT!");
-                    hit.collider.GetComponent<LaserTarget>()?.Activate();
+                    currentTarget = hit.collider.GetComponent<LaserTarget>();
+                    if (currentTarget != null)
+                    {
+                        if (lastHitTarget != currentTarget)
+                        {
+                            lastHitTarget?.Deactivate(beamId);
+                            currentTarget.Activate(beamId);
+                            lastHitTarget = currentTarget;
+                        }
+                        hitTargetThisFrame = true;
+                    }
+
+                    break;
+                }
+                else if (hit.collider.CompareTag("Pillar"))
+                {
+                    if (lastHitTarget != null)
+                    {
+                        lastHitTarget.Deactivate(beamId);
+                        lastHitTarget = null;
+                    }
                     break;
                 }
                 else
                 {
+                    if (lastHitTarget != null)
+                    {
+                        lastHitTarget.Deactivate(beamId);
+                        lastHitTarget = null;
+                    }
                     break;
                 }
             }
@@ -59,6 +90,12 @@ public class LaserBeam : MonoBehaviour
                 lr.SetPosition(lr.positionCount - 1, position + direction * maxDistance);
                 break;
             }
+        }
+
+        if (!hitTargetThisFrame && lastHitTarget != null)
+        {
+            lastHitTarget.Deactivate(beamId);
+            lastHitTarget = null;
         }
     }
 }
