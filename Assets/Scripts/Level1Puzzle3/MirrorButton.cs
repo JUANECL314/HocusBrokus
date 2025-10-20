@@ -1,3 +1,4 @@
+// ...existing code...
 using UnityEngine;
 
 [RequireComponent(typeof(Collider))]
@@ -5,6 +6,12 @@ public class MirrorButton : MonoBehaviour
 {
     public MirrorController mirrorController;  // Assign this in the Inspector
     public bool rotateLeft;                    // true = left, false = right
+
+    [Header("Optional move-up action")]
+    [Tooltip("When true, pressing moves the mirror up instead of rotating.")]
+    public bool moveUpMode = false;
+    [Tooltip("Amount to move up each press (used when moveUpMode = true).")]
+    public float moveUpAmount = 0.2f;
 
     [Tooltip("Tags that will trigger this button when colliding (set on your element prefabs).")]
     public string[] magicTags = new string[] { "Fire", "Earth", "Wind", "Water" };
@@ -14,10 +21,17 @@ public class MirrorButton : MonoBehaviour
 
     public void Press()
     {
-        if (rotateLeft)
-            mirrorController.RotateLeft();
+        if (mirrorController == null) return;
+
+        if (moveUpMode)
+            mirrorController.MoveUp(moveUpAmount);
         else
-            mirrorController.RotateRight();
+        {
+            if (rotateLeft)
+                mirrorController.RotateLeft();
+            else
+                mirrorController.RotateRight();
+        }
     }
 
     private Renderer rend;
@@ -68,3 +82,4 @@ public class MirrorButton : MonoBehaviour
         return false;
     }
 }
+// ...existing code...
