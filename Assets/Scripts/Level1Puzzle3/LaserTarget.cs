@@ -169,30 +169,19 @@ public class LaserTarget : MonoBehaviour
                ((mode == BlinkMode.Single && activeBeams.Count == 1) ||
                 (mode == BlinkMode.FastMulti && activeBeams.Count >= requiredBeams)))
         {
-            // --- PARPADEO ON ---
+            if (permanentlyGlowing || currentBlinkMode != mode) break;
+
             EnableGlow(true);
 
-            // 1 rayo: ping "lento" = LaserHitMirror
-            if (mode == BlinkMode.Single)
-                SoundManager.Instance?.Play(SfxKey.LaserHitMirror, transform.position);
-
-            // 2+ rayos: ping "rápido" = TargetFastPing
-            if (mode == BlinkMode.FastMulti)
-                Debug.Log("[LaserTarget] FastMulti tick ON/OFF");
-                SoundManager.Instance?.Play(SfxKey.TargetFastPing, transform.position);
+            PlayBlinkPing(mode);
 
             yield return new WaitForSeconds(interval);
 
             if (permanentlyGlowing || currentBlinkMode != mode) break;
 
-            // --- PARPADEO OFF ---
             EnableGlow(false);
 
-            if (mode == BlinkMode.Single)
-                SoundManager.Instance?.Play(SfxKey.LaserHitMirror, transform.position);
-
-            if (mode == BlinkMode.FastMulti)
-                SoundManager.Instance?.Play(SfxKey.TargetFastPing, transform.position);
+            PlayBlinkPing(mode);
 
             yield return new WaitForSeconds(interval);
         }
@@ -314,7 +303,13 @@ public class LaserTarget : MonoBehaviour
         emittedLR.useWorldSpace = true;
         emittedLR.enabled = true;
     }
-
+    void PlayBlinkPing(BlinkMode mode)
+    {
+        if (mode == BlinkMode.Single)
+            SoundManager.Instance?.Play(SfxKey.LaserHitMirror, transform);
+        else if (mode == BlinkMode.FastMulti)
+            SoundManager.Instance?.Play(SfxKey.TargetFastPing, transform);
+    }
     private void OnRequiredBeamsHeld()
     {
         Debug.Log($"LaserTarget: required {requiredBeams} beams held for {requiredDuration} seconds — SUCCESS!");
