@@ -24,13 +24,16 @@ public class MirrorButton : MonoBehaviour
         if (mirrorController == null) return;
 
         if (moveUpMode)
+        {
             mirrorController.MoveUp(moveUpAmount);
+            SoundManager.Instance?.Play(SfxKey.MirrorMoveUp, transform.position);
+        }
         else
         {
-            if (rotateLeft)
-                mirrorController.RotateLeft();
-            else
-                mirrorController.RotateRight();
+            if (rotateLeft) mirrorController.RotateLeft();
+            else mirrorController.RotateRight();
+
+            SoundManager.Instance?.Play(SfxKey.MirrorRotate, transform.position);
         }
     }
 

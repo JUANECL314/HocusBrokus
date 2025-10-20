@@ -9,6 +9,8 @@ public class LaserTarget : MonoBehaviour
 
     [Tooltip("How many seconds the required number of beams must continuously hit to trigger.")]
     public float requiredDuration = 5f;
+    private string LoopIdSingle => $"target_single_{GetInstanceID()}";
+    private string LoopIdHold => $"target_hold_{GetInstanceID()}";
 
     [Tooltip("Color when idle.")]
     public Color idleColor = Color.white;
@@ -85,12 +87,38 @@ public class LaserTarget : MonoBehaviour
     {
         if (activeBeams.Add(beamId))
             Debug.Log($"LaserTarget: beam {beamId} started hitting. Count = {activeBeams.Count}");
+
+        // Audio: transiciones según cantidad
+        if (activeBeams.Count == 1)
+        {
+            // un rayo → loop lento
+            SoundManager.Instance?.StopLoop(LoopIdHold);
+            SoundManager.Instance?.StartLoop(LoopIdSingle, SfxKey.TargetSingleBlinkLoop, transform.position);
+        }
+        else if (activeBeams.Count >= requiredBeams)
+        {
+            // múltiples (>= requeridos) → loop rápido
+            SoundManager.Instance?.StopLoop(LoopIdSingle);
+            SoundManager.Instance?.StartLoop(LoopIdHold, SfxKey.TargetHoldLoop, transform.position);
+        }
     }
 
     public void Deactivate(int beamId)
     {
         if (activeBeams.Remove(beamId))
             Debug.Log($"LaserTarget: beam {beamId} stopped hitting. Count = {activeBeams.Count}");
+
+        // Audio: si bajamos a 0, apagar todo; si bajamos a 1, volver al loop lento
+        if (activeBeams.Count <= 0)
+        {
+            SoundManager.Instance?.StopLoop(LoopIdSingle);
+            SoundManager.Instance?.StopLoop(LoopIdHold);
+        }
+        else if (activeBeams.Count == 1)
+        {
+            SoundManager.Instance?.StopLoop(LoopIdHold);
+            SoundManager.Instance?.StartLoop(LoopIdSingle, SfxKey.TargetSingleBlinkLoop, transform.position);
+        }
     }
 
     void Update()
@@ -294,5 +322,10 @@ public class LaserTarget : MonoBehaviour
     {
         Debug.Log($"LaserTarget: required {requiredBeams} beams held for {requiredDuration} seconds — SUCCESS!");
         EnsureEmittedBeamCreated();
+
+        // Audio: detener loops y tocar éxito
+        SoundManager.Instance?.StopLoop(LoopIdSingle);
+        SoundManager.Instance?.StopLoop(LoopIdHold);
+        SoundManager.Instance?.Play(SfxKey.TargetSuccess, transform.position);
     }
 }
