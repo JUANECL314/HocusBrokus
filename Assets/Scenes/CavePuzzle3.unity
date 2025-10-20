@@ -10989,21 +10989,27 @@ MonoBehaviour:
   - key: 0
     clip: {fileID: 8300000, guid: dae727a068941394fab2e650f19dbb1b, type: 3}
     volume: 0.131
-    spatial: 0
+    spatial: 1
     loopable: 0
-    spatialBlend: 0
+    spatialBlend: 1
+    maxOneShotDuration: -1
+    pitchJitter: {x: 1, y: 1}
   - key: 1
     clip: {fileID: 8300000, guid: 233da60b6991b3e44902f4ca65d86007, type: 3}
     volume: 0.153
-    spatial: 0
+    spatial: 1
     loopable: 0
-    spatialBlend: 0
-  - key: 3
+    spatialBlend: 1
+    maxOneShotDuration: -1
+    pitchJitter: {x: 1, y: 1}
+  - key: 2
     clip: {fileID: 8300000, guid: 3ed01f2c6020aab4fb029bad2d0f2bbd, type: 3}
     volume: 0.119
-    spatial: 0
+    spatial: 1
     loopable: 1
-    spatialBlend: 0
+    spatialBlend: 1
+    maxOneShotDuration: 0.08
+    pitchJitter: {x: 0.95, y: 1.15}
   initialPool: 8
 --- !u!4 &378230787
 Transform:
@@ -24416,6 +24422,7 @@ GameObject:
   - component: {fileID: 808158012}
   - component: {fileID: 808158011}
   - component: {fileID: 808158015}
+  - component: {fileID: 808158016}
   m_Layer: 9
   m_Name: Target
   m_TagString: Target
@@ -24540,6 +24547,23 @@ MonoBehaviour:
     m_Bits: 4294967295
   emittedBeamWidth: 30
   emittedBeamColor: {r: 1, g: 0.92156863, b: 0.015686275, a: 1}
+--- !u!114 &808158016
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 808158010}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: bcce1a404159e8347bacb2645e493ffa, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  enabledOverride: 1
+  spatialBlend: 1
+  rolloff: 0
+  minDistance: 100
+  maxDistance: 100
 --- !u!1 &810148019
 GameObject:
   m_ObjectHideFlags: 0
@@ -49371,6 +49395,7 @@ GameObject:
   - component: {fileID: 1751343195}
   - component: {fileID: 1751343194}
   - component: {fileID: 1751343193}
+  - component: {fileID: 1751343196}
   m_Layer: 9
   m_Name: Mirror
   m_TagString: Mirror
@@ -49467,6 +49492,23 @@ MeshFilter:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1751343191}
   m_Mesh: {fileID: 10202, guid: 0000000000000000e000000000000000, type: 0}
+--- !u!114 &1751343196
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1751343191}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: bcce1a404159e8347bacb2645e493ffa, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  enabledOverride: 1
+  spatialBlend: 1
+  rolloff: 0
+  minDistance: 2
+  maxDistance: 50
 --- !u!1 &1762666934
 GameObject:
   m_ObjectHideFlags: 0

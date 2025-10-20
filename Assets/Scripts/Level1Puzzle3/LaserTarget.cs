@@ -91,15 +91,13 @@ public class LaserTarget : MonoBehaviour
         // Audio: transiciones según cantidad
         if (activeBeams.Count == 1)
         {
-            // un rayo → loop lento
             SoundManager.Instance?.StopLoop(LoopIdHold);
-            SoundManager.Instance?.StartLoop(LoopIdSingle, SfxKey.TargetSingleBlinkLoop, transform.position);
+            SoundManager.Instance?.StartLoop(LoopIdSingle, SfxKey.TargetSingleBlinkLoop, transform);
         }
         else if (activeBeams.Count >= requiredBeams)
         {
-            // múltiples (>= requeridos) → loop rápido
             SoundManager.Instance?.StopLoop(LoopIdSingle);
-            SoundManager.Instance?.StartLoop(LoopIdHold, SfxKey.TargetHoldLoop, transform.position);
+            SoundManager.Instance?.StartLoop(LoopIdHold, SfxKey.TargetHoldLoop, transform);
         }
     }
 

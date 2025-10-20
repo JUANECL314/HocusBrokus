@@ -1,3 +1,4 @@
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Audio;
@@ -39,6 +40,13 @@ public class SoundManager : MonoBehaviour
         public bool spatial = true;
         public bool loopable = false;
         [Range(0f, 1f)] public float spatialBlend = 1f;
+
+        [Header("One-shot shaping")]
+        [Tooltip("Si > 0, el one-shot se cortará tras este tiempo (segundos). Útil si tu clip es largo.")]
+        public float maxOneShotDuration = -1f;
+
+        [Tooltip("Rango aleatorio de pitch (min..max). Usa (1,1) para desactivar.")]
+        public Vector2 pitchJitter = new Vector2(1f, 1f);
     }
 
     [Header("Clips")]
@@ -77,9 +85,13 @@ public class SoundManager : MonoBehaviour
         go.transform.SetParent(transform);
         var src = go.AddComponent<AudioSource>();
         src.playOnAwake = false;
-        src.rolloffMode = AudioRolloffMode.Linear;
-        src.minDistance = 1f;
-        src.maxDistance = 25f;
+        // Defaults 3D sensatos; se pueden sobrescribir por clip u objeto
+        src.spatialBlend = 1f;
+        src.rolloffMode = AudioRolloffMode.Logarithmic;
+        src.minDistance = 1.5f;
+        src.maxDistance = 40f;
+        src.dopplerLevel = 0f;
+
         if (sfxGroup != null) src.outputAudioMixerGroup = sfxGroup;
         return src;
     }
@@ -92,24 +104,73 @@ public class SoundManager : MonoBehaviour
         return extra;
     }
 
+    // --- EXISTENTE: por posición (se mantiene) ---
     public void Play(SfxKey key, Vector3? worldPos = null, float pitch = 1f)
+    {
+        PlayInternal(key, worldPos, pitch, null);
+    }
+
+    public void StartLoop(string loopId, SfxKey key, Vector3? worldPos = null)
+    {
+        StartLoopInternal(loopId, key, worldPos, null);
+    }
+
+    // --- NUEVO: por Transform (aplica override por objeto si existe) ---
+    public void Play(SfxKey key, Transform from, float pitch = 1f)
+    {
+        if (from == null) { Play(key, (Vector3?)null, pitch); return; }
+        var area = from.GetComponent<SfxAreaOverride>();
+        PlayInternal(key, from.position, pitch, area);
+    }
+
+    public void StartLoop(string loopId, SfxKey key, Transform from)
+    {
+        var area = from != null ? from.GetComponent<SfxAreaOverride>() : null;
+        StartLoopInternal(loopId, key, from ? from.position : (Vector3?)null, area);
+    }
+
+    // --- Núcleo común ---
+    void ApplyPitch(AudioSource src, SfxEntry e, float pitch)
+    {
+        src.pitch = (e.pitchJitter.x != 1f || e.pitchJitter.y != 1f)
+            ? Random.Range(e.pitchJitter.x, e.pitchJitter.y)
+            : pitch;
+    }
+
+    void Apply3D(AudioSource src, SfxEntry e, SfxAreaOverride area)
+    {
+        src.spatialBlend = e.spatial ? e.spatialBlend : 0f;
+        if (area != null && area.enabledOverride)
+        {
+            src.spatialBlend = area.spatialBlend;
+            src.rolloffMode = area.rolloff;
+            src.minDistance = area.minDistance;
+            src.maxDistance = area.maxDistance;
+        }
+    }
+
+    void PlayInternal(SfxKey key, Vector3? worldPos, float pitch, SfxAreaOverride area)
     {
         if (!_map.TryGetValue(key, out var e) || e.clip == null) return;
 
         var src = GetFreeSource();
         src.clip = e.clip;
         src.volume = e.volume;
-        src.pitch = pitch;
         src.loop = false;
-        src.spatialBlend = e.spatial ? e.spatialBlend : 0f;
 
-        if (e.spatial && worldPos.HasValue) src.transform.position = worldPos.Value;
+        ApplyPitch(src, e, pitch);
+        Apply3D(src, e, area);
+
+        if (worldPos.HasValue) src.transform.position = worldPos.Value;
         else src.transform.localPosition = Vector3.zero;
 
         src.Play();
+
+        if (e.maxOneShotDuration > 0f)
+            StartCoroutine(StopAfter(src, e.maxOneShotDuration));
     }
 
-    public void StartLoop(string loopId, SfxKey key, Vector3? worldPos = null)
+    void StartLoopInternal(string loopId, SfxKey key, Vector3? worldPos, SfxAreaOverride area)
     {
         if (_loops.ContainsKey(loopId)) return;
         if (!_map.TryGetValue(key, out var e) || e.clip == null || !e.loopable) return;
@@ -118,13 +179,26 @@ public class SoundManager : MonoBehaviour
         src.clip = e.clip;
         src.volume = e.volume;
         src.loop = true;
-        src.spatialBlend = e.spatial ? e.spatialBlend : 0f;
+        src.pitch = 1f;
 
-        if (e.spatial && worldPos.HasValue) src.transform.position = worldPos.Value;
+        Apply3D(src, e, area);
+
+        if (worldPos.HasValue) src.transform.position = worldPos.Value;
         else src.transform.localPosition = Vector3.zero;
 
         src.Play();
         _loops[loopId] = src;
+    }
+
+    IEnumerator StopAfter(AudioSource src, float seconds)
+    {
+        float t = 0f;
+        while (t < seconds && src != null && src.isPlaying)
+        {
+            t += Time.unscaledDeltaTime;
+            yield return null;
+        }
+        if (src != null && src.isPlaying) src.Stop();
     }
 
     public void StopLoop(string loopId)
