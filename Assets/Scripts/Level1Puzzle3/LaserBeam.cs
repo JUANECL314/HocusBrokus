@@ -41,7 +41,9 @@ public class LaserBeam : MonoBehaviour
                 lr.positionCount++;
                 lr.SetPosition(lr.positionCount - 1, hit.point);
 
-                 if (hit.collider.CompareTag("Mirror"))
+
+                // Rebote en espejo (SIN SONIDO)
+                if (hit.collider.CompareTag("Mirror"))
                 {
                     KPITracker.Instance?.MarkMirrorLit(hit.collider.transform); // +++
                     direction = Vector3.Reflect(direction, hit.normal);
@@ -65,6 +67,7 @@ public class LaserBeam : MonoBehaviour
 
                     break;
                 }
+                // Impacta un Pilar
                 else if (hit.collider.CompareTag("Pillar"))
                 {
                     if (lastHitTarget != null)
@@ -74,6 +77,7 @@ public class LaserBeam : MonoBehaviour
                     }
                     break;
                 }
+                // Otro obst�culo
                 else
                 {
                     if (lastHitTarget != null)

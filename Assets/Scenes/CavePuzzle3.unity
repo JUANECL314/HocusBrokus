@@ -11226,6 +11226,100 @@ MeshFilter:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 362817222}
   m_Mesh: {fileID: 10206, guid: 0000000000000000e000000000000000, type: 0}
+--- !u!1 &378230785
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 378230787}
+  - component: {fileID: 378230786}
+  m_Layer: 0
+  m_Name: SoundManager
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &378230786
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 378230785}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b708ef5f5271c60418d86b8bde17b4f5, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  mixer: {fileID: 24100000, guid: 5558de904f9852f419bac1504c765b30, type: 2}
+  sfxGroup: {fileID: -4094175333142895518, guid: 5558de904f9852f419bac1504c765b30, type: 2}
+  masterVolParam: MasterVol
+  sfxVolParam: SFXVol
+  normalSnapshot: {fileID: 0}
+  duckedSnapshot: {fileID: 0}
+  duckFade: 0.15
+  duckHold: 0.6
+  clips:
+  - key: 0
+    clip: {fileID: 8300000, guid: dae727a068941394fab2e650f19dbb1b, type: 3}
+    volume: 0.131
+    spatial: 1
+    loopable: 0
+    spatialBlend: 1
+    maxOneShotDuration: -1
+    pitchJitter: {x: 0.75, y: 1.15}
+  - key: 1
+    clip: {fileID: 8300000, guid: 233da60b6991b3e44902f4ca65d86007, type: 3}
+    volume: 0.153
+    spatial: 1
+    loopable: 0
+    spatialBlend: 1
+    maxOneShotDuration: -1
+    pitchJitter: {x: 0.75, y: 1.15}
+  - key: 2
+    clip: {fileID: 8300000, guid: 3ed01f2c6020aab4fb029bad2d0f2bbd, type: 3}
+    volume: 0.071
+    spatial: 1
+    loopable: 0
+    spatialBlend: 1
+    maxOneShotDuration: 0.08
+    pitchJitter: {x: 0.6, y: 1.15}
+  - key: 4
+    clip: {fileID: 8300000, guid: 747caea3098906c44b55143aab20f54d, type: 3}
+    volume: 0.143
+    spatial: 1
+    loopable: 0
+    spatialBlend: 1
+    maxOneShotDuration: -1
+    pitchJitter: {x: 0.95, y: 1.15}
+  - key: 3
+    clip: {fileID: 8300000, guid: cd7ab875400010347b5e93a2bce8f813, type: 3}
+    volume: 0.264
+    spatial: 1
+    loopable: 0
+    spatialBlend: 1
+    maxOneShotDuration: 0.05
+    pitchJitter: {x: 0.95, y: 1.15}
+  initialPool: 8
+--- !u!4 &378230787
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 378230785}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 99.572105, y: 14.067297, z: -65.38928}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &380634247
 GameObject:
   m_ObjectHideFlags: 0
@@ -25128,6 +25222,7 @@ GameObject:
   - component: {fileID: 808040556}
   - component: {fileID: 808040555}
   - component: {fileID: 808040561}
+  - component: {fileID: 808040562}
   m_Layer: 0
   m_Name: PlayerCamera
   m_TagString: MainCamera
@@ -25279,6 +25374,14 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   magic: {fileID: 184132186}
+--- !u!81 &808040562
+AudioListener:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 808040554}
+  m_Enabled: 1
 --- !u!1 &808158010
 GameObject:
   m_ObjectHideFlags: 0
@@ -25292,6 +25395,7 @@ GameObject:
   - component: {fileID: 808158012}
   - component: {fileID: 808158011}
   - component: {fileID: 808158015}
+  - component: {fileID: 808158016}
   m_Layer: 9
   m_Name: Target
   m_TagString: Target
@@ -25416,6 +25520,23 @@ MonoBehaviour:
     m_Bits: 4294967295
   emittedBeamWidth: 30
   emittedBeamColor: {r: 1, g: 0.92156863, b: 0.015686275, a: 1}
+--- !u!114 &808158016
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 808158010}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: bcce1a404159e8347bacb2645e493ffa, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  enabledOverride: 1
+  spatialBlend: 1
+  rolloff: 0
+  minDistance: 200
+  maxDistance: 500
 --- !u!1 &810148019
 GameObject:
   m_ObjectHideFlags: 0
@@ -42262,6 +42383,7 @@ GameObject:
   - component: {fileID: 1392778160}
   - component: {fileID: 1392778159}
   - component: {fileID: 1392778163}
+  - component: {fileID: 1392778164}
   m_Layer: 0
   m_Name: Mirror_Pillar_1
   m_TagString: Untagged
@@ -42382,6 +42504,23 @@ MonoBehaviour:
   revertDelay: 200
   revertRotationSpeed: 0.5
   forceMoveUpMode: 0
+--- !u!114 &1392778164
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1392778158}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: bcce1a404159e8347bacb2645e493ffa, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  enabledOverride: 1
+  spatialBlend: 1
+  rolloff: 0
+  minDistance: 45
+  maxDistance: 100
 --- !u!1 &1393166379
 GameObject:
   m_ObjectHideFlags: 0
@@ -61733,3 +61872,4 @@ SceneRoots:
   - {fileID: 808040558}
   - {fileID: 1351498647}
   - {fileID: 762962694}
+  - {fileID: 378230787}

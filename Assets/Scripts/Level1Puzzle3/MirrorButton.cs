@@ -5,18 +5,13 @@ using UnityEngine;
 public class MirrorButton : MonoBehaviour
 {
     public MirrorController mirrorController;  // Assign this in the Inspector
-    public bool rotateLeft;                    // true = left, false = right
+    public bool rotateLeft;
 
     [Header("Optional move-up action")]
-    [Tooltip("When true, pressing moves the mirror up instead of rotating.")]
     public bool moveUpMode = false;
-    [Tooltip("Amount to move up each press (used when moveUpMode = true).")]
     public float moveUpAmount = 0.2f;
 
-    [Tooltip("Tags that will trigger this button when colliding (set on your element prefabs).")]
     public string[] magicTags = new string[] { "Fire", "Earth", "Wind", "Water" };
-
-    [Tooltip("If true uses OnTriggerEnter; if false uses OnCollisionEnter.")]
     public bool useTrigger = true;
 
     public void Press()
@@ -24,13 +19,15 @@ public class MirrorButton : MonoBehaviour
         if (mirrorController == null) return;
 
         if (moveUpMode)
+        {
             mirrorController.MoveUp(moveUpAmount);
+            // (SFX ahora lo dispara el MirrorController)
+        }
         else
         {
-            if (rotateLeft)
-                mirrorController.RotateLeft();
-            else
-                mirrorController.RotateRight();
+            if (rotateLeft) mirrorController.RotateLeft();
+            else mirrorController.RotateRight();
+            // (SFX ahora lo dispara el MirrorController)
         }
     }
 
