@@ -1,3 +1,4 @@
+using Photon.Pun;
 using UnityEngine;
 
 public class Elements : MonoBehaviour
@@ -10,4 +11,6 @@ public class Elements : MonoBehaviour
 
     // select the element type in the inspector
     public ElementType elementType = ElementType.Other;
+
+    
 }
