@@ -15,6 +15,7 @@ public class GearElemental : MonoBehaviour
     private Renderer rend;
     private bool rotating = false;
     private float heatProgress = 0f;
+    private string LoopId => $"gear_loop_{GetInstanceID()}";
 
     void Start()
     {
@@ -42,12 +43,24 @@ public class GearElemental : MonoBehaviour
 
     public void StartRotation()
     {
-        rotating = true;
+        if (!rotating)
+        {
+            rotating = true;
+
+            SoundManager.Instance?.Play(SfxKey.GearStart, transform);
+            SoundManager.Instance?.StartLoop(LoopId, SfxKey.GearLoop, transform);
+        }
     }
 
     public void StopRotation()
     {
-        rotating = false;
+        if (rotating)
+        {
+            rotating = false;
+
+            SoundManager.Instance?.StopLoop(LoopId);
+            SoundManager.Instance?.Play(SfxKey.GearStop, transform);
+        }
     }
 
     public void CoolDown()
@@ -55,6 +68,10 @@ public class GearElemental : MonoBehaviour
         heatProgress = 0f;
         rend.material.color = normalColor;
         rotating = true;
+
+        SoundManager.Instance?.Play(SfxKey.GearCoolHiss, transform);
+
+        SoundManager.Instance?.StartLoop(LoopId, SfxKey.GearLoop, transform);
     }
 
     public void ResetGear()
@@ -63,6 +80,7 @@ public class GearElemental : MonoBehaviour
         heatProgress = 0f;
         rend.material.color = normalColor;
         rotating = false;
+        SoundManager.Instance?.StopLoop(LoopId);
     }
 
     /*private void OnTriggerEnter(Collider other)

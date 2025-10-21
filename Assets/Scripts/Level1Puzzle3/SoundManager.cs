@@ -9,7 +9,15 @@ public enum SfxKey
     MirrorMoveUp,
     LaserHitMirror,
     TargetFastPing,     
-    TargetIlluminate    
+    TargetIlluminate,
+ // NUEVOS para escena de engranajes
+    GearStart,         // one-shot: arranque mecánico
+    GearLoop,          // loop: engranajes girando
+    GearStop,          // one-shot: se detienen
+    GearFall,          // one-shot: caída/metalazo
+    GearCoolHiss,      // one-shot: agua que enfría (hiss)
+    FireIgniteLoop,    // loop: fuego en el activador
+    FireWindBoost      // one-shot: soplo/ignite al sumar viento y activar
 }
 
 public class SoundManager : MonoBehaviour
