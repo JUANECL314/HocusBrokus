@@ -17,9 +17,9 @@ public class DoorProgressUI : MonoBehaviour
     {
         if (puzzle == null || slider == null) return;
 
-        // Mostrar solo cuando el puzzle está activo
+        // Mostrar solo cuando el puzzle esta activo
         bool visible = puzzle.IsActivated;
-        // Mostrar siempre, aunque no esté activo
+        // Mostrar siempre, aunque no este activo
         slider.gameObject.SetActive(true);
         if (statusText != null) statusText.gameObject.SetActive(true);
 

@@ -26,7 +26,7 @@ public class GearBehavior : MonoBehaviour
     public float overheatRearmSeconds = 6f;
 
     [Tooltip("Tras este tiempo girando, el engranaje cae (aleatorio lo gestiona el puzzle).")]
-    public float fallSpeed = 2f; // velocidad de caída controlada
+    public float fallSpeed = 2f; // velocidad de caida controlada
 
     private string LoopId => $"gear_loop_{GetInstanceID()}";
 
@@ -35,7 +35,7 @@ public class GearBehavior : MonoBehaviour
     private Coroutine destroyDoorsCo;
     private Coroutine overheatCo;
 
-    // Marca si se enfrió en la ventana actual
+    // Marca si se enfrio en la ventana actual
     private bool cooledDuringWindow = false;
 
     void Start()
@@ -65,9 +65,6 @@ public class GearBehavior : MonoBehaviour
         }
     }
 
-    // ------------------------------------------------------------
-    // INICIO / PARO (con audio centralizado aquí)
-    // ------------------------------------------------------------
     public void StartRotation()
     {
         if (isRotating) return;
@@ -113,17 +110,12 @@ public class GearBehavior : MonoBehaviour
     }
 
 
-    // ------------------------------------------------------------
-    // ENFRIAR / SOBRECALENTAR
-    // ------------------------------------------------------------
     public void CoolDown()
     {
         // Visual
         rend.material.color = Color.gray;
 
-        // 🔊 Hiss (usa la sobrecarga con Transform para aplicar overrides 3D)
         SoundManager.Instance?.Play(SfxKey.GearCoolHiss, transform);
-        // Debug.Log($"[GearBehavior] {name} CoolDown()");
 
         // Marca enfriado y rearma contador tras una espera
         cooledDuringWindow = true;
@@ -132,7 +124,7 @@ public class GearBehavior : MonoBehaviour
     }
     public void ResetToInitialPosition(bool smooth = true)
     {
-        // corta caída y físicas
+        // corta caida y físicas
         isFalling = false;
         if (rb != null)
         {
@@ -147,7 +139,6 @@ public class GearBehavior : MonoBehaviour
         }
         else
         {
-            // si ya hay una corrutina de retorno, no la dupliques
             StartCoroutine(ReturnToInitialPosition());
         }
     }
@@ -157,8 +148,8 @@ public class GearBehavior : MonoBehaviour
         float t = 0f;
         while (t < overheatSeconds)
         {
-            if (!isRotating) yield break;        // parado => nada
-            if (cooledDuringWindow) yield break; // se enfrió => rearmar en otro co
+            if (!isRotating) yield break;        
+            if (cooledDuringWindow) yield break; 
             t += Time.deltaTime;
             yield return null;
         }
@@ -185,7 +176,7 @@ public class GearBehavior : MonoBehaviour
         var puzzle = FindObjectOfType<ElementalPuzzle>();
         if (puzzle != null)
         {
-            // Pausa el progreso de la puerta y resetea TODO a posición inicial
+            // Pausa el progreso de la puerta y resetea TODO a posicion inicial
             puzzle.ResetFromOverheatAndReturnAll();
         }
     }
@@ -203,17 +194,14 @@ public class GearBehavior : MonoBehaviour
         }
     }
 
-    // ------------------------------------------------------------
-    // CAER / COLISIONES
-    // ------------------------------------------------------------
-    // GearBehavior.cs
+
     public void MakeFall()
     {
         if (isFalling) return;
 
         isFalling = true;
 
-        // ⬅️ NUEVO: marcar que NO está girando
+        // Marcar que NO esta girando
         isRotating = false;
 
         rb.isKinematic = false;
@@ -223,7 +211,6 @@ public class GearBehavior : MonoBehaviour
         SoundManager.Instance?.StopLoop(LoopId);
         SoundManager.Instance?.Play(SfxKey.GearFall, transform);
 
-        // ⬅️ OPCIONAL (recomendado): pausar el temporizador de puerta de inmediato
         var puzzle = FindObjectOfType<ElementalPuzzle>();
         if (puzzle != null) puzzle.DoorPause(true);
     }
@@ -231,7 +218,7 @@ public class GearBehavior : MonoBehaviour
 
     void OnCollisionEnter(Collision collision)
     {
-        // Agua => ENFRIAR (no tira)
+        // Agua => ENFRIAR 
         if (collision.gameObject.CompareTag("Water") && isRotating)
             CoolDown();
 
@@ -239,7 +226,7 @@ public class GearBehavior : MonoBehaviour
         if (collision.gameObject.CompareTag("Earth") && isFalling)
             StartCoroutine(ReturnToInitialPosition());
 
-        // Suelo => detener caída
+        // Suelo => detener caida
         if (collision.gameObject.CompareTag("Ground") && isFalling)
         {
             isFalling = false;
