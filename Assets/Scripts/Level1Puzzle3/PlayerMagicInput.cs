@@ -1,10 +1,11 @@
+using Photon.Pun;
 using UnityEngine;
 
 public class PlayerMagicInput : MonoBehaviour
 {
     // Single Magic reference (assign in Inspector)
     public Magic magic;
-
+    PhotonView vista;
     private void Reset()
     {
         // editor convenience: autofill from same GameObject
@@ -13,6 +14,7 @@ public class PlayerMagicInput : MonoBehaviour
 
     private void Awake()
     {
+        vista = GetComponent<PhotonView>();
         // runtime autofill: same object -> children -> any Magic in scene
         if (magic == null) magic = GetComponent<Magic>();
         if (magic == null) magic = GetComponentInChildren<Magic>();
@@ -24,11 +26,13 @@ public class PlayerMagicInput : MonoBehaviour
     void Update()
     {
         if (magic == null) return;
+        if (vista.IsMine)
+        {
+            // Left click to launch
+            if (Input.GetMouseButtonDown(0)) magic.launchElement();
 
-        // Left click to launch
-        if (Input.GetMouseButtonDown(0)) magic.launchElement();
-
-        // Press L to print element description
-        if (Input.GetKeyDown(KeyCode.L)) magic.elementDescription();
+            // Press L to print element description
+            if (Input.GetKeyDown(KeyCode.L)) magic.elementDescription();
+        }
     }
 }

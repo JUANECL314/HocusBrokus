@@ -85,12 +85,16 @@ public class LaserTarget : MonoBehaviour
     {
         if (activeBeams.Add(beamId))
             Debug.Log($"LaserTarget: beam {beamId} started hitting. Count = {activeBeams.Count}");
+
+        // ❌ Ya no usamos loops aquí. Solo el coroutine hará los pings.
     }
 
     public void Deactivate(int beamId)
     {
         if (activeBeams.Remove(beamId))
             Debug.Log($"LaserTarget: beam {beamId} stopped hitting. Count = {activeBeams.Count}");
+
+        // ❌ Sin loops que apagar. El coroutine se encarga de parar cuando cambie el modo.
     }
 
     void Update()
@@ -165,10 +169,20 @@ public class LaserTarget : MonoBehaviour
                ((mode == BlinkMode.Single && activeBeams.Count == 1) ||
                 (mode == BlinkMode.FastMulti && activeBeams.Count >= requiredBeams)))
         {
-            EnableGlow(true);
-            yield return new WaitForSeconds(interval);
             if (permanentlyGlowing || currentBlinkMode != mode) break;
+
+            EnableGlow(true);
+
+            PlayBlinkPing(mode);
+
+            yield return new WaitForSeconds(interval);
+
+            if (permanentlyGlowing || currentBlinkMode != mode) break;
+
             EnableGlow(false);
+
+            PlayBlinkPing(mode);
+
             yield return new WaitForSeconds(interval);
         }
 
@@ -289,10 +303,22 @@ public class LaserTarget : MonoBehaviour
         emittedLR.useWorldSpace = true;
         emittedLR.enabled = true;
     }
-
+    void PlayBlinkPing(BlinkMode mode)
+    {
+        if (mode == BlinkMode.Single)
+            SoundManager.Instance?.Play(SfxKey.LaserHitMirror, transform);
+        else if (mode == BlinkMode.FastMulti)
+            SoundManager.Instance?.Play(SfxKey.TargetFastPing, transform);
+    }
     private void OnRequiredBeamsHeld()
     {
         Debug.Log($"LaserTarget: required {requiredBeams} beams held for {requiredDuration} seconds — SUCCESS!");
         EnsureEmittedBeamCreated();
+
+        // 🔊 Nuevo: one-shot al pasar a brillo permanente (no loop)
+        SoundManager.Instance?.Play(SfxKey.TargetIlluminate, transform.position);
+
+        // (Si quieres además bajar un poco la mezcla por 0.6s, descomenta)
+        // SoundManager.Instance?.PunchSuccessDuck();
     }
 }
