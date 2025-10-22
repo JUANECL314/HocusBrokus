@@ -66,7 +66,7 @@ public class LoginUIController : MonoBehaviour
 
     public void OnClickIngresar()
     {
-        var email = inputUsuarioEmail ? inputUsuarioEmail.text.Trim() : "";
+        /*var email = inputUsuarioEmail ? inputUsuarioEmail.text.Trim() : "";
         var pass = inputPassword ? inputPassword.text : "";
 
         if (string.IsNullOrEmpty(email) || string.IsNullOrEmpty(pass))
@@ -75,7 +75,8 @@ public class LoginUIController : MonoBehaviour
             return;
         }
 
-        StartCoroutine(CoLogin(email, pass));
+        StartCoroutine(CoLogin(email, pass));*/
+        photonConnector.conectarServidor();
     }
 
     private IEnumerator CoLogin(string email, string password)
