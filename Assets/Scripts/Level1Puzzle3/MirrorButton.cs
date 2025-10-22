@@ -14,6 +14,7 @@ public class MirrorButton : MonoBehaviour
     public string[] magicTags = new string[] { "Fire", "Earth", "Wind", "Water" };
     public bool useTrigger = true;
 
+    
     public void Press()
     {
         if (mirrorController == null) return;
