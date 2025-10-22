@@ -1,4 +1,4 @@
-#if PHOTON_UNITY_NETWORKING
+﻿#if PHOTON_UNITY_NETWORKING
 using Photon.Realtime;
 #endif
 using TMPro;
@@ -10,13 +10,18 @@ public class PlayerCardUI : MonoBehaviour
 {
     [Header("Refs")]
     [SerializeField] private TextMeshProUGUI playerNameText;
+
+    [Header("Endorsements (solo 1)")]
     [SerializeField] private Toggle tglLiderazgo;
     [SerializeField] private Toggle tglCalma;
     [SerializeField] private Toggle tglCoordinacion;
     [SerializeField] private Toggle tglApoyo;
     [SerializeField] private Toggle tglCreatividad;
 
-    // Respaldo com�n
+    [Header("Afinidad / Volvería a jugar")]
+    [SerializeField] private Toggle tglPlayAgain;   // ← NUEVO
+
+    // Respaldo común
     private string _receiverId;
     private string _receiverName;
 
@@ -26,7 +31,7 @@ public class PlayerCardUI : MonoBehaviour
 
     private void Awake()
     {
-        // Intento auto-descubrir refs si faltan (�til cuando se rehace el prefab)
+        // Intento auto-descubrir refs si faltan (útil cuando se rehace el prefab)
         AutoWireIfMissing();
         WarnIfMissingRefs();
     }
@@ -35,12 +40,19 @@ public class PlayerCardUI : MonoBehaviour
     {
         if (!playerNameText) playerNameText = GetComponentInChildren<TextMeshProUGUI>(true);
 
-        // Si usas nombres est�ndar en el prefab, puedes ayudar a enlazar r�pido:
+        // Si usas nombres estándar en el prefab, puedes ayudar a enlazar rápido:
         if (!tglLiderazgo) tglLiderazgo = FindToggleByNameContains("Lider", "Liderazgo");
         if (!tglCalma) tglCalma = FindToggleByNameContains("Calma");
         if (!tglCoordinacion) tglCoordinacion = FindToggleByNameContains("Coor", "Coordin");
         if (!tglApoyo) tglApoyo = FindToggleByNameContains("Apoyo");
         if (!tglCreatividad) tglCreatividad = FindToggleByNameContains("Creat", "Creatividad");
+
+        // Auto-wire del nuevo toggle
+        if (!tglPlayAgain)
+        {
+            // Busca por distintos posibles nombres/etiquetas en español o inglés
+            tglPlayAgain = FindToggleByNameContains("PlayAgain", "Play", "Volver", "Jugar", "Again");
+        }
     }
 
     private Toggle FindToggleByNameContains(params string[] parts)
@@ -68,6 +80,7 @@ public class PlayerCardUI : MonoBehaviour
         if (!tglCoordinacion) Debug.LogWarning($"[PlayerCardUI] Falta 'tglCoordinacion' en {name}");
         if (!tglApoyo) Debug.LogWarning($"[PlayerCardUI] Falta 'tglApoyo' en {name}");
         if (!tglCreatividad) Debug.LogWarning($"[PlayerCardUI] Falta 'tglCreatividad' en {name}");
+        if (!tglPlayAgain) Debug.LogWarning($"[PlayerCardUI] Falta 'tglPlayAgain' (Volvería a jugar) en {name}");
 #endif
     }
 
@@ -101,6 +114,9 @@ public class PlayerCardUI : MonoBehaviour
     public string ReceiverUserId => _receiverId;
     public string ReceiverDisplayName => _receiverName;
 
+    /// <summary>
+    /// Devuelve el endorsement elegido (solo 1) si existe.
+    /// </summary>
     public bool HasSelection(out EndorsementType type)
     {
         if (tglLiderazgo && tglLiderazgo.isOn) { type = EndorsementType.Liderazgo; return true; }
@@ -112,6 +128,14 @@ public class PlayerCardUI : MonoBehaviour
         return false;
     }
 
+    /// <summary>
+    /// Estado del voto de afinidad "Volvería a jugar".
+    /// </summary>
+    public bool PlayAgainSelected => tglPlayAgain != null && tglPlayAgain.isOn;
+
+    /// <summary>
+    /// Limpia SOLO los endorsements. No toca el "Volvería a jugar".
+    /// </summary>
     public void ClearSelection()
     {
         if (tglLiderazgo) tglLiderazgo.isOn = false;
@@ -119,5 +143,8 @@ public class PlayerCardUI : MonoBehaviour
         if (tglCoordinacion) tglCoordinacion.isOn = false;
         if (tglApoyo) tglApoyo.isOn = false;
         if (tglCreatividad) tglCreatividad.isOn = false;
+
+        // Si quisieras limpiar también el voto de afinidad, descomenta:
+        // if (tglPlayAgain) tglPlayAgain.isOn = false;
     }
 }
