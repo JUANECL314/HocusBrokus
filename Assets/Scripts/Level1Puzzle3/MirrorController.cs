@@ -1,7 +1,7 @@
 ﻿// ...existing code...
 using UnityEngine;
-
-public class MirrorController : MonoBehaviour
+using Photon.Pun;
+public class MirrorController : MonoBehaviourPun
 {
     [Header("Rotation")]
     public float rotateAngle = 15f;
@@ -53,6 +53,10 @@ public class MirrorController : MonoBehaviour
 
     public void RotateLeft()
     {
+        if (!photonView.IsMine)
+        {
+            photonView.RequestOwnership();
+        }
         if (forceMoveUpMode)
         {
             MoveUp();
@@ -69,6 +73,10 @@ public class MirrorController : MonoBehaviour
 
     public void RotateRight()
     {
+        if (!photonView.IsMine)
+        {
+            photonView.RequestOwnership();
+        }
         if (forceMoveUpMode)
         {
             MoveUp();
@@ -85,6 +93,10 @@ public class MirrorController : MonoBehaviour
 
     public void MoveUp(float amount = 0f)
     {
+        if (!photonView.IsMine)
+        {
+            photonView.RequestOwnership();
+        }
         if (amount <= 0f) amount = defaultMoveAmount;
 
         currentUpOffset = Mathf.Clamp(currentUpOffset + amount, 0f, Mathf.Abs(maxUpOffset));
