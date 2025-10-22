@@ -51,15 +51,28 @@ public class MirrorController : MonoBehaviourPun
         }
     }
 
+   
+
     public void RotateLeft()
     {
-        if (!photonView.IsMine)
-        {
-            photonView.RequestOwnership();
-        }
+        photonView.RPC(nameof(RPC_RotateLeft), RpcTarget.AllBuffered);
+    }
+
+    public void RotateRight()
+    {
+        photonView.RPC(nameof(RPC_RotateRight), RpcTarget.AllBuffered);
+    }
+
+    public void MoveUp(float amount = 0f)
+    {
+        photonView.RPC(nameof(RPC_MoveUp), RpcTarget.AllBuffered, amount);
+    }
+    [PunRPC]
+    void RPC_RotateLeft()
+    {
         if (forceMoveUpMode)
         {
-            MoveUp();
+            RPC_MoveUp(defaultMoveAmount);
             return;
         }
 
@@ -67,19 +80,16 @@ public class MirrorController : MonoBehaviourPun
         ApplyRotationOffset();
         lastInteractionTime = Time.time;
 
-        // 🔊 ahora suena desde el espejo
         SoundManager.Instance?.Play(SfxKey.MirrorRotate, transform);
     }
-
-    public void RotateRight()
+    
+    
+    [PunRPC]
+    void RPC_RotateRight()
     {
-        if (!photonView.IsMine)
-        {
-            photonView.RequestOwnership();
-        }
         if (forceMoveUpMode)
         {
-            MoveUp();
+            RPC_MoveUp(defaultMoveAmount);
             return;
         }
 
@@ -87,25 +97,21 @@ public class MirrorController : MonoBehaviourPun
         ApplyRotationOffset();
         lastInteractionTime = Time.time;
 
-        // 🔊 ahora suena desde el espejo
         SoundManager.Instance?.Play(SfxKey.MirrorRotate, transform);
     }
-
-    public void MoveUp(float amount = 0f)
+    [PunRPC]
+    void RPC_MoveUp(float amount)
     {
-        if (!photonView.IsMine)
-        {
-            photonView.RequestOwnership();
-        }
         if (amount <= 0f) amount = defaultMoveAmount;
 
         currentUpOffset = Mathf.Clamp(currentUpOffset + amount, 0f, Mathf.Abs(maxUpOffset));
         ApplyPositionOffset();
         lastInteractionTime = Time.time;
 
-        // 🔊 ahora suena desde el espejo
         SoundManager.Instance?.Play(SfxKey.MirrorMoveUp, transform);
     }
+
+
 
     private void ApplyRotationOffset()
     {
