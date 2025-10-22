@@ -14282,7 +14282,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 85891628466e1754ea2f1f25eabb8a53, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  mirrorController: {fileID: 2025316966}
+  mirrorController: {fileID: 0}
   rotateLeft: 1
   moveUpMode: 1
   moveUpAmount: 5
@@ -39832,7 +39832,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 85891628466e1754ea2f1f25eabb8a53, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  mirrorController: {fileID: 2025316966}
+  mirrorController: {fileID: 0}
   rotateLeft: 0
   moveUpMode: 0
   moveUpAmount: 1
@@ -41480,6 +41480,10 @@ PrefabInstance:
       propertyPath: m_Mesh
       value: 
       objectReference: {fileID: 1855113761}
+    - target: {fileID: 5299922118336007224, guid: c956bb60fa162074a8193f810ce06aae, type: 3}
+      propertyPath: m_VersionIndex
+      value: 5850
+      objectReference: {fileID: 0}
     - target: {fileID: 5890477225732929115, guid: c956bb60fa162074a8193f810ce06aae, type: 3}
       propertyPath: m_Mesh
       value: 
@@ -48382,6 +48386,11 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   gameObjectToUse: Mirror_Pillar_1
+  sceneObject: {fileID: 0}
+  mirrorController: {fileID: 0}
+  lista:
+  - {fileID: 862370335}
+  - {fileID: 1564664515}
 --- !u!1 &1698034953
 GameObject:
   m_ObjectHideFlags: 0
@@ -56759,17 +56768,6 @@ MeshFilter:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 2017717324}
   m_Mesh: {fileID: 10206, guid: 0000000000000000e000000000000000, type: 0}
---- !u!114 &2025316966 stripped
-MonoBehaviour:
-  m_CorrespondingSourceObject: {fileID: 4209615542211840114, guid: 958f865dd9775a940aef1abbb9c31fa7, type: 3}
-  m_PrefabInstance: {fileID: 2655551812691963791}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 0}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 7fc320d7e312a544dbc66a085f21d35e, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
 --- !u!1 &2027479155
 GameObject:
   m_ObjectHideFlags: 0
@@ -57109,6 +57107,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 2046391357}
+  - component: {fileID: 2046391358}
   m_Layer: 0
   m_Name: Buttons3
   m_TagString: Untagged
@@ -57133,6 +57132,24 @@ Transform:
   - {fileID: 451799171}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &2046391358
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2046391356}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2b339f0310c52414893a8845a594d2eb, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  gameObjectToUse: Mirror_Pillar_3
+  sceneObject: {fileID: 0}
+  mirrorController: {fileID: 0}
+  lista:
+  - {fileID: 1349731814}
+  - {fileID: 451799170}
 --- !u!1 &2048655387
 GameObject:
   m_ObjectHideFlags: 0
@@ -59436,7 +59453,7 @@ PrefabInstance:
       objectReference: {fileID: 1969218238}
     - target: {fileID: 6328585320501002256, guid: 958f865dd9775a940aef1abbb9c31fa7, type: 3}
       propertyPath: m_VersionIndex
-      value: 5850
+      value: 5853
       objectReference: {fileID: 0}
     - target: {fileID: 8903803693310464849, guid: 958f865dd9775a940aef1abbb9c31fa7, type: 3}
       propertyPath: m_Mesh
@@ -59543,6 +59560,5 @@ SceneRoots:
   - {fileID: 808158014}
   - {fileID: 1351498647}
   - {fileID: 762962694}
-  - {fileID: 378230787}
   - {fileID: 1047066240}
   - {fileID: 145403988}

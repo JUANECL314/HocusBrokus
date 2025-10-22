@@ -1,6 +1,6 @@
 // ...existing code...
 using UnityEngine;
-
+using System.Collections;
 [RequireComponent(typeof(Collider))]
 public class MirrorButton : MonoBehaviour
 {
@@ -13,10 +13,12 @@ public class MirrorButton : MonoBehaviour
 
     public string[] magicTags = new string[] { "Fire", "Earth", "Wind", "Water" };
     public bool useTrigger = true;
-
     
+
     public void Press()
     {
+        Debug.Log("Pilar activandose");
+        
         if (mirrorController == null) return;
 
         if (moveUpMode)
@@ -71,6 +73,7 @@ public class MirrorButton : MonoBehaviour
 
     bool IsMagic(GameObject go)
     {
+        Debug.Log("Colision");
         if (go == null || magicTags == null) return false;
         foreach (var t in magicTags)
         {
@@ -79,5 +82,6 @@ public class MirrorButton : MonoBehaviour
         }
         return false;
     }
+   
 }
 // ...existing code...
