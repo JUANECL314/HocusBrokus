@@ -1,6 +1,7 @@
 // ...existing code...
 using UnityEngine;
 using System.Collections;
+
 [RequireComponent(typeof(Collider))]
 public class MirrorButton : MonoBehaviour
 {
@@ -13,24 +14,45 @@ public class MirrorButton : MonoBehaviour
 
     public string[] magicTags = new string[] { "Fire", "Earth", "Wind", "Water" };
     public bool useTrigger = true;
-    
 
-    public void Press()
+    // NUEVO: versión con actor (para KPI)
+    public void Press(GameObject actor)
     {
-        Debug.Log("Pilar activandose");
-        
+        Debug.Log("Pilar activándose (con actor)");
+        KPITracker.Instance?.RegisterButtonPress(gameObject, actor);
+        KPITracker.Instance?.RegisterRotationOrMoveUp(actor); // suma participación/cooperación
+
         if (mirrorController == null) return;
 
         if (moveUpMode)
         {
             mirrorController.MoveUp(moveUpAmount);
-            // (SFX ahora lo dispara el MirrorController)
+            // SFX lo dispara el MirrorController
         }
         else
         {
             if (rotateLeft) mirrorController.RotateLeft();
             else mirrorController.RotateRight();
-            // (SFX ahora lo dispara el MirrorController)
+            // SFX lo dispara el MirrorController
+        }
+    }
+
+    // Retrocompatibilidad: sigue existiendo Press() sin actor
+    public void Press()
+    {
+        Debug.Log("Pilar activándose");
+        KPITracker.Instance?.RegisterButtonPress(gameObject, null);
+
+        if (mirrorController == null) return;
+
+        if (moveUpMode)
+        {
+            mirrorController.MoveUp(moveUpAmount);
+        }
+        else
+        {
+            if (rotateLeft) mirrorController.RotateLeft();
+            else mirrorController.RotateRight();
         }
     }
 
@@ -61,19 +83,19 @@ public class MirrorButton : MonoBehaviour
     {
         if (!useTrigger) return;
         if (IsMagic(other.gameObject))
-            Press();
+            Press(other.gameObject); // << ahora pasamos actor para KPI
     }
 
     void OnCollisionEnter(Collision collision)
     {
         if (useTrigger) return;
         if (IsMagic(collision.collider.gameObject))
-            Press();
+            Press(collision.collider.gameObject); // << ahora pasamos actor para KPI
     }
 
     bool IsMagic(GameObject go)
     {
-        Debug.Log("Colision");
+        Debug.Log("Colisión");
         if (go == null || magicTags == null) return false;
         foreach (var t in magicTags)
         {
@@ -82,6 +104,5 @@ public class MirrorButton : MonoBehaviour
         }
         return false;
     }
-   
 }
 // ...existing code...
