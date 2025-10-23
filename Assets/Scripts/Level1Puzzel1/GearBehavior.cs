@@ -57,7 +57,7 @@ public class GearBehavior : MonoBehaviour
 
     void Update()
     {
-        if (isRotating) transform.Rotate(Vector3.up * rotationSpeed * Time.deltaTime);
+        if (isRotating) transform.Rotate(Vector3.forward * -rotationSpeed * Time.deltaTime, Space.Self);
         if (isFalling)
         {
             rb.isKinematic = false;
