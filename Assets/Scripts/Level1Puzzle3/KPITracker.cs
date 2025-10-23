@@ -1,89 +1,146 @@
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using UnityEngine;
+using Photon.Pun;
 
+/// KPI minimal para 4 métricas:
+// 1) Tiempo total del puzzle
+// 2) Coordinación: % del tiempo con ≥2 espejos encendidos
+// 3) Eventos de cooperación: acciones cercanas entre actores distintos
+// 4) Participación por actor + STD (más bajo = más balanceado)
 public class KPITracker : MonoBehaviour
 {
     public static KPITracker Instance { get; private set; }
 
-    [Header("Config")]
-    [Tooltip("Ventana de tiempo para considerar que un espejo 'est� iluminado' (segundos)")]
+    [Header("Ajustes")]
+    [Tooltip("Cuánto tiempo (s) se considera 'encendido' un espejo después de recibir láser.")]
     public float litMemoryWindow = 0.15f;
 
+    [Tooltip("Ventana (s) para considerar que dos acciones de actores distintos son cooperación.")]
+    public float assistWindow = 2f;
+
+    // Tiempo
     private bool timerStarted = false;
     private float startTime = 0f;
     private float stopTime = 0f;
     private bool puzzleCompleted = false;
 
-    // Guardamos mirrors iluminados recientemente: mirror -> timeUntil
+    // Espejos encendidos recientemente: mirror -> venceA
     private readonly Dictionary<Transform, float> litUntilByMirror = new Dictionary<Transform, float>();
 
-    // Contadores
-    public int attemptsLitRotations { get; private set; } = 0;
+    // Participación y cooperación
+    private readonly Dictionary<string, int> actionsByActor = new Dictionary<string, int>();
+    private string lastActorId = null;
+    private float lastActorTime = -999f;
+    private int cooperationEvents = 0;
+
+    // Coordinación
+    private float lastUpdateTime = 0f;
+    private float activeTime = 0f;
+    private float multiLitTime = 0f;
 
     void Awake()
     {
         if (Instance != null && Instance != this) { Destroy(gameObject); return; }
         Instance = this;
-        // Opcional: si quieres que persista entre escenas
-        // DontDestroyOnLoad(gameObject);
+        // DontDestroyOnLoad(gameObject); // opcional si quieres persistir entre escenas
     }
 
     void Update()
     {
-        // Purga suave de entradas expiradas
-        if (litUntilByMirror.Count == 0) return;
+        float now = Time.time;
 
-        var keys = new List<Transform>(litUntilByMirror.Keys);
-        float t = Time.time;
-        foreach (var k in keys)
+        // Integración de tiempos para coordinación
+        if (timerStarted && !puzzleCompleted)
         {
-            if (litUntilByMirror[k] < t) litUntilByMirror.Remove(k);
+            float dt = (lastUpdateTime > 0f) ? (now - lastUpdateTime) : 0f;
+            if (dt > 0f)
+            {
+                activeTime += dt;
+                if (CurrentLitCount() >= 2) multiLitTime += dt;
+            }
+            lastUpdateTime = now;
+        }
+
+        // Limpieza de espejos encendidos expirados
+        if (litUntilByMirror.Count > 0)
+        {
+            _tmpKeys ??= new List<Transform>(8);
+            _tmpKeys.Clear();
+            foreach (var k in litUntilByMirror.Keys) _tmpKeys.Add(k);
+            for (int i = 0; i < _tmpKeys.Count; i++)
+            {
+                if (litUntilByMirror[_tmpKeys[i]] < now) litUntilByMirror.Remove(_tmpKeys[i]);
+            }
+        }
+    }
+    private List<Transform> _tmpKeys;
+
+    private int CurrentLitCount()
+    {
+        int n = 0; float t = Time.time;
+        foreach (var kv in litUntilByMirror) if (kv.Value >= t) n++;
+        return n;
+    }
+
+    private void EnsureTimerStarted(string reason)
+    {
+        if (!timerStarted && !puzzleCompleted)
+        {
+            timerStarted = true;
+            startTime = Time.time;
+            lastUpdateTime = startTime;
+            Debug.Log($"[KPI] Timer iniciado ({reason}).");
         }
     }
 
-    /// Llamado por LaserBeam cuando el rayo golpea un espejo.
+    // ---------- Identidad de actor ----------
+    private string GetActorId(GameObject actor)
+    {
+        if (actor == null) return "Unknown";
+        var pv = actor.GetComponentInParent<PhotonView>();
+        if (pv != null && pv.Owner != null) return $"P{pv.OwnerActorNr}";
+        if (!string.IsNullOrEmpty(actor.tag) && actor.tag != "Untagged") return $"Tag:{actor.tag}";
+        return actor.name;
+    }
+
+    private void CountActorAction(GameObject actor)
+    {
+        string id = GetActorId(actor);
+        if (!actionsByActor.ContainsKey(id)) actionsByActor[id] = 0;
+        actionsByActor[id]++;
+
+        float now = Time.time;
+        if (!string.IsNullOrEmpty(lastActorId) && lastActorId != id && (now - lastActorTime) <= assistWindow)
+            cooperationEvents++;
+
+        lastActorId = id;
+        lastActorTime = now;
+    }
+
+    // ========== HOOKS PÚBLICOS ==========
+
+    /// Llamar cuando el rayo pega en un espejo (ya lo hace tu LaserBeam).
     public void MarkMirrorLit(Transform mirror)
     {
-        float until = Time.time + litMemoryWindow;
-        litUntilByMirror[mirror] = until;
-        // Inicia timer en el primer evento real del puzzle
-        if (!timerStarted && !puzzleCompleted)
-        {
-            timerStarted = true;
-            startTime = Time.time;
-            Debug.Log("[KPI] Timer iniciado (primer impacto de l�ser en espejo).");
-        }
+        EnsureTimerStarted("primer impacto de láser");
+        litUntilByMirror[mirror] = Time.time + litMemoryWindow;
     }
 
-    /// Llamado por MirrorController cuando se rota un espejo.
-    public void RegisterRotation(Transform mirror)
+    /// Llamar cuando alguien presiona el botón (desde MirrorButton, pasando el actor).
+    public void RegisterButtonPress(GameObject buttonOrMirror, GameObject actor = null)
     {
-        if (!timerStarted && !puzzleCompleted)
-        {
-            timerStarted = true;
-            startTime = Time.time;
-            Debug.Log("[KPI] Timer iniciado (primera rotaci�n).");
-        }
-
-        // Suma intento s�lo si ese espejo est� (o estuvo hace ms) iluminado
-        if (IsMirrorCurrentlyLit(mirror))
-        {
-            attemptsLitRotations++;
-            Debug.Log($"[KPI] Intento contado (rotaci�n con espejo iluminado). Total: {attemptsLitRotations}");
-        }
-        else
-        {
-            // Si quisieras contar tambi�n las rotaciones a oscuras, aqu� podr�as llevar otro contador.
-            // Debug.Log("[KPI] Rotaci�n sin luz: no cuenta como intento.");
-        }
+        EnsureTimerStarted("primera acción (button)");
+        if (actor != null) CountActorAction(actor);
     }
 
-    private bool IsMirrorCurrentlyLit(Transform mirror)
+    /// Si quieres, puedes llamarlo también tras una rotación o move up con actor (opcional).
+    public void RegisterRotationOrMoveUp(GameObject actor = null)
     {
-        return litUntilByMirror.TryGetValue(mirror, out float until) && Time.time <= until;
+        EnsureTimerStarted("acción (rotación/move up)");
+        if (actor != null) CountActorAction(actor);
     }
 
-    /// Llamado por LaserTarget al completar el puzzle.
+    /// Llamar cuando el puzzle se complete (al cumplir condiciones en LaserTarget).
     public void OnPuzzleCompleted()
     {
         if (puzzleCompleted) return;
@@ -91,11 +148,27 @@ public class KPITracker : MonoBehaviour
         stopTime = Time.time;
 
         float elapsed = timerStarted ? (stopTime - startTime) : 0f;
-        Debug.Log($"[KPI] Puzzle completado. Tiempo: {elapsed:F2}s | Intentos (rotaciones con luz): {attemptsLitRotations}");
+        float coordPct = (activeTime > 0f) ? (multiLitTime / activeTime) * 100f : 0f;
 
-        // Aqu� puedes despachar a UI / Analytics / Persistencia:
-        // - Enviar a un GameManager
-        // - Guardar en PlayerPrefs / archivo / backend
-        // - Disparar UnityEvents p�blicos, etc.
+        // Participación + STD
+        string participation = "";
+        double sum = 0, sumSq = 0; int n = 0;
+        foreach (var kv in actionsByActor)
+        {
+            participation += $"  - {kv.Key}: {kv.Value}\n";
+            sum += kv.Value; sumSq += kv.Value * kv.Value; n++;
+        }
+        double mean = (n > 0) ? sum / n : 0;
+        double variance = (n > 0) ? (sumSq / n - mean * mean) : 0;
+        double stddev = System.Math.Sqrt(System.Math.Max(0, variance));
+
+        Debug.Log(
+            "[KPI] Puzzle COMPLETADO" +
+            $"\n  Tiempo total: {elapsed:F2}s" +
+            $"\n  Coordinación (≥2 espejos encendidos): {coordPct:F1}% del tiempo activo" +
+            $"\n  Eventos de cooperación (acciones cercanas entre actores distintos): {cooperationEvents}" +
+            $"\n  Participación por actor (STD más baja = más balanceado):\n{participation}" +
+            $"\n  STD participación: {stddev:F2}"
+        );
     }
 }
