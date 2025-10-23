@@ -23,7 +23,7 @@ public class FreeFlyCamera : MonoBehaviour
 
     void Update()
     {
-        if (!enableFlying) return;
+        //if (!enableFlying) return;
 
         // Mouse look - rotate camera on both axes
         yaw += lookSpeed * Input.GetAxis("Mouse X");

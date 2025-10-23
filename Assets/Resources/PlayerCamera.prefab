@@ -413,7 +413,7 @@ GameObject:
   - component: {fileID: 971891482613735926}
   m_Layer: 0
   m_Name: PlayerCamera
-  m_TagString: MainCamera
+  m_TagString: Player
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -450,7 +450,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: dade7f09dd1d898469c7b0e01d75c1b1, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  enableFlying: 1
+  enableFlying: 0
   moveSpeed: 30
   lookSpeed: 6
   characterModel: {fileID: 0}

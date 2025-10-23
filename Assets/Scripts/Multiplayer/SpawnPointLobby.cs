@@ -12,7 +12,8 @@ public class SpawnPointLobby : MonoBehaviour
         if (PhotonNetwork.IsConnectedAndReady)
         {
             // Puedes hacer que cada jugador use un spawn distinto basado en su actor number
-            int index = PhotonNetwork.LocalPlayer.ActorNumber % spawnPoints.Length;
+            int index = PhotonNetwork.LocalPlayer.ActorNumber-1;
+           
             Transform spawn = spawnPoints[index];
 
             PhotonNetwork.Instantiate(playerPrefab.name, spawn.position, spawn.rotation);
