@@ -1,27 +1,78 @@
-using Photon.Pun;
+﻿using Photon.Pun;
 using UnityEngine;
 
-public class AuxControl : MonoBehaviour
+public class AuxControl : MonoBehaviourPun
 {
+    public GameObject canvas;
 
-    // Update is called once per frame
 
     private void Start()
     {
-        PhotonNetwork.AutomaticallySyncScene = true;
+        canvas.SetActive(false);
+    }
 
-    }
-    void Update()
+    private void OnTriggerEnter(Collider other)
+    {
+        if (other.CompareTag("Portal") && PhotonNetwork.IsMasterClient)
         {
-            // Solo ejecuta si el jugador es el Master Client
-            if (PhotonNetwork.IsMasterClient)
-            {
-                // Si se presiona la tecla R
-                if (Input.GetKeyDown(KeyCode.R))
-                {
-                    PhotonNetwork.LoadLevel("TownRoom");
-                }
-            }
+            canvas.SetActive(true);
         }
-        
     }
+
+    private void Awake()
+    {
+        PhotonNetwork.AutomaticallySyncScene = false;
+    }
+
+    void Update()
+    {
+        if (PhotonNetwork.IsMasterClient && Input.GetKeyDown(KeyCode.R))
+        {
+            Debug.Log("Master recargando TownRoom...");
+            photonView.RPC("RPC_LoadLevel", RpcTarget.AllBuffered, "TownRoom");
+        }
+    }
+
+    public void Level1_1Enter()
+    {
+        if (!PhotonNetwork.IsConnected || !PhotonNetwork.InRoom)
+        {
+            Debug.LogWarning("No estás conectado a Photon todavía. Espera antes de cargar el nivel.");
+            return;
+        }
+
+        if (photonView == null)
+        {
+            Debug.LogError("photonView es null. Asegúrate de tener un PhotonView en este objeto.");
+            return;
+        }
+
+
+        photonView.RPC("RPC_LoadLevel", RpcTarget.AllBuffered, "CavePuzzle1");
+    }
+
+    public void Level1_3Enter()
+    {
+        if (!PhotonNetwork.IsConnected || !PhotonNetwork.InRoom)
+        {
+            Debug.LogWarning("No estás conectado a Photon todavía. Espera antes de cargar el nivel.");
+            return;
+        }
+
+        if (photonView == null)
+        {
+            Debug.LogError(" photonView es null. Asegúrate de tener un PhotonView en este objeto.");
+            return;
+        }
+
+        photonView.RPC("RPC_LoadLevel", RpcTarget.AllBuffered, "CavePuzzle3");
+    }
+
+    
+    [PunRPC]
+    private void RPC_LoadLevel(string sceneName)
+    {
+        Debug.Log($"Cambiando escena a: {sceneName}");
+        PhotonNetwork.LoadLevel(sceneName);
+    }
+}
