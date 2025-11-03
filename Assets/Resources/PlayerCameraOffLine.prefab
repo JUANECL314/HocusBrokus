@@ -4567,8 +4567,8 @@ Rigidbody:
   m_ImplicitTensor: 1
   m_UseGravity: 1
   m_IsKinematic: 0
-  m_Interpolate: 0
-  m_Constraints: 96
+  m_Interpolate: 1
+  m_Constraints: 0
   m_CollisionDetection: 0
 --- !u!114 &-6334809897886953100
 MonoBehaviour:
@@ -4599,11 +4599,12 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   moveSpeed: 15
-  lookSensitivity: 1.5
+  mouseSensitivity: 1.5
+  gamepadSensitivity: 0.7
   maxHeadTilt: 80
   invertY: 0
   characterModel: {fileID: 432736641235007354}
-  cameraTransform: {fileID: 432736641235007354}
+  cameraTransform: {fileID: 2349355420028090284}
   cameraOffset: {x: 0, y: 1.3, z: 0.3}
 --- !u!114 &6686643661842687360
 MonoBehaviour:
@@ -4653,7 +4654,7 @@ MonoBehaviour:
   m_DefaultControlScheme: 
   m_DefaultActionMap: Player
   m_SplitScreenIndex: -1
-  m_Camera: {fileID: 0}
+  m_Camera: {fileID: 6775727811422105649}
 --- !u!1 &7167792413584530707
 GameObject:
   m_ObjectHideFlags: 0
