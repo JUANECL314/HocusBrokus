@@ -4874,6 +4874,7 @@ GameObject:
   - component: {fileID: 6686643661842687360}
   - component: {fileID: -4602816905405591270}
   - component: {fileID: -5593264301845761660}
+  - component: {fileID: 5032153860629961460}
   m_Layer: 0
   m_Name: PlayerCameraOnLine
   m_TagString: Player
@@ -5051,7 +5052,7 @@ Rigidbody:
   m_UseGravity: 1
   m_IsKinematic: 0
   m_Interpolate: 0
-  m_Constraints: 0
+  m_Constraints: 96
   m_CollisionDetection: 0
 --- !u!114 &-6334809897886953100
 MonoBehaviour:
@@ -5104,7 +5105,7 @@ MonoBehaviour:
   moveSpeed: 15
   lookSpeed: 2
   characterModel: {fileID: 432736641235007354}
-  cameraTransform: {fileID: 2349355420028090284}
+  cameraTransform: {fileID: 432736641235007354}
   cameraOffset: {x: 0, y: 1.3, z: 0.3}
   maxHeadTilt: 80
 --- !u!114 &-5593264301845761660
@@ -5120,6 +5121,36 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   canvas: {fileID: 219100242021440493}
+--- !u!114 &5032153860629961460
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7045669205887240078}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 62899f850307741f2a39c98a8b639597, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  m_Actions: {fileID: -944628639613478452, guid: 0f1b81459ce8a124fb27bad2ac6d9d8f, type: 3}
+  m_NotificationBehavior: 0
+  m_UIInputModule: {fileID: 0}
+  m_DeviceLostEvent:
+    m_PersistentCalls:
+      m_Calls: []
+  m_DeviceRegainedEvent:
+    m_PersistentCalls:
+      m_Calls: []
+  m_ControlsChangedEvent:
+    m_PersistentCalls:
+      m_Calls: []
+  m_ActionEvents: []
+  m_NeverAutoSwitchControlSchemes: 0
+  m_DefaultControlScheme: 
+  m_DefaultActionMap: Player
+  m_SplitScreenIndex: -1
+  m_Camera: {fileID: 0}
 --- !u!1 &7167792413584530707
 GameObject:
   m_ObjectHideFlags: 0
