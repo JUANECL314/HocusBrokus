@@ -1,26 +1,23 @@
+ï»¿using Photon.Pun;
 using UnityEngine;
-using Photon.Pun; 
 
-public class Levels : MonoBehaviourPunCallbacks
+public class Levels : MonoBehaviourPun
 {
+    public GameObject canvas;
+
+    
     private void Start()
     {
-        PhotonNetwork.AutomaticallySyncScene = true;
+        canvas.SetActive(false);
     }
+
     private void OnTriggerEnter(Collider other)
     {
-        // Si el jugador entra al trigger
-        Debug.Log("Entró: " + other.name);
-        if (other.CompareTag("Player"))
+        if (other.CompareTag("Player") && PhotonNetwork.IsMasterClient)
         {
-            Debug.Log("Jugador entró al trigger");
-
-            // Solo el Master Client debe cargar la escena
-            if (PhotonNetwork.IsMasterClient)
-            {
-                Debug.Log("El Master Client cargará la escena 'Cave'");
-                PhotonNetwork.LoadLevel("CavePuzzle3");
-            }
+            canvas.SetActive(true);
         }
     }
+
+   
 }

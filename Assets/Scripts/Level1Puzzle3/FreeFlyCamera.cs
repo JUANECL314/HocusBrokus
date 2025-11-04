@@ -1,54 +1,65 @@
-using UnityEngine;
+﻿using UnityEngine;
 
 public class FreeFlyCamera : MonoBehaviour
 {
     [Header("Flight Settings")]
     public bool enableFlying = true;
-    
+
     [Header("Movement Settings")]
-    public float moveSpeed = 10f;
+    public float moveSpeed = 5f;
     public float lookSpeed = 2f;
-    
-    [Header("Character Model")]
-    public Transform characterModel; // Assign your character model here
-    
+
+    [Header("References")]
+    public Transform characterModel;   // El modelo o cuerpo del jugador
+    public Transform cameraTransform;  // La cámara del jugador
+
     private float yaw, pitch;
+
+    [Header("Camera Offset Limits")]
+    public Vector3 cameraOffset = new Vector3(0f, 0f, 0f);  // posición fija dentro del jugador
+    public float maxHeadTilt = 80f;  // límite vertical de rotación
 
     void Start()
     {
-        // Confine the cursor inside the game window
-        Cursor.lockState = CursorLockMode.Confined;
-        Cursor.visible = true; // keep it visible while testing
+        if (cameraTransform == null)
+            cameraTransform = GetComponentInChildren<Camera>().transform;
+
+        if (characterModel == null)
+            characterModel = transform;
+
+        yaw = characterModel.eulerAngles.y;
+        pitch = cameraTransform.localEulerAngles.x;
+
+        // Mostrar el cursor y dejarlo libre
+        Cursor.lockState = CursorLockMode.None;
+        Cursor.visible = true;
     }
 
     void Update()
     {
-        //if (!enableFlying) return;
+       // if (!enableFlying) return;
 
-        // Mouse look - rotate camera on both axes
-        yaw += lookSpeed * Input.GetAxis("Mouse X");
-        pitch -= lookSpeed * Input.GetAxis("Mouse Y");
-        pitch = Mathf.Clamp(pitch, -89f, 89f);
-        
-        // Apply rotation to camera
-        transform.eulerAngles = new Vector3(pitch, yaw, 0);
-        
-        // Keep character model upright by zeroing its local rotation
-        if (characterModel != null)
-        {
-            characterModel.localEulerAngles = Vector3.zero;
-        }
+        // --- ROTACIÓN DE CÁMARA ---
+        yaw += Input.GetAxis("Mouse X") * lookSpeed;
+        pitch -= Input.GetAxis("Mouse Y") * lookSpeed;
+        pitch = Mathf.Clamp(pitch, -maxHeadTilt, maxHeadTilt);
 
-        // Horizontal movement (relative to camera rotation)
-        Vector3 move = new Vector3(
-            Input.GetAxis("Horizontal"),
-            0,
-            Input.GetAxis("Vertical")
-        );
-        transform.Translate(move * moveSpeed * Time.deltaTime, Space.Self);
-        
-        // Vertical movement (world space - no rotation)
+        // Aplicar rotación al cuerpo (horizontal) y cámara (vertical)
+        characterModel.rotation = Quaternion.Euler(0f, yaw, 0f);
+        cameraTransform.localRotation = Quaternion.Euler(pitch, 0f, 0f);
+
+        // Mantener la cámara "pegada" al jugador
+        cameraTransform.localPosition = cameraOffset;
+
+        // --- MOVIMIENTO CON WASD ---
+        float horizontal = Input.GetAxis("Horizontal");
+        float vertical = Input.GetAxis("Vertical");
+
+        Vector3 move = (characterModel.forward * vertical + characterModel.right * horizontal).normalized;
+        transform.position += move * moveSpeed * Time.deltaTime;
+
+        // --- MOVIMIENTO VERTICAL (E / Q) ---
         float verticalMove = (Input.GetKey(KeyCode.E) ? 1 : 0) - (Input.GetKey(KeyCode.Q) ? 1 : 0);
-        transform.Translate(Vector3.up * verticalMove * moveSpeed * Time.deltaTime, Space.World);
+        transform.position += Vector3.up * verticalMove * moveSpeed * Time.deltaTime;
     }
 }

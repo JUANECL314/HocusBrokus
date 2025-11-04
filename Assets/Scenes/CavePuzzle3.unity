@@ -363,13 +363,13 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 4740176}
   serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: -16.16, y: -0.91, z: 101.24}
+  m_LocalRotation: {x: 0, y: 1, z: 0, w: 0}
+  m_LocalPosition: {x: 44.32, y: -0.91, z: 207.25}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 1047066240}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 180, z: 0}
 --- !u!1 &6113829
 GameObject:
   m_ObjectHideFlags: 0
@@ -12118,7 +12118,7 @@ Transform:
   m_GameObject: {fileID: 371030299}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: -16.16, y: -0.91, z: -71.68}
+  m_LocalPosition: {x: 50.500004, y: -0.91, z: -231.34}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -15464,8 +15464,8 @@ BoxCollider:
   m_ProvidesContacts: 0
   m_Enabled: 1
   serializedVersion: 3
-  m_Size: {x: 1, y: 1, z: 1}
-  m_Center: {x: 0, y: 0, z: 0}
+  m_Size: {x: 1, y: 1, z: 4.98479}
+  m_Center: {x: 0, y: 2.2874362e-15, z: 1.9923959}
 --- !u!23 &451799173
 MeshRenderer:
   m_ObjectHideFlags: 0
@@ -29484,8 +29484,8 @@ BoxCollider:
   m_ProvidesContacts: 0
   m_Enabled: 1
   serializedVersion: 3
-  m_Size: {x: 1, y: 1, z: 1}
-  m_Center: {x: 0, y: 0, z: 0}
+  m_Size: {x: 1, y: 1, z: 4.7435765}
+  m_Center: {x: 0, y: 1.0019858e-15, z: 1.8717885}
 --- !u!23 &862370338
 MeshRenderer:
   m_ObjectHideFlags: 0
@@ -29551,7 +29551,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 85891628466e1754ea2f1f25eabb8a53, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  mirrorController: {fileID: 1965426130}
+  mirrorController: {fileID: 0}
   rotateLeft: 0
   moveUpMode: 1
   moveUpAmount: 5
@@ -34696,7 +34696,7 @@ MonoBehaviour:
   - {fileID: 1904166298}
   - {fileID: 1708868860}
   - {fileID: 371030300}
-  playerPrefab: {fileID: 7045669205887240078, guid: fb0cc0f944ed0d04fa15de245d580e3d, type: 3}
+  playerPrefab: {fileID: 7045669205887240078, guid: 7b1a84423230bc94fb87f29f93bde1ae, type: 3}
 --- !u!4 &1047066240
 Transform:
   m_ObjectHideFlags: 0
@@ -43496,8 +43496,8 @@ BoxCollider:
   m_ProvidesContacts: 0
   m_Enabled: 1
   serializedVersion: 3
-  m_Size: {x: 1, y: 1, z: 1}
-  m_Center: {x: 0, y: 0, z: 0}
+  m_Size: {x: 1, y: 1, z: 4.9009004}
+  m_Center: {x: 0, y: 1.8403858e-15, z: 1.9504514}
 --- !u!23 &1349731817
 MeshRenderer:
   m_ObjectHideFlags: 0
@@ -45491,7 +45491,7 @@ PrefabInstance:
       objectReference: {fileID: 1855113761}
     - target: {fileID: 5299922118336007224, guid: c956bb60fa162074a8193f810ce06aae, type: 3}
       propertyPath: m_VersionIndex
-      value: 5853
+      value: 5856
       objectReference: {fileID: 0}
     - target: {fileID: 5890477225732929115, guid: c956bb60fa162074a8193f810ce06aae, type: 3}
       propertyPath: m_Mesh
@@ -48958,8 +48958,8 @@ BoxCollider:
   m_ProvidesContacts: 0
   m_Enabled: 1
   serializedVersion: 3
-  m_Size: {x: 1, y: 1, z: 1}
-  m_Center: {x: 0, y: 0, z: 0}
+  m_Size: {x: 1, y: 1, z: 4.861771}
+  m_Center: {x: 0, y: 1.631853e-15, z: 1.9308858}
 --- !u!23 &1564664518
 MeshRenderer:
   m_ObjectHideFlags: 0
@@ -49025,7 +49025,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 85891628466e1754ea2f1f25eabb8a53, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  mirrorController: {fileID: 1965426130}
+  mirrorController: {fileID: 0}
   rotateLeft: 1
   moveUpMode: 0
   moveUpAmount: 5
@@ -53338,7 +53338,7 @@ Transform:
   m_GameObject: {fileID: 1708868859}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: -16.16, y: -0.91, z: -61.04}
+  m_LocalPosition: {x: 50.5, y: -0.91, z: -220.7}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -58838,13 +58838,13 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1904166297}
   serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: -16.16, y: -0.91, z: 91.6}
+  m_LocalRotation: {x: 0, y: 1, z: 0, w: 0}
+  m_LocalPosition: {x: 44.320004, y: -0.91, z: 197.61}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 1047066240}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 180, z: 0}
 --- !u!1 &1913386322
 GameObject:
   m_ObjectHideFlags: 0
@@ -59987,17 +59987,6 @@ MeshFilter:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1959151155}
   m_Mesh: {fileID: 10206, guid: 0000000000000000e000000000000000, type: 0}
---- !u!114 &1965426130 stripped
-MonoBehaviour:
-  m_CorrespondingSourceObject: {fileID: 6300625928361571036, guid: c956bb60fa162074a8193f810ce06aae, type: 3}
-  m_PrefabInstance: {fileID: 1420781750}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 0}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 7fc320d7e312a544dbc66a085f21d35e, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
 --- !u!1 &1971929752
 GameObject:
   m_ObjectHideFlags: 0
@@ -64558,12 +64547,12 @@ PrefabInstance:
       objectReference: {fileID: 1507313847}
     - target: {fileID: 6328585320501002256, guid: 958f865dd9775a940aef1abbb9c31fa7, type: 3}
       propertyPath: m_VersionIndex
-      value: 5853
+      value: 5856
       objectReference: {fileID: 0}
     - target: {fileID: 8903803693310464849, guid: 958f865dd9775a940aef1abbb9c31fa7, type: 3}
       propertyPath: m_Mesh
       value: 
-      objectReference: {fileID: 0}
+      objectReference: {fileID: 1507313847}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -64630,7 +64619,7 @@ PrefabInstance:
       objectReference: {fileID: 1335291594}
     - target: {fileID: 3338037416988904624, guid: 7ce51d32c1e65444d9137ce5120bcf11, type: 3}
       propertyPath: m_VersionIndex
-      value: 5853
+      value: 5856
       objectReference: {fileID: 0}
     - target: {fileID: 6662818584907609079, guid: 7ce51d32c1e65444d9137ce5120bcf11, type: 3}
       propertyPath: m_Mesh

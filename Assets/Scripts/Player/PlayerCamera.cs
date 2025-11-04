@@ -1,26 +1,32 @@
 using UnityEngine;
 using Photon.Pun;
+
 [RequireComponent(typeof(PhotonView))]
 public class PlayerCamera : MonoBehaviourPun
 {
-    public Camera playerCamera;
-    public AudioListener audioListener;
-    public int entero = 2;
-    void Start()
+    private Camera playerCamera;
+    private AudioListener audioListener;
+
+    void Awake()
     {
         playerCamera = GetComponentInChildren<Camera>(true);
         audioListener = GetComponentInChildren<AudioListener>(true);
-        if (photonView.IsMine)
-        {
-            
-            
-            playerCamera.enabled = true;
-            audioListener.enabled = true;
-        }
-        else
-        {
-            playerCamera.enabled = false;
-            audioListener.enabled = false;
-        }
+
+        // Siempre desactivar al inicio
+        if (playerCamera != null) playerCamera.enabled = false;
+        if (audioListener != null) audioListener.enabled = false;
+    }
+
+    public void EnableLocalCamera()
+    {
+        if (playerCamera != null) playerCamera.enabled = true;
+        if (audioListener != null) audioListener.enabled = true;
+    }
+
+    void Start()
+    {
+        // Activar automáticamente si es jugador local
+        if (photonView == null || photonView.IsMine)
+            EnableLocalCamera();
     }
 }

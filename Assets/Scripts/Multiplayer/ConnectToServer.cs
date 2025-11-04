@@ -18,8 +18,8 @@ public class ConnectToServer : MonoBehaviourPunCallbacks
     }
     public override void OnJoinedLobby()
     {
-        // Conectar a Photon Voice antes de entrar a la sala
-
+       
+        
 
         PhotonNetwork.LoadLevel("Lobby");
     }
