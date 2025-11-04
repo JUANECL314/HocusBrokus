@@ -19,6 +19,17 @@ public class CreateAndJoinRooms : MonoBehaviourPunCallbacks
         uiCrearSalas.SetActive(false);
     }
 
+    private void Update()
+    {
+        if (Input.GetKeyDown(KeyCode.E))
+        {
+            ActivarBoton();
+        }
+        if (Input.GetKeyDown(KeyCode.Escape))
+        {
+            DesactivarBoton();
+        }
+    }
     public void ActivarBoton()
     {
         botonCrearUnirSalas.SetActive(true);
@@ -41,29 +52,14 @@ public class CreateAndJoinRooms : MonoBehaviourPunCallbacks
 
     public void CreateRoom()
     {
-        if (PhotonNetwork.IsConnectedAndReady)
-        {
-            PhotonNetwork.CreateRoom(createInput.text);
-        }
-        
+        NetworkManager.Instance.CrearSala(createInput.text);
     }
     public void JoinRoom()
     {
-        if (PhotonNetwork.IsConnectedAndReady)
-        {
-            PhotonNetwork.JoinRoom(joinInput.text);
-        }
+        NetworkManager.Instance.UnirSala(joinInput.text);
     }
 
-    public override void OnJoinedRoom()
-    {
-        if (PhotonNetwork.IsConnectedAndReady)
-        {
-            PhotonNetwork.LoadLevel("TownRoom");
-            
-            
-        }
-    }
+    
     
 
 }

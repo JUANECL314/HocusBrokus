@@ -21,7 +21,7 @@ public class LoginUIController : MonoBehaviour
     [SerializeField] private GameObject panelAlRegresar;
 
     [Header("Photon")]
-    [SerializeField] private ConnectToServer photonConnector;
+    [SerializeField] private NetworkManager photonConnector;
 
     [Header("API")]
     [SerializeField] private string apiBaseUrl = "http://127.0.0.1:8000";
@@ -53,7 +53,7 @@ public class LoginUIController : MonoBehaviour
             if (photonConnector != null)
             {
                 PhotonNetwork.NickName = string.IsNullOrWhiteSpace(AuthState.Username) ? "Player" : AuthState.Username;
-                photonConnector.conectarServidor();
+                photonConnector.ConectarServidor();
             }
         }
     }
@@ -76,7 +76,7 @@ public class LoginUIController : MonoBehaviour
         }
 
         StartCoroutine(CoLogin(email, pass));*/
-        photonConnector.conectarServidor();
+        photonConnector.EntrarLobbyIndividual();
     }
 
     private IEnumerator CoLogin(string email, string password)
@@ -142,7 +142,7 @@ public class LoginUIController : MonoBehaviour
         if (photonConnector != null)
         {
             PhotonNetwork.NickName = string.IsNullOrWhiteSpace(AuthState.Username) ? "Player" : AuthState.Username;
-            photonConnector.conectarServidor();
+            photonConnector.ConectarServidor();
         }
         else
         {

@@ -2973,9 +2973,8 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 1398286947}
-  - component: {fileID: 1398286948}
   - component: {fileID: 1398286949}
-  - component: {fileID: 1398286950}
+  - component: {fileID: 1398286951}
   m_Layer: 0
   m_Name: Manager
   m_TagString: Untagged
@@ -2998,18 +2997,6 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &1398286948
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1398286945}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 0d5d470171c6f9345beeb878f31d92ca, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
 --- !u!114 &1398286949
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -3024,7 +3011,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   inicio: {fileID: 28383143}
   inicioSesion: {fileID: 1589349742}
---- !u!114 &1398286950
+--- !u!114 &1398286951
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -3033,11 +3020,12 @@ MonoBehaviour:
   m_GameObject: {fileID: 1398286945}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 99eb07e8aac59da4bb888acc89d2492f, type: 3}
+  m_Script: {fileID: 11500000, guid: 114949fba44c4b941a55b78f9af93ec6, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  player: {fileID: 215463803}
-  password: {fileID: 677232703}
+  pantallaInicio: MainMenu
+  salaIndividualNombre: Lobby
+  salaMultijugadorNombre: TownRoom
 --- !u!1 &1519191406
 GameObject:
   m_ObjectHideFlags: 0
@@ -3164,7 +3152,7 @@ MonoBehaviour:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1589349742}
-  m_Enabled: 1
+  m_Enabled: 0
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: c7595dccb2e457d4f97f270031cfffa9, type: 3}
   m_Name: 
@@ -3175,7 +3163,7 @@ MonoBehaviour:
   btnRegresar: {fileID: 777216398}
   lblEstado: {fileID: 752091270}
   panelAlRegresar: {fileID: 28383143}
-  photonConnector: {fileID: 1398286948}
+  photonConnector: {fileID: 1398286951}
   apiBaseUrl: http://127.0.0.1:8000
   requestTimeoutSeconds: 15
   rememberToken: 0
