@@ -20,7 +20,7 @@ public class FreeFlyCameraMulti : MonoBehaviourPun
 
     [Header("Look")]
     public float mouseSensitivity = 1.5f;
-    public float gamepadSensitivity = 0.7f; // menos para stick
+    public float gamepadSensitivity = 0.7f; // menor para stick
     public float maxHeadTilt = 80f;
     public bool invertY = false;
 
@@ -49,9 +49,23 @@ public class FreeFlyCameraMulti : MonoBehaviourPun
     {
         isLocalMode = !PhotonNetwork.IsConnected;
 
+        // Settings iniciales y suscripción
+        if (SettingsManager.I)
+        {
+            mouseSensitivity = SettingsManager.I.MouseSensitivity;
+            gamepadSensitivity = SettingsManager.I.GamepadSensitivity;
+            invertY = SettingsManager.I.InvertY;
+            SettingsManager.I.OnChanged += ApplySettings;
+        }
+
         // Solo mi player controla y muestra su cámara
         if (isLocalMode || photonView.IsMine) ActivateCamera();
-        else DeactivateCamera();
+        else
+        {
+            DeactivateCamera();
+            // (Opcional) Deshabilitar el script completo si no es mío:
+            // enabled = false; return;
+        }
 
         // Rigidbody settings para movimiento normal
         rb.useGravity = true;
@@ -87,7 +101,7 @@ public class FreeFlyCameraMulti : MonoBehaviourPun
         pitch += lookY;
         pitch = Mathf.Clamp(pitch, -maxHeadTilt, maxHeadTilt);
 
-        characterModel.rotation = Quaternion.Euler(0f, yaw, 0f);
+        if (characterModel) characterModel.rotation = Quaternion.Euler(0f, yaw, 0f);
         if (cameraTransform)
         {
             cameraTransform.localRotation = Quaternion.Euler(pitch, 0f, 0f);
@@ -114,9 +128,9 @@ public class FreeFlyCameraMulti : MonoBehaviourPun
             if (desired.sqrMagnitude < 0.001f) desired = Vector3.zero;
             if (desired.sqrMagnitude > 1f) desired.Normalize();
 
-            // Desacopla de la física mientras vuelas
+            // Desacoplar de física mientras vuelas
             rb.useGravity = false;
-            rb.linearVelocity = Vector3.zero;
+            rb.velocity = Vector3.zero; // <<< corregido
             transform.position += desired * flySpeed * Time.deltaTime;
         }
         else
@@ -136,15 +150,15 @@ public class FreeFlyCameraMulti : MonoBehaviourPun
         if (wishDir.sqrMagnitude > 1f) wishDir.Normalize();
 
         // Conserva la Y de la física (gravedad / saltos), controla XZ
-        Vector3 vel = rb.linearVelocity;
+        Vector3 vel = rb.velocity; // <<< corregido
         Vector3 targetXZ = wishDir * walkSpeed;
-        rb.linearVelocity = new Vector3(targetXZ.x, vel.y, targetXZ.z);
+        rb.velocity = new Vector3(targetXZ.x, vel.y, targetXZ.z); // <<< corregido
 
         // Salto
         if (jumpPressed && IsGrounded())
         {
             // reset Y para salto consistente
-            rb.linearVelocity = new Vector3(rb.linearVelocity.x, 0f, rb.linearVelocity.z);
+            rb.velocity = new Vector3(rb.velocity.x, 0f, rb.velocity.z); // <<< corregido
             rb.AddForce(Vector3.up * jumpForce, ForceMode.VelocityChange);
         }
         jumpPressed = false; // consumir
@@ -164,6 +178,20 @@ public class FreeFlyCameraMulti : MonoBehaviourPun
     public void OnToggleCursor(InputValue value)
     {
         if (value.isPressed) LockCursor(Cursor.lockState != CursorLockMode.Locked);
+    }
+
+    // ===== Settings binding =====
+    void ApplySettings()
+    {
+        if (!SettingsManager.I) return;
+        mouseSensitivity = SettingsManager.I.MouseSensitivity;
+        gamepadSensitivity = SettingsManager.I.GamepadSensitivity;
+        invertY = SettingsManager.I.InvertY;
+    }
+
+    void OnDestroy()
+    {
+        if (SettingsManager.I) SettingsManager.I.OnChanged -= ApplySettings; // <<< importante
     }
 
     // ===== Helpers =====

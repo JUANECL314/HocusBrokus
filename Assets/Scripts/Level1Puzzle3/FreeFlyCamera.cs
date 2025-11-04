@@ -31,26 +31,33 @@ public class FreeFlyDebug : MonoBehaviour
         if (!characterModel) characterModel = transform;
 
         yaw = characterModel.eulerAngles.y;
-        pitch = cameraTransform.localEulerAngles.x;
+        pitch = cameraTransform ? cameraTransform.localEulerAngles.x : 0f;
     }
 
     void Start()
     {
+        // Cursor y cámara
         LockCursor(true);
-        cameraTransform.localPosition = cameraOffset;
+        if (cameraTransform) cameraTransform.localPosition = cameraOffset;
+
+        // === NUEVO: cargar settings y suscribirse a cambios ===
+        if (SettingsManager.I)
+        {
+            mouseSensitivity = SettingsManager.I.MouseSensitivity;
+            gamepadSensitivity = SettingsManager.I.GamepadSensitivity;
+            invertY = SettingsManager.I.InvertY;
+            SettingsManager.I.OnChanged += ApplySettings;
+        }
     }
 
     void Update()
     {
         // Detectar si la entrada de look viene del gamepad
         bool usingGamepad = Gamepad.current != null && Gamepad.current.rightStick.IsActuated();
-
         float sensitivity = usingGamepad ? gamepadSensitivity : mouseSensitivity;
 
         // --- LOOK ---
-        // limpieza de ruido mínimo
-        if (lookInput.sqrMagnitude < 0.0005f)
-            lookInput = Vector2.zero;
+        if (lookInput.sqrMagnitude < 0.0005f) lookInput = Vector2.zero;
 
         float lookX = lookInput.x * sensitivity;
         float lookY = lookInput.y * sensitivity * (invertY ? 1f : -1f);
@@ -59,9 +66,12 @@ public class FreeFlyDebug : MonoBehaviour
         pitch += lookY;
         pitch = Mathf.Clamp(pitch, -maxHeadTilt, maxHeadTilt);
 
-        characterModel.rotation = Quaternion.Euler(0f, yaw, 0f);
-        cameraTransform.localRotation = Quaternion.Euler(pitch, 0f, 0f);
-        cameraTransform.localPosition = cameraOffset;
+        if (characterModel) characterModel.rotation = Quaternion.Euler(0f, yaw, 0f);
+        if (cameraTransform)
+        {
+            cameraTransform.localRotation = Quaternion.Euler(pitch, 0f, 0f);
+            cameraTransform.localPosition = cameraOffset;
+        }
 
         // --- UP/DOWN por teclado (E/Q) ---
         float upDownInput = 0f;
@@ -74,32 +84,34 @@ public class FreeFlyDebug : MonoBehaviour
 
         // --- MOVE ---
         Vector3 desired =
-            characterModel.forward * moveInput.y +
-            characterModel.right * moveInput.x +
-            Vector3.up * upDownInput;
+            (characterModel.forward * moveInput.y) +
+            (characterModel.right * moveInput.x) +
+            (Vector3.up * upDownInput);
 
-        // limpieza de ruido mínimo (drift)
-        if (desired.sqrMagnitude < 0.001f)
-            desired = Vector3.zero;
-
-        if (desired.sqrMagnitude > 1f)
-            desired.Normalize();
+        if (desired.sqrMagnitude < 0.001f) desired = Vector3.zero; // mata ruido
+        if (desired.sqrMagnitude > 1f) desired.Normalize();     // diagonales
 
         transform.position += desired * moveSpeed * Time.deltaTime;
     }
 
+    // === NUEVO: aplicar cambios cuando el usuario mueve sliders/toggle ===
+    void ApplySettings()
+    {
+        if (!SettingsManager.I) return;
+        mouseSensitivity = SettingsManager.I.MouseSensitivity;
+        gamepadSensitivity = SettingsManager.I.GamepadSensitivity;
+        invertY = SettingsManager.I.InvertY;
+    }
+
+    void OnDestroy()
+    {
+        // === NUEVO: desuscribirse para evitar fugas de memoria/refs ===
+        if (SettingsManager.I) SettingsManager.I.OnChanged -= ApplySettings;
+    }
+
     // --- Input Callbacks ---
-
-    public void OnMove(InputValue value)
-    {
-        moveInput = value.Get<Vector2>();
-    }
-
-    public void OnLook(InputValue value)
-    {
-        lookInput = value.Get<Vector2>();
-    }
-
+    public void OnMove(InputValue value) => moveInput = value.Get<Vector2>();
+    public void OnLook(InputValue value) => lookInput = value.Get<Vector2>();
     public void OnToggleCursor(InputValue value)
     {
         if (value.isPressed)
