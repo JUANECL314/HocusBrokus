@@ -1,0 +1,152 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!1 &3495025106090995644
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 5171903145508555749}
+  - component: {fileID: 9143167570444424153}
+  m_Layer: 0
+  m_Name: SoundManager
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &5171903145508555749
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3495025106090995644}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 99.572105, y: 14.067297, z: -65.38928}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &9143167570444424153
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3495025106090995644}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b708ef5f5271c60418d86b8bde17b4f5, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  mixer: {fileID: 24100000, guid: 5558de904f9852f419bac1504c765b30, type: 2}
+  sfxGroup: {fileID: -4094175333142895518, guid: 5558de904f9852f419bac1504c765b30, type: 2}
+  masterVolParam: MasterVol
+  sfxVolParam: SFXVol
+  normalSnapshot: {fileID: 0}
+  duckedSnapshot: {fileID: 0}
+  duckFade: 0.15
+  duckHold: 0.6
+  clips:
+  - key: 0
+    clip: {fileID: 8300000, guid: dae727a068941394fab2e650f19dbb1b, type: 3}
+    volume: 0.131
+    spatial: 1
+    loopable: 0
+    spatialBlend: 1
+    maxOneShotDuration: -1
+    pitchJitter: {x: 0.75, y: 1.15}
+  - key: 1
+    clip: {fileID: 8300000, guid: 233da60b6991b3e44902f4ca65d86007, type: 3}
+    volume: 0.153
+    spatial: 1
+    loopable: 0
+    spatialBlend: 1
+    maxOneShotDuration: -1
+    pitchJitter: {x: 0.75, y: 1.15}
+  - key: 2
+    clip: {fileID: 8300000, guid: 3ed01f2c6020aab4fb029bad2d0f2bbd, type: 3}
+    volume: 0.071
+    spatial: 1
+    loopable: 0
+    spatialBlend: 1
+    maxOneShotDuration: 0.08
+    pitchJitter: {x: 0.6, y: 1.15}
+  - key: 4
+    clip: {fileID: 8300000, guid: 747caea3098906c44b55143aab20f54d, type: 3}
+    volume: 0.143
+    spatial: 1
+    loopable: 0
+    spatialBlend: 1
+    maxOneShotDuration: -1
+    pitchJitter: {x: 0.95, y: 1.15}
+  - key: 3
+    clip: {fileID: 8300000, guid: cd7ab875400010347b5e93a2bce8f813, type: 3}
+    volume: 0.264
+    spatial: 1
+    loopable: 0
+    spatialBlend: 1
+    maxOneShotDuration: 0.05
+    pitchJitter: {x: 0.95, y: 1.15}
+  - key: 10
+    clip: {fileID: 8300000, guid: 0374fc9e404cb17419959a2336f8c301, type: 3}
+    volume: 0.264
+    spatial: 1
+    loopable: 1
+    spatialBlend: 1
+    maxOneShotDuration: -1
+    pitchJitter: {x: 0.95, y: 1.15}
+  - key: 11
+    clip: {fileID: 8300000, guid: 14c67450aecb01141b7946dfd91040b4, type: 3}
+    volume: 0.264
+    spatial: 1
+    loopable: 1
+    spatialBlend: 1
+    maxOneShotDuration: -1
+    pitchJitter: {x: 0.95, y: 1.15}
+  - key: 5
+    clip: {fileID: 8300000, guid: 37a77fe118680494aa71372792340edc, type: 3}
+    volume: 0.255
+    spatial: 1
+    loopable: 0
+    spatialBlend: 1
+    maxOneShotDuration: -1
+    pitchJitter: {x: 0.95, y: 1.15}
+  - key: 6
+    clip: {fileID: 8300000, guid: 9cb401a2f5e43a3428156ebbc0f0077d, type: 3}
+    volume: 0.239
+    spatial: 1
+    loopable: 1
+    spatialBlend: 1
+    maxOneShotDuration: -1
+    pitchJitter: {x: 0.95, y: 1.15}
+  - key: 9
+    clip: {fileID: 8300000, guid: 06d7e7b5965faf24fa308c9c4c604d0c, type: 3}
+    volume: 0.327
+    spatial: 1
+    loopable: 0
+    spatialBlend: 1
+    maxOneShotDuration: -1
+    pitchJitter: {x: 0.95, y: 1.15}
+  - key: 7
+    clip: {fileID: 8300000, guid: 579717f6ff6537e4abd04718135d93c1, type: 3}
+    volume: 0.54
+    spatial: 1
+    loopable: 0
+    spatialBlend: 1
+    maxOneShotDuration: -1
+    pitchJitter: {x: 0.95, y: 1.15}
+  - key: 8
+    clip: {fileID: 8300000, guid: f4cecfd13ae999c4dbc231a282a10981, type: 3}
+    volume: 0.239
+    spatial: 1
+    loopable: 0
+    spatialBlend: 1
+    maxOneShotDuration: -1
+    pitchJitter: {x: 0.95, y: 1.15}
+  initialPool: 11

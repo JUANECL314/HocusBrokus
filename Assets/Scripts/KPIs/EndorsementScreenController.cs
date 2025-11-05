@@ -123,15 +123,15 @@ public class EndorsementScreenController : MonoBehaviour
     private void OnClickEnviar()
     {
         int c = CountSelections();
-        if (c == 0) { CloseScreen(); return; }
         if (c > maxEndorsements) return;
 
-        var list = new List<EndorsementPayload>();
         long now = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
 
+        // 1) Endorsements (como antes)
+        var endorseList = new List<EndorsementPayload>();
         foreach (var card in _cards)
             if (card.HasSelection(out var type))
-                list.Add(new EndorsementPayload
+                endorseList.Add(new EndorsementPayload
                 {
                     matchId = _matchId,
                     giverUserId = _localUserId,
@@ -140,15 +140,63 @@ public class EndorsementScreenController : MonoBehaviour
                     unixTime = now
                 });
 
-        // Enviar al backend (cola offline + reintentos)
+        // 2) Compatibilidad (“Volvería a jugar”) – independientes
+        var compatList = new List<CompatibilityVotePayload>();
+        foreach (var card in _cards)
+            if (card.PlayAgainSelected)
+                compatList.Add(new CompatibilityVotePayload
+                {
+                    matchId = _matchId,
+                    voterUserId = _localUserId,
+                    targetUserId = card.ReceiverUserId,
+                    wouldPlayAgain = true,
+                    unixTime = now
+                });
+
+        // Si no hay nada, cerrar
+        if (endorseList.Count == 0 && compatList.Count == 0) { CloseScreen(); return; }
+
+        // Asegurar uploader
         if (EndorsementUploader.Instance == null)
         {
             var go = new GameObject("EndorsementUploader");
             go.AddComponent<EndorsementUploader>();
         }
-        EndorsementUploader.Instance.EnqueueAndSend(list);
+
+        if (endorseList.Count > 0)
+            EndorsementUploader.Instance.EnqueueAndSend(endorseList);
+
+        if (compatList.Count > 0)
+            EndorsementUploader.Instance.EnqueueAndSendCompatibility(compatList);
 
         CloseScreen();
+    }
+
+
+    private void LogPlayAgainVotes()
+    {
+        var playAgainIds = new List<string>();
+        var playAgainNames = new List<string>();
+        foreach (var card in _cards)
+        {
+            if (card.PlayAgainSelected)
+            {
+                playAgainIds.Add(card.ReceiverUserId);
+                playAgainNames.Add(card.ReceiverDisplayName);
+            }
+        }
+
+        if (playAgainIds.Count > 0)
+        {
+            Debug.Log($"[Endorsements] 'Volvería a jugar' con: {string.Join(", ", playAgainNames)} " +
+                      $"(Ids: {string.Join(", ", playAgainIds)})");
+        }
+        else
+        {
+            Debug.Log("[Endorsements] No se marcó 'Volvería a jugar' con nadie.");
+        }
+
+        // FUTURO: si agregas endpoint/tabla para afinidades, aquí prepara y envía el batch.
     }
 
     private void OnClickOmitir() => CloseScreen();

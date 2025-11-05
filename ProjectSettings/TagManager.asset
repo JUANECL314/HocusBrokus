@@ -10,7 +10,13 @@ TagManager:
   - Water
   - Wind
   - Earth
-  - Cave
+  - Ground
+  - Pillar
+  - SunMural
+  - Libro
+  - Puerta
+  - Engranaje
+  - Portal
   layers:
   - Default
   - TransparentFX
@@ -22,7 +28,7 @@ TagManager:
   - 
   - Interactable
   - Reflectable
-  - 
+  - Frame
   - 
   - 
   - 
@@ -47,6 +53,9 @@ TagManager:
   m_SortingLayers:
   - name: Default
     uniqueID: 0
+    locked: 0
+  - name: Frame
+    uniqueID: 3361356213
     locked: 0
   m_RenderingLayers:
   - Default
