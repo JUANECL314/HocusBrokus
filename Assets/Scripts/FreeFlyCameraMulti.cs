@@ -130,7 +130,7 @@ public class FreeFlyCameraMulti : MonoBehaviourPun
 
             // Desacoplar de física mientras vuelas
             rb.useGravity = false;
-            rb.velocity = Vector3.zero; // <<< corregido
+            rb.linearVelocity = Vector3.zero; // <<< corregido
             transform.position += desired * flySpeed * Time.deltaTime;
         }
         else
@@ -150,15 +150,15 @@ public class FreeFlyCameraMulti : MonoBehaviourPun
         if (wishDir.sqrMagnitude > 1f) wishDir.Normalize();
 
         // Conserva la Y de la física (gravedad / saltos), controla XZ
-        Vector3 vel = rb.velocity; // <<< corregido
+        Vector3 vel = rb.linearVelocity; // <<< corregido
         Vector3 targetXZ = wishDir * walkSpeed;
-        rb.velocity = new Vector3(targetXZ.x, vel.y, targetXZ.z); // <<< corregido
+        rb.linearVelocity = new Vector3(targetXZ.x, vel.y, targetXZ.z); // <<< corregido
 
         // Salto
         if (jumpPressed && IsGrounded())
         {
             // reset Y para salto consistente
-            rb.velocity = new Vector3(rb.velocity.x, 0f, rb.velocity.z); // <<< corregido
+            rb.linearVelocity = new Vector3(rb.linearVelocity.x, 0f, rb.linearVelocity.z); // <<< corregido
             rb.AddForce(Vector3.up * jumpForce, ForceMode.VelocityChange);
         }
         jumpPressed = false; // consumir

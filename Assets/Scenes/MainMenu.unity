@@ -815,9 +815,9 @@ RectTransform:
   - {fileID: 683116110}
   - {fileID: 683562721}
   - {fileID: 506769087}
-  - {fileID: 1294237569}
   - {fileID: 634582860}
   - {fileID: 371483883}
+  - {fileID: 1294237569}
   - {fileID: 1310718063}
   - {fileID: 1756434476}
   m_Father: {fileID: 2122365971}
@@ -1601,7 +1601,7 @@ GameObject:
   - component: {fileID: 371483883}
   - component: {fileID: 371483884}
   m_Layer: 5
-  m_Name: VFX
+  m_Name: SFX
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -1679,7 +1679,19 @@ MonoBehaviour:
   m_Value: 0
   m_OnValueChanged:
     m_PersistentCalls:
-      m_Calls: []
+      m_Calls:
+      - m_Target: {fileID: 2122365973}
+        m_TargetAssemblyTypeName: SettingsAudioPanel, Assembly-CSharp
+        m_MethodName: OnSfxChanged
+        m_Mode: 0
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_IntArgument: 0
+          m_FloatArgument: 0.5
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
 --- !u!1 &374844033
 GameObject:
   m_ObjectHideFlags: 0
@@ -2249,7 +2261,7 @@ GameObject:
   - component: {fileID: 634582862}
   - component: {fileID: 634582861}
   m_Layer: 5
-  m_Name: VFX
+  m_Name: TSFX
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -2294,7 +2306,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: VFX
+  m_text: SFX
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
   m_sharedMaterial: {fileID: 2180264, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
@@ -4717,7 +4729,7 @@ GameObject:
   - component: {fileID: 1294237571}
   - component: {fileID: 1294237570}
   m_Layer: 5
-  m_Name: TSonido
+  m_Name: TMaster
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -4762,7 +4774,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: Sonido
+  m_text: Master
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
   m_sharedMaterial: {fileID: 2180264, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
@@ -4852,7 +4864,7 @@ GameObject:
   - component: {fileID: 1310718063}
   - component: {fileID: 1310718064}
   m_Layer: 5
-  m_Name: Sonido
+  m_Name: Master
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -4930,7 +4942,19 @@ MonoBehaviour:
   m_Value: 0
   m_OnValueChanged:
     m_PersistentCalls:
-      m_Calls: []
+      m_Calls:
+      - m_Target: {fileID: 2122365973}
+        m_TargetAssemblyTypeName: SettingsAudioPanel, Assembly-CSharp
+        m_MethodName: OnMasterChanged
+        m_Mode: 0
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_IntArgument: 0
+          m_FloatArgument: 1
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
 --- !u!1 &1313052674
 GameObject:
   m_ObjectHideFlags: 0
@@ -5437,7 +5461,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!224 &1589349743
 RectTransform:
   m_ObjectHideFlags: 0
@@ -5490,6 +5514,63 @@ MonoBehaviour:
   apiBaseUrl: http://127.0.0.1:8000
   requestTimeoutSeconds: 15
   rememberToken: 0
+--- !u!1001 &1665627769
+PrefabInstance:
+  m_ObjectHideFlags: 0
+  serializedVersion: 2
+  m_Modification:
+    serializedVersion: 3
+    m_TransformParent: {fileID: 0}
+    m_Modifications:
+    - target: {fileID: 3495025106090995644, guid: cc1758a5c1b6b5c4bb8dbe2c00e111bb, type: 3}
+      propertyPath: m_Name
+      value: SoundManager
+      objectReference: {fileID: 0}
+    - target: {fileID: 5171903145508555749, guid: cc1758a5c1b6b5c4bb8dbe2c00e111bb, type: 3}
+      propertyPath: m_LocalPosition.x
+      value: 99.572105
+      objectReference: {fileID: 0}
+    - target: {fileID: 5171903145508555749, guid: cc1758a5c1b6b5c4bb8dbe2c00e111bb, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: 14.067297
+      objectReference: {fileID: 0}
+    - target: {fileID: 5171903145508555749, guid: cc1758a5c1b6b5c4bb8dbe2c00e111bb, type: 3}
+      propertyPath: m_LocalPosition.z
+      value: -65.38928
+      objectReference: {fileID: 0}
+    - target: {fileID: 5171903145508555749, guid: cc1758a5c1b6b5c4bb8dbe2c00e111bb, type: 3}
+      propertyPath: m_LocalRotation.w
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 5171903145508555749, guid: cc1758a5c1b6b5c4bb8dbe2c00e111bb, type: 3}
+      propertyPath: m_LocalRotation.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 5171903145508555749, guid: cc1758a5c1b6b5c4bb8dbe2c00e111bb, type: 3}
+      propertyPath: m_LocalRotation.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 5171903145508555749, guid: cc1758a5c1b6b5c4bb8dbe2c00e111bb, type: 3}
+      propertyPath: m_LocalRotation.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 5171903145508555749, guid: cc1758a5c1b6b5c4bb8dbe2c00e111bb, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 5171903145508555749, guid: cc1758a5c1b6b5c4bb8dbe2c00e111bb, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 5171903145508555749, guid: cc1758a5c1b6b5c4bb8dbe2c00e111bb, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
+      objectReference: {fileID: 0}
+    m_RemovedComponents: []
+    m_RemovedGameObjects: []
+    m_AddedGameObjects: []
+    m_AddedComponents: []
+  m_SourcePrefab: {fileID: 100100000, guid: cc1758a5c1b6b5c4bb8dbe2c00e111bb, type: 3}
 --- !u!1 &1728130901
 GameObject:
   m_ObjectHideFlags: 0
@@ -6459,6 +6540,7 @@ GameObject:
   - component: {fileID: 2122365969}
   - component: {fileID: 2122365968}
   - component: {fileID: 2122365972}
+  - component: {fileID: 2122365973}
   m_Layer: 5
   m_Name: Canvas
   m_TagString: Untagged
@@ -6567,6 +6649,20 @@ MonoBehaviour:
   panelRoot: {fileID: 173053459}
   mouseSens: {fileID: 683562722}
   gamepadSens: {fileID: 1756434477}
+--- !u!114 &2122365973
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2122365967}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a398811a03c11b4428209efe851417c9, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  masterSlider: {fileID: 1310718064}
+  sfxSlider: {fileID: 371483884}
 --- !u!1 &2136635888
 GameObject:
   m_ObjectHideFlags: 0
@@ -6714,3 +6810,4 @@ SceneRoots:
   - {fileID: 927487168}
   - {fileID: 1398286947}
   - {fileID: 90104777}
+  - {fileID: 1665627769}
