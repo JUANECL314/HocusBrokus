@@ -24,7 +24,7 @@ public class LoginUIController : MonoBehaviour
     [SerializeField] private ConnectToServer photonConnector;
 
     [Header("API")]
-    [SerializeField] private string apiBaseUrl = "http://127.0.0.1:8000";
+    [SerializeField] private string apiBaseUrl = "https://hokusbackend-production.up.railway.app";
     [SerializeField] private float requestTimeoutSeconds = 15f;
 
     [Header("Opcional")]
