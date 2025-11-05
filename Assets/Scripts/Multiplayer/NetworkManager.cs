@@ -1,6 +1,7 @@
 using Photon.Pun;
 using Photon.Realtime;
 using Photon.Voice.PUN;
+using System.Collections;
 using TMPro;
 using UnityEngine;
 using UnityEngine.SceneManagement;
@@ -31,7 +32,7 @@ public class NetworkManager : MonoBehaviourPunCallbacks
         DontDestroyOnLoad(gameObject);
 
         PhotonNetwork.AutomaticallySyncScene = true;
-        
+        ConectarServidor();
 
     }
     // --------------------------- Conexión a Photon ----------------------
@@ -46,7 +47,7 @@ public class NetworkManager : MonoBehaviourPunCallbacks
 
         Debug.Log("Realizando conexión a photon...");
         // Se asegura que no este en offline
-        PhotonNetwork.OfflineMode = false;
+        //PhotonNetwork.OfflineMode = false;
         PhotonNetwork.ConnectUsingSettings();
     }
 
@@ -133,12 +134,34 @@ public class NetworkManager : MonoBehaviourPunCallbacks
 
    public void CargarEscenario(string nombreEscena)
     {
+        
         if(PhotonNetwork.IsConnectedAndReady)
         {
             PhotonNetwork.LoadLevel(nombreEscena);
         }
+        else
+        {
+            StartCoroutine(ReintentarConexion(nombreEscena));
+        }
     }
 
+    private IEnumerator ReintentarConexion(string nombreEscena)
+    {
+        if (!PhotonNetwork.IsConnected)
+        {
+            PhotonNetwork.ConnectUsingSettings();
+        }
+
+        float tiempoMaximo = 10f;
+        float tiempo = 0f;
+
+        while (!PhotonNetwork.IsConnectedAndReady && tiempo < tiempoMaximo)
+        {
+            tiempo += Time.deltaTime;
+            yield return null;
+        }
+        CargarEscenario(nombreEscena);
+    }
     public void CargarEscenarioLocal(string nombreEscena)
     {
         SceneManager.LoadScene(nombreEscena);

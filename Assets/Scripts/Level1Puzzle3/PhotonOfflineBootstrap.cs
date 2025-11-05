@@ -3,6 +3,7 @@ using UnityEngine;
 
 public static class PhotonOfflineBootstrap
 {
+    /*
     // 1) Antes de cargar la primera escena: activar OfflineMode
     [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSceneLoad)]
     static void EnableOffline()
@@ -22,5 +23,5 @@ public static class PhotonOfflineBootstrap
             PhotonNetwork.CreateRoom("__offline_room__");
             Debug.Log("[PUN] Sala offline creada/ingresada (__offline_room__).");
         }
-    }
+    }*/
 }
