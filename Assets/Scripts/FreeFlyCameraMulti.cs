@@ -1,5 +1,6 @@
 ﻿using UnityEngine;
-using UnityEngine.InputSystem; // Input System
+using UnityEngine.InputSystem;
+using UnityEngine.XR.Management;          // ⬅ VR detect
 using Photon.Pun;
 
 [RequireComponent(typeof(Rigidbody))]
@@ -26,14 +27,20 @@ public class FreeFlyCameraMulti : MonoBehaviourPun
 
     [Header("References")]
     public Transform characterModel;  // yaw (cuerpo)
-    public Transform cameraTransform; // pitch (cámara)
+    public Transform cameraTransform; // pitch (cámara clásica)
     public Vector3 cameraOffset = Vector3.zero;
 
-    // state
+    // ======== VR ========
+    [Header("VR")]
+    [Tooltip("Velocidad de giro en VR (stick derecho X).")]
+    public float vrTurnSpeed = 120f;   // grados/seg
+    private float vrTurnAxis;          // valor -1..1 de la acción Turn
+    // =====================
+
     private Rigidbody rb;
     private float yaw, pitch;
-    private Vector2 moveInput;   // Input Actions: Move (Vector2)
-    private Vector2 lookInput;   // Input Actions: Look (Vector2)
+    private Vector2 moveInput;
+    private Vector2 lookInput;
     private bool jumpPressed;
     private bool isLocalMode;
 
@@ -49,7 +56,6 @@ public class FreeFlyCameraMulti : MonoBehaviourPun
     {
         isLocalMode = !PhotonNetwork.IsConnected;
 
-        // Settings iniciales y suscripción
         if (SettingsManager.I)
         {
             mouseSensitivity = SettingsManager.I.MouseSensitivity;
@@ -58,16 +64,9 @@ public class FreeFlyCameraMulti : MonoBehaviourPun
             SettingsManager.I.OnChanged += ApplySettings;
         }
 
-        // Solo mi player controla y muestra su cámara
         if (isLocalMode || photonView.IsMine) ActivateCamera();
-        else
-        {
-            DeactivateCamera();
-            // (Opcional) Deshabilitar el script completo si no es mío:
-            // enabled = false; return;
-        }
+        else { DeactivateCamera(); }
 
-        // Rigidbody settings para movimiento normal
         rb.useGravity = true;
         rb.constraints = RigidbodyConstraints.FreezeRotationX | RigidbodyConstraints.FreezeRotationZ;
 
@@ -76,50 +75,58 @@ public class FreeFlyCameraMulti : MonoBehaviourPun
 
         LockCursor(true);
         if (cameraTransform) cameraTransform.localPosition = cameraOffset;
+
+        // Si VR está activo, apaga la cámara clásica para evitar doble cámara
+        if (XRGeneralSettings.Instance?.Manager?.activeLoader != null && cameraTransform)
+            cameraTransform.gameObject.SetActive(false);
     }
 
     void Update()
     {
         if (!isLocalMode && !photonView.IsMine) return;
 
-        // Toggle de modo debug (F1)
         if (Keyboard.current != null && Keyboard.current.f1Key.wasPressedThisFrame)
             debugFreeFly = !debugFreeFly;
 
-        // Sensibilidad según fuente (mouse vs stick)
-        bool usingGamepad = Gamepad.current != null && Gamepad.current.rightStick.IsActuated();
-        float sens = usingGamepad ? gamepadSensitivity : mouseSensitivity;
+        bool xrActive = XRGeneralSettings.Instance?.Manager?.activeLoader != null;
 
-        // Limpieza de ruido mínimo en look
-        if (lookInput.sqrMagnitude < 0.0005f) lookInput = Vector2.zero;
-
-        // ROTACIÓN
-        float lookX = lookInput.x * sens;
-        float lookY = lookInput.y * sens * (invertY ? 1f : -1f);
-
-        yaw += lookX;
-        pitch += lookY;
-        pitch = Mathf.Clamp(pitch, -maxHeadTilt, maxHeadTilt);
-
-        if (characterModel) characterModel.rotation = Quaternion.Euler(0f, yaw, 0f);
-        if (cameraTransform)
+        if (!xrActive)
         {
-            cameraTransform.localRotation = Quaternion.Euler(pitch, 0f, 0f);
-            cameraTransform.localPosition = cameraOffset;
+            // --- Look clásico (mouse/gamepad) ---
+            bool usingGamepad = Gamepad.current != null && Gamepad.current.rightStick.IsActuated();
+            float sens = usingGamepad ? gamepadSensitivity : mouseSensitivity;
+
+            if (lookInput.sqrMagnitude < 0.0005f) lookInput = Vector2.zero;
+
+            float lookX = lookInput.x * sens;
+            float lookY = lookInput.y * sens * (invertY ? 1f : -1f);
+
+            yaw += lookX;
+            pitch += lookY;
+            pitch = Mathf.Clamp(pitch, -maxHeadTilt, maxHeadTilt);
+
+            if (cameraTransform)
+            {
+                cameraTransform.localRotation = Quaternion.Euler(pitch, 0f, 0f);
+                cameraTransform.localPosition = cameraOffset;
+            }
+        }
+        else
+        {
+            // --- VR: solo giramos yaw con la acción Turn (el HMD maneja pitch/roll) ---
+            yaw += vrTurnAxis * vrTurnSpeed * Time.deltaTime;
         }
 
-        // UP/DOWN solo en modo free-fly (E/Q)
+        if (characterModel)
+            characterModel.rotation = Quaternion.Euler(0f, yaw, 0f);
+
+        // Free-fly vertical (E/Q) solo en modo debug
         if (debugFreeFly)
         {
             float upDown = 0f;
             var kb = Keyboard.current;
-            if (kb != null)
-            {
-                if (kb.eKey.isPressed) upDown += 1f;
-                if (kb.qKey.isPressed) upDown -= 1f;
-            }
+            if (kb != null) { if (kb.eKey.isPressed) upDown += 1f; if (kb.qKey.isPressed) upDown -= 1f; }
 
-            // Movimiento directo sin inercia
             Vector3 desired =
                 characterModel.forward * moveInput.y +
                 characterModel.right * moveInput.x +
@@ -128,14 +135,12 @@ public class FreeFlyCameraMulti : MonoBehaviourPun
             if (desired.sqrMagnitude < 0.001f) desired = Vector3.zero;
             if (desired.sqrMagnitude > 1f) desired.Normalize();
 
-            // Desacoplar de física mientras vuelas
             rb.useGravity = false;
-            rb.linearVelocity = Vector3.zero; // <<< corregido
+            rb.linearVelocity = Vector3.zero;
             transform.position += desired * flySpeed * Time.deltaTime;
         }
         else
         {
-            // Volvemos a física normal
             if (!rb.useGravity) rb.useGravity = true;
         }
     }
@@ -143,44 +148,36 @@ public class FreeFlyCameraMulti : MonoBehaviourPun
     void FixedUpdate()
     {
         if (!isLocalMode && !photonView.IsMine) return;
-        if (debugFreeFly) return; // el free-fly ya se mueve en Update
+        if (debugFreeFly) return;
 
-        // MOVIMIENTO NORMAL con física (plano XZ)
         Vector3 wishDir = (characterModel.forward * moveInput.y) + (characterModel.right * moveInput.x);
         if (wishDir.sqrMagnitude > 1f) wishDir.Normalize();
 
-        // Conserva la Y de la física (gravedad / saltos), controla XZ
-        Vector3 vel = rb.linearVelocity; // <<< corregido
+        Vector3 vel = rb.linearVelocity;
         Vector3 targetXZ = wishDir * walkSpeed;
-        rb.linearVelocity = new Vector3(targetXZ.x, vel.y, targetXZ.z); // <<< corregido
+        rb.linearVelocity = new Vector3(targetXZ.x, vel.y, targetXZ.z);
 
-        // Salto
         if (jumpPressed && IsGrounded())
         {
-            // reset Y para salto consistente
-            rb.linearVelocity = new Vector3(rb.linearVelocity.x, 0f, rb.linearVelocity.z); // <<< corregido
+            rb.linearVelocity = new Vector3(rb.linearVelocity.x, 0f, rb.linearVelocity.z);
             rb.AddForce(Vector3.up * jumpForce, ForceMode.VelocityChange);
         }
-        jumpPressed = false; // consumir
+        jumpPressed = false;
     }
 
     bool IsGrounded()
     {
-        // chequeo simple al centro del capsule/collider
         Vector3 origin = transform.position + Vector3.up * 0.05f;
         return Physics.Raycast(origin, Vector3.down, groundCheckDistance + 0.05f, groundMask, QueryTriggerInteraction.Ignore);
     }
 
-    // ===== Input System (PlayerInput → Send Messages) =====
-    public void OnMove(InputValue value) => moveInput = value.Get<Vector2>();
-    public void OnLook(InputValue value) => lookInput = value.Get<Vector2>();
-    public void OnJump(InputValue value) { if (value.isPressed) jumpPressed = true; }
-    public void OnToggleCursor(InputValue value)
-    {
-        if (value.isPressed) LockCursor(Cursor.lockState != CursorLockMode.Locked);
-    }
+    // ===== Input Actions =====
+    public void OnMove(InputValue v) => moveInput = v.Get<Vector2>();
+    public void OnLook(InputValue v) => lookInput = v.Get<Vector2>();
+    public void OnJump(InputValue v) { if (v.isPressed) jumpPressed = true; }
+    public void OnTurn(InputValue v) => vrTurnAxis = v.Get<float>();      // ⬅ NUEVA acción para VR
+    public void OnToggleCursor(InputValue v) { if (v.isPressed) LockCursor(Cursor.lockState != CursorLockMode.Locked); }
 
-    // ===== Settings binding =====
     void ApplySettings()
     {
         if (!SettingsManager.I) return;
@@ -191,15 +188,10 @@ public class FreeFlyCameraMulti : MonoBehaviourPun
 
     void OnDestroy()
     {
-        if (SettingsManager.I) SettingsManager.I.OnChanged -= ApplySettings; // <<< importante
+        if (SettingsManager.I) SettingsManager.I.OnChanged -= ApplySettings;
     }
 
-    // ===== Helpers =====
     void ActivateCamera() { if (cameraTransform) cameraTransform.gameObject.SetActive(true); }
     void DeactivateCamera() { if (cameraTransform) cameraTransform.gameObject.SetActive(false); }
-    void LockCursor(bool locked)
-    {
-        Cursor.lockState = locked ? CursorLockMode.Locked : CursorLockMode.None;
-        Cursor.visible = !locked;
-    }
+    void LockCursor(bool locked) { Cursor.lockState = locked ? CursorLockMode.Locked : CursorLockMode.None; Cursor.visible = !locked; }
 }

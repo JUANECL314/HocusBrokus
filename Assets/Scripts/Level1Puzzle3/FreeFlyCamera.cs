@@ -1,5 +1,6 @@
 ﻿using UnityEngine;
 using UnityEngine.InputSystem;
+using UnityEngine.XR.Management;    // ⬅ VR detect
 
 public class FreeFlyDebug : MonoBehaviour
 {
@@ -8,7 +9,7 @@ public class FreeFlyDebug : MonoBehaviour
 
     [Header("Look Settings")]
     public float mouseSensitivity = 1.5f;
-    public float gamepadSensitivity = 0.7f; // menos sensible para stick
+    public float gamepadSensitivity = 0.7f;
     public float maxHeadTilt = 80f;
     public bool invertY = false;
 
@@ -16,6 +17,10 @@ public class FreeFlyDebug : MonoBehaviour
     public Transform characterModel;
     public Transform cameraTransform;
     public Vector3 cameraOffset = Vector3.zero;
+
+    [Header("VR")]
+    public float vrTurnSpeed = 120f;   // grados/seg
+    private float vrTurnAxis;          // acción Turn (Axis)
 
     private float yaw, pitch;
     private Vector2 moveInput;
@@ -36,11 +41,9 @@ public class FreeFlyDebug : MonoBehaviour
 
     void Start()
     {
-        // Cursor y cámara
         LockCursor(true);
         if (cameraTransform) cameraTransform.localPosition = cameraOffset;
 
-        // === NUEVO: cargar settings y suscribirse a cambios ===
         if (SettingsManager.I)
         {
             mouseSensitivity = SettingsManager.I.MouseSensitivity;
@@ -48,53 +51,61 @@ public class FreeFlyDebug : MonoBehaviour
             invertY = SettingsManager.I.InvertY;
             SettingsManager.I.OnChanged += ApplySettings;
         }
+
+        // Si VR está activo, apaga la cámara clásica del prefab
+        if (XRGeneralSettings.Instance?.Manager?.activeLoader != null && cameraTransform)
+            cameraTransform.gameObject.SetActive(false);
     }
 
     void Update()
     {
-        // Detectar si la entrada de look viene del gamepad
-        bool usingGamepad = Gamepad.current != null && Gamepad.current.rightStick.IsActuated();
-        float sensitivity = usingGamepad ? gamepadSensitivity : mouseSensitivity;
+        bool xrActive = XRGeneralSettings.Instance?.Manager?.activeLoader != null;
 
-        // --- LOOK ---
-        if (lookInput.sqrMagnitude < 0.0005f) lookInput = Vector2.zero;
-
-        float lookX = lookInput.x * sensitivity;
-        float lookY = lookInput.y * sensitivity * (invertY ? 1f : -1f);
-
-        yaw += lookX;
-        pitch += lookY;
-        pitch = Mathf.Clamp(pitch, -maxHeadTilt, maxHeadTilt);
-
-        if (characterModel) characterModel.rotation = Quaternion.Euler(0f, yaw, 0f);
-        if (cameraTransform)
+        if (!xrActive)
         {
-            cameraTransform.localRotation = Quaternion.Euler(pitch, 0f, 0f);
-            cameraTransform.localPosition = cameraOffset;
+            bool usingGamepad = Gamepad.current != null && Gamepad.current.rightStick.IsActuated();
+            float sensitivity = usingGamepad ? gamepadSensitivity : mouseSensitivity;
+
+            if (lookInput.sqrMagnitude < 0.0005f) lookInput = Vector2.zero;
+
+            float lookX = lookInput.x * sensitivity;
+            float lookY = lookInput.y * sensitivity * (invertY ? 1f : -1f);
+
+            yaw += lookX;
+            pitch += lookY;
+            pitch = Mathf.Clamp(pitch, -maxHeadTilt, maxHeadTilt);
+
+            if (cameraTransform)
+            {
+                cameraTransform.localRotation = Quaternion.Euler(pitch, 0f, 0f);
+                cameraTransform.localPosition = cameraOffset;
+            }
+        }
+        else
+        {
+            // En VR solo yaw con Turn (HMD controla la vista)
+            yaw += vrTurnAxis * vrTurnSpeed * Time.deltaTime;
         }
 
-        // --- UP/DOWN por teclado (E/Q) ---
+        if (characterModel)
+            characterModel.rotation = Quaternion.Euler(0f, yaw, 0f);
+
+        // E/Q para subir/bajar (debug)
         float upDownInput = 0f;
         var kb = Keyboard.current;
-        if (kb != null)
-        {
-            if (kb.eKey.isPressed) upDownInput += 1f;
-            if (kb.qKey.isPressed) upDownInput -= 1f;
-        }
+        if (kb != null) { if (kb.eKey.isPressed) upDownInput += 1f; if (kb.qKey.isPressed) upDownInput -= 1f; }
 
-        // --- MOVE ---
         Vector3 desired =
             (characterModel.forward * moveInput.y) +
             (characterModel.right * moveInput.x) +
             (Vector3.up * upDownInput);
 
-        if (desired.sqrMagnitude < 0.001f) desired = Vector3.zero; // mata ruido
-        if (desired.sqrMagnitude > 1f) desired.Normalize();     // diagonales
+        if (desired.sqrMagnitude < 0.001f) desired = Vector3.zero;
+        if (desired.sqrMagnitude > 1f) desired.Normalize();
 
         transform.position += desired * moveSpeed * Time.deltaTime;
     }
 
-    // === NUEVO: aplicar cambios cuando el usuario mueve sliders/toggle ===
     void ApplySettings()
     {
         if (!SettingsManager.I) return;
@@ -105,17 +116,16 @@ public class FreeFlyDebug : MonoBehaviour
 
     void OnDestroy()
     {
-        // === NUEVO: desuscribirse para evitar fugas de memoria/refs ===
         if (SettingsManager.I) SettingsManager.I.OnChanged -= ApplySettings;
     }
 
     // --- Input Callbacks ---
-    public void OnMove(InputValue value) => moveInput = value.Get<Vector2>();
-    public void OnLook(InputValue value) => lookInput = value.Get<Vector2>();
-    public void OnToggleCursor(InputValue value)
+    public void OnMove(InputValue v) => moveInput = v.Get<Vector2>();
+    public void OnLook(InputValue v) => lookInput = v.Get<Vector2>();
+    public void OnTurn(InputValue v) => vrTurnAxis = v.Get<float>();   // ⬅ NUEVO
+    public void OnToggleCursor(InputValue v)
     {
-        if (value.isPressed)
-            LockCursor(Cursor.lockState != CursorLockMode.Locked);
+        if (v.isPressed) LockCursor(Cursor.lockState != CursorLockMode.Locked);
     }
 
     private void LockCursor(bool locked)
