@@ -24,7 +24,7 @@ public class SecretTrigg : MonoBehaviour
     void OnTriggerEnter(Collider other)
     {
         // Si el objeto que entra tiene el tag "MainCamera"
-        if (other.CompareTag("PLAYER") && !doorOpen)
+        if (other.CompareTag("Player") && !doorOpen)
         {
             StartCoroutine(OpenDoor());
         }
