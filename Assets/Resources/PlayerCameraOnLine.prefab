@@ -588,7 +588,10 @@ MonoBehaviour:
   createInput: {fileID: 1136908806877373369}
   joinInput: {fileID: 3640758094860335054}
   botonCrearUnirSalas: {fileID: 1856475848827082517}
+  texto: {fileID: 0}
   uiCrearSalas: {fileID: 8784282069032103865}
+  jugador: {fileID: 0}
+  teclaAbrirMenu: 101
 --- !u!1 &566206292473051795
 GameObject:
   m_ObjectHideFlags: 0
@@ -7117,7 +7120,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   debugFreeFly: 0
   walkSpeed: 15
-  jumpForce: 5
+  jumpForce: 20
   groundMask:
     serializedVersion: 2
     m_Bits: 4294967295
