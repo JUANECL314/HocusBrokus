@@ -93,4 +93,60 @@ MonoBehaviour:
     spatialBlend: 1
     maxOneShotDuration: 0.05
     pitchJitter: {x: 0.95, y: 1.15}
-  initialPool: 8
+  - key: 10
+    clip: {fileID: 8300000, guid: 0374fc9e404cb17419959a2336f8c301, type: 3}
+    volume: 0.264
+    spatial: 1
+    loopable: 1
+    spatialBlend: 1
+    maxOneShotDuration: -1
+    pitchJitter: {x: 0.95, y: 1.15}
+  - key: 11
+    clip: {fileID: 8300000, guid: 14c67450aecb01141b7946dfd91040b4, type: 3}
+    volume: 0.264
+    spatial: 1
+    loopable: 1
+    spatialBlend: 1
+    maxOneShotDuration: -1
+    pitchJitter: {x: 0.95, y: 1.15}
+  - key: 5
+    clip: {fileID: 8300000, guid: 37a77fe118680494aa71372792340edc, type: 3}
+    volume: 0.255
+    spatial: 1
+    loopable: 0
+    spatialBlend: 1
+    maxOneShotDuration: -1
+    pitchJitter: {x: 0.95, y: 1.15}
+  - key: 6
+    clip: {fileID: 8300000, guid: 9cb401a2f5e43a3428156ebbc0f0077d, type: 3}
+    volume: 0.239
+    spatial: 1
+    loopable: 1
+    spatialBlend: 1
+    maxOneShotDuration: -1
+    pitchJitter: {x: 0.95, y: 1.15}
+  - key: 9
+    clip: {fileID: 8300000, guid: 06d7e7b5965faf24fa308c9c4c604d0c, type: 3}
+    volume: 0.327
+    spatial: 1
+    loopable: 0
+    spatialBlend: 1
+    maxOneShotDuration: -1
+    pitchJitter: {x: 0.95, y: 1.15}
+  - key: 7
+    clip: {fileID: 8300000, guid: 579717f6ff6537e4abd04718135d93c1, type: 3}
+    volume: 0.54
+    spatial: 1
+    loopable: 0
+    spatialBlend: 1
+    maxOneShotDuration: -1
+    pitchJitter: {x: 0.95, y: 1.15}
+  - key: 8
+    clip: {fileID: 8300000, guid: f4cecfd13ae999c4dbc231a282a10981, type: 3}
+    volume: 0.239
+    spatial: 1
+    loopable: 0
+    spatialBlend: 1
+    maxOneShotDuration: -1
+    pitchJitter: {x: 0.95, y: 1.15}
+  initialPool: 11

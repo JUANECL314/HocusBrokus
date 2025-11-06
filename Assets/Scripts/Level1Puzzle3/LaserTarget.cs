@@ -23,9 +23,7 @@ public class LaserTarget : MonoBehaviour
     public float fastBlinkInterval = 0.2f;
 
     [Header("Glow Settings")]
-    [Tooltip("Maximum intensity of the glow pulse.")]
     public float maxGlowIntensity = 3f;
-    [Tooltip("Speed of the glow pulse animation.")]
     public float glowPulseSpeed = 2f;
 
     [Header("Emitted Beam Settings")]
@@ -85,21 +83,19 @@ public class LaserTarget : MonoBehaviour
     {
         if (activeBeams.Add(beamId))
             Debug.Log($"LaserTarget: beam {beamId} started hitting. Count = {activeBeams.Count}");
-
-        // ❌ Ya no usamos loops aquí. Solo el coroutine hará los pings.
+        // Blinking lo maneja el Update/coroutine
     }
 
     public void Deactivate(int beamId)
     {
         if (activeBeams.Remove(beamId))
             Debug.Log($"LaserTarget: beam {beamId} stopped hitting. Count = {activeBeams.Count}");
-
-        // ❌ Sin loops que apagar. El coroutine se encarga de parar cuando cambie el modo.
+        // Blinking lo maneja el Update/coroutine
     }
 
     void Update()
     {
-        // --- If permanently glowing, just pulse ---
+        // Si ya quedó en glow permanente, solo pulso
         if (permanentlyGlowing)
         {
             UpdateGlowEffect();
@@ -107,21 +103,14 @@ public class LaserTarget : MonoBehaviour
             return;
         }
 
-        // --- Handle blinking modes only if beams are active ---
+        // Modo de parpadeo deseado
         BlinkMode desiredMode = BlinkMode.None;
-        if (activeBeams.Count == 1)
-            desiredMode = BlinkMode.Single;
-        else if (activeBeams.Count >= requiredBeams)
-            desiredMode = BlinkMode.FastMulti;
+        if (activeBeams.Count == 1) desiredMode = BlinkMode.Single;
+        else if (activeBeams.Count >= requiredBeams) desiredMode = BlinkMode.FastMulti;
 
         if (desiredMode != currentBlinkMode)
         {
-            if (blinkCoroutine != null)
-            {
-                StopCoroutine(blinkCoroutine);
-                blinkCoroutine = null;
-            }
-
+            if (blinkCoroutine != null) { StopCoroutine(blinkCoroutine); blinkCoroutine = null; }
             currentBlinkMode = desiredMode;
 
             if (currentBlinkMode == BlinkMode.Single)
@@ -132,7 +121,7 @@ public class LaserTarget : MonoBehaviour
                 ResetGlow();
         }
 
-        // --- Trigger condition ---
+        // Condición de éxito
         if (activeBeams.Count >= requiredBeams)
         {
             timer += Time.deltaTime;
@@ -154,7 +143,6 @@ public class LaserTarget : MonoBehaviour
             triggered = false;
         }
 
-        // --- Only update glow when something is hitting ---
         if (activeBeams.Count > 0 || permanentlyGlowing)
             UpdateGlowEffect();
         else
@@ -172,17 +160,13 @@ public class LaserTarget : MonoBehaviour
             if (permanentlyGlowing || currentBlinkMode != mode) break;
 
             EnableGlow(true);
-
             PlayBlinkPing(mode);
-
             yield return new WaitForSeconds(interval);
 
             if (permanentlyGlowing || currentBlinkMode != mode) break;
 
             EnableGlow(false);
-
             PlayBlinkPing(mode);
-
             yield return new WaitForSeconds(interval);
         }
 
@@ -303,6 +287,7 @@ public class LaserTarget : MonoBehaviour
         emittedLR.useWorldSpace = true;
         emittedLR.enabled = true;
     }
+
     void PlayBlinkPing(BlinkMode mode)
     {
         if (mode == BlinkMode.Single)
@@ -310,15 +295,16 @@ public class LaserTarget : MonoBehaviour
         else if (mode == BlinkMode.FastMulti)
             SoundManager.Instance?.Play(SfxKey.TargetFastPing, transform);
     }
+
     private void OnRequiredBeamsHeld()
     {
         Debug.Log($"LaserTarget: required {requiredBeams} beams held for {requiredDuration} seconds — SUCCESS!");
         EnsureEmittedBeamCreated();
 
-        // 🔊 Nuevo: one-shot al pasar a brillo permanente (no loop)
+        // One-shot al pasar a brillo permanente
         SoundManager.Instance?.Play(SfxKey.TargetIlluminate, transform.position);
 
-        // (Si quieres además bajar un poco la mezcla por 0.6s, descomenta)
-        // SoundManager.Instance?.PunchSuccessDuck();
+        // ⬇️ KPI: cerrar medición al completar el puzzle
+        KPITracker.Instance?.OnPuzzleCompleted();
     }
 }
