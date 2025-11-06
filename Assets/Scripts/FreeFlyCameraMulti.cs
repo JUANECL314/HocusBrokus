@@ -18,6 +18,7 @@ public class FreeFlyCameraMulti : MonoBehaviourPun
     [Header("Movement (Free-Fly Debug)")]
     public float flySpeed = 8f;
 
+    private Animator _animator;
     [Header("Look")]
     public float mouseSensitivity = 1.5f;
     public float gamepadSensitivity = 0.7f; // menor para stick
@@ -58,12 +59,12 @@ public class FreeFlyCameraMulti : MonoBehaviourPun
             characterModel = transform;
 
         // try to find Animator first on the characterModel, then in its children
-        animator = characterModel.GetComponent<Animator>();
-        if (animator == null)
-            animator = characterModel.GetComponentInChildren<Animator>(true);
+        _animator = characterModel.GetComponent<Animator>();
+        if (_animator == null)
+            _animator = characterModel.GetComponentInChildren<Animator>(true);
             
         Debug.Log("characterModel: " + (characterModel ? characterModel.name : "null") +
-                  ", Animator: " + (animator != null ? "found on " + animator.gameObject.name : "null"));
+                  ", Animator: " + (_animator != null ? "found on " + _animator.gameObject.name : "null"));
         yaw = characterModel.eulerAngles.y;
         pitch = cameraTransform.localEulerAngles.x;
 
@@ -166,11 +167,11 @@ public class FreeFlyCameraMulti : MonoBehaviourPun
         float inputMagnitude = Mathf.Clamp01(new Vector2(horizontal, vertical).magnitude); // 0..1
 
         Vector3 move = rawMove.normalized; // direction for movement
-        // apply animator speed using inputMagnitude (matches joystick/WASD amount)
-        if (animator != null)
+        // apply _animator speed using inputMagnitude (matches joystick/WASD amount)
+        if (_animator != null)
         {
             // ensure the parameter name "Speed" exactly matches your Animator parameter
-            animator.SetFloat("Speed", inputMagnitude, 0.1f, Time.deltaTime);
+            _animator.SetFloat("Speed", inputMagnitude, 0.1f, Time.deltaTime);
             Debug.Log("Set Animator 'Speed' = " + inputMagnitude);
         }
         else
@@ -178,7 +179,7 @@ public class FreeFlyCameraMulti : MonoBehaviourPun
             Debug.Log("Animator is null, can't set Speed");
         }
 
-        transform.position += move * moveSpeed * inputMagnitude * Time.deltaTime;
+        //transform.position += move * walkSpeed * inputMagnitude * Time.deltaTime;
 
     }
 
