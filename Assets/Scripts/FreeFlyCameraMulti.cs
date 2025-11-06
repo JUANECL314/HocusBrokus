@@ -3,11 +3,10 @@ using Photon.Pun;
 
 public class FreeFlyCameraMulti : MonoBehaviourPun
 {
-    [Header("Flight Settings")]
-    public bool enableFlying = true;
 
     [Header("Movement Settings")]
     public float moveSpeed = 5f;
+    private Animator animator;
     public float lookSpeed = 2f;
 
     [Header("References")]
@@ -33,6 +32,13 @@ public class FreeFlyCameraMulti : MonoBehaviourPun
         if (characterModel == null)
             characterModel = transform;
 
+        // try to find Animator first on the characterModel, then in its children
+        animator = characterModel.GetComponent<Animator>();
+        if (animator == null)
+            animator = characterModel.GetComponentInChildren<Animator>(true);
+            
+        Debug.Log("characterModel: " + (characterModel ? characterModel.name : "null") +
+                  ", Animator: " + (animator != null ? "found on " + animator.gameObject.name : "null"));
         yaw = characterModel.eulerAngles.y;
         pitch = cameraTransform.localEulerAngles.x;
 
@@ -69,16 +75,29 @@ public class FreeFlyCameraMulti : MonoBehaviourPun
         cameraTransform.localRotation = Quaternion.Euler(pitch, 0f, 0f);
         cameraTransform.localPosition = cameraOffset;
 
+// ...existing code...
         // --- MOVIMIENTO CON WASD ---
         float horizontal = Input.GetAxis("Horizontal");
         float vertical = Input.GetAxis("Vertical");
 
-        Vector3 move = (characterModel.forward * vertical + characterModel.right * horizontal).normalized;
-        transform.position += move * moveSpeed * Time.deltaTime;
+        // use raw move (not normalized) to keep magnitude proportional to input
+        Vector3 rawMove = characterModel.forward * vertical + characterModel.right * horizontal;
+        float inputMagnitude = Mathf.Clamp01(new Vector2(horizontal, vertical).magnitude); // 0..1
 
-        // --- MOVIMIENTO VERTICAL (E / Q) ---
-        float verticalMove = (Input.GetKey(KeyCode.E) ? 1 : 0) - (Input.GetKey(KeyCode.Q) ? 1 : 0);
-        transform.position += Vector3.up * verticalMove * moveSpeed * Time.deltaTime;
+        Vector3 move = rawMove.normalized; // direction for movement
+        // apply animator speed using inputMagnitude (matches joystick/WASD amount)
+        if (animator != null)
+        {
+            // ensure the parameter name "Speed" exactly matches your Animator parameter
+            animator.SetFloat("Speed", inputMagnitude, 0.1f, Time.deltaTime);
+            Debug.Log("Set Animator 'Speed' = " + inputMagnitude);
+        }
+        else
+        {
+            Debug.Log("Animator is null, can't set Speed");
+        }
+
+        transform.position += move * moveSpeed * inputMagnitude * Time.deltaTime;
     }
 
     private void ActivarCamara()
