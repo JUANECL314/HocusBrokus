@@ -138,7 +138,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 1, y: 1}
-  m_AnchoredPosition: {x: 10.797607, y: -3.1204987}
+  m_AnchoredPosition: {x: 10.797607, y: -3.120514}
   m_SizeDelta: {x: -593.572, y: -95.03281}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!222 &2643403115840330475
@@ -6787,7 +6787,7 @@ Transform:
   m_GameObject: {fileID: 6574153030710026430}
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: -0, y: -0.0715, z: 0.088}
+  m_LocalPosition: {x: 0.092, y: -0.265, z: 0.01}
   m_LocalScale: {x: 0.5, y: 0.5, z: 0.5}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -6929,6 +6929,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   magic: {fileID: 5691635643254298859}
+  animator: {fileID: 0}
+  attackDelay: 1.1
 --- !u!114 &9081232492156747955
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -7130,6 +7132,9 @@ MonoBehaviour:
   characterModel: {fileID: 432736641235007354}
   cameraTransform: {fileID: 2349355420028090284}
   cameraOffset: {x: 0, y: 1.3, z: 0.3}
+  maxHeadTilt: 80
+  jumpHeight: 8
+  gravity: -9.81
 --- !u!114 &-5593264301845761660
 MonoBehaviour:
   m_ObjectHideFlags: 0
