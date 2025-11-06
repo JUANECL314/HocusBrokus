@@ -187,7 +187,7 @@ public class FreeFlyCameraMulti : MonoBehaviourPun
             verticalVelocity = v;
             rb.AddForce(Vector3.up * v, ForceMode.VelocityChange);
             hasJumped = true;
-            if (animator != null) animator.SetTrigger("Jump");
+            if (_animator != null) _animator.SetTrigger("Jump");
             StartCoroutine(ResetJumpAfterDelay(0.2f));
         }
 
@@ -196,7 +196,7 @@ public class FreeFlyCameraMulti : MonoBehaviourPun
         float vertical = Input.GetAxis("Vertical");
         Vector3 rawMove = characterModel.forward * vertical + characterModel.right * horizontal;
         float inputMagnitude = Mathf.Clamp01(new Vector2(horizontal, vertical).magnitude);
-        Vector3 moveDir = rawMove.normalized * moveSpeed * inputMagnitude;
+        Vector3 moveDir = rawMove.normalized * walkSpeed * inputMagnitude;
         Vector3 move = rawMove.normalized; // direction for movement
         // apply _animator speed using inputMagnitude (matches joystick/WASD amount)
         if (_animator != null)
