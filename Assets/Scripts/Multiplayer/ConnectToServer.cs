@@ -21,6 +21,6 @@ public class ConnectToServer : MonoBehaviourPunCallbacks
        
         
 
-        PhotonNetwork.LoadLevel("Lobby");
+        //PhotonNetwork.LoadLevel("Lobby");
     }
 }

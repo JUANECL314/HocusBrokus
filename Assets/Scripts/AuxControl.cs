@@ -39,7 +39,7 @@ public class AuxControl : MonoBehaviourPun
         }
     }
 
-    void Update()
+    private void Update()
     {
         if (!PhotonNetwork.IsMasterClient) return;
 

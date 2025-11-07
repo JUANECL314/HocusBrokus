@@ -1,7 +1,7 @@
 using Photon.Pun;
 using UnityEngine;
 
-public class SpawnPointLobby : MonoBehaviour
+public class SpawnPoint : MonoBehaviour
 {
     public Transform[] spawnPoints; // Asigna varios puntos en el inspector
     public GameObject playerPrefab; // Prefab del jugador

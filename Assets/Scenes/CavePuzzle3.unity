@@ -6279,7 +6279,7 @@ MonoBehaviour:
   - {fileID: 1420781751}
   - {fileID: 3950423415122172184, guid: 958f865dd9775a940aef1abbb9c31fa7, type: 3}
   path: Puzzle3Resources/Models/
-  reapacerAlInicio: 1
+  reaparecerAlInicio: 1
   soloMaestroAparece: 1
 --- !u!4 &145403988
 Transform:
@@ -64840,12 +64840,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 2b339f0310c52414893a8845a594d2eb, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  gameObjectToUse: Mirror_Pillar_1
-  sceneObject: {fileID: 0}
-  mirrorController: {fileID: 0}
-  lista:
-  - {fileID: 862370335}
-  - {fileID: 1564664515}
+  _gameObjectToUse: 
+  _sceneObject: {fileID: 0}
+  _mirrorController: {fileID: 0}
+  _lista: []
 --- !u!1 &1698034953
 GameObject:
   m_ObjectHideFlags: 0
@@ -75577,12 +75575,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 2b339f0310c52414893a8845a594d2eb, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  gameObjectToUse: Mirror_Pillar_3
-  sceneObject: {fileID: 0}
-  mirrorController: {fileID: 984069054}
-  lista:
-  - {fileID: 1349731814}
-  - {fileID: 451799170}
+  _gameObjectToUse: 
+  _sceneObject: {fileID: 0}
+  _mirrorController: {fileID: 0}
+  _lista: []
 --- !u!1 &2048655387
 GameObject:
   m_ObjectHideFlags: 0
