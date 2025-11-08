@@ -1,92 +1,128 @@
 ﻿using Photon.Pun;
 using Photon.Realtime;
-using UnityEngine;
-using UnityEngine.SceneManagement; // 👈 Necesario para cargar escenas
 using TMPro;
+using UnityEngine;
 using UnityEngine.UI;
+
 public class PhotonAutoConnect : MonoBehaviourPunCallbacks
 {
-    
-    
     string roomName = "";
-
-    
     byte maxPlayers = 4;
 
-    public Button connectButton;
+    public Button crearButton;
+    public Button unirButton;
+    public TMP_Dropdown sceneDropdown;
 
     string sceneToLoad = "";
-    public TMP_Dropdown sceneDropdown;
+    private bool enLobby = false;
 
     void Start()
     {
         Debug.Log("Conectando a Photon...");
         PhotonNetwork.AutomaticallySyncScene = true;
-        if (connectButton != null) connectButton.onClick.AddListener(CargarEscena);
-    }
 
+        if (crearButton != null) crearButton.onClick.AddListener(Crear);
+        if (unirButton != null) unirButton.onClick.AddListener(Unir);
 
-    void CargarEscena()
-    {
-        sceneToLoad = sceneDropdown.options[sceneDropdown.value].text;
-        roomName = $"Nivel_{sceneDropdown.options[sceneDropdown.value].text}";
+        crearButton.interactable = false;
+        unirButton.interactable = false;
+
         PhotonNetwork.ConnectUsingSettings();
     }
-    // Llamado cuando se conecta al servidor maestro de Photon
+
     public override void OnConnectedToMaster()
     {
-        Debug.Log("Conectado al servidor maestro de Photon.");
+        Debug.Log("✅ Conectado al servidor maestro de Photon.");
         PhotonNetwork.JoinLobby();
     }
 
-
-    
     public override void OnJoinedLobby()
     {
-
-
-
-        if (PhotonNetwork.IsConnectedAndReady)
-        {
-            PhotonNetwork.JoinRoom(roomName);
-        }
+        enLobby = true;
+        Debug.Log("✅ Unido al lobby.");
+        crearButton.interactable = true;
+        unirButton.interactable = true;
     }
-    // Si no hay salas disponibles, se crea una nueva
-    public override void OnJoinRoomFailed(short returnCode, string message)
+
+    void Crear()
     {
-        Debug.Log("⚠No se encontró sala disponible. Creando una nueva...");
-        Debug.Log(roomName);
-        string newRoomName = string.IsNullOrEmpty(roomName) ? "Sala_" + Random.Range(1000, 9999) : roomName;
+        if (!enLobby)
+        {
+            Debug.LogWarning("Aún no estás en el lobby.");
+            return;
+        }
+
+        sceneToLoad = sceneDropdown.options[sceneDropdown.value].text;
+        roomName = $"Nivel_{sceneToLoad}";
+        CreateRoom(roomName);
+    }
+
+    void Unir()
+    {
+        if (!enLobby)
+        {
+            Debug.LogWarning("Aún no estás en el lobby.");
+            return;
+        }
+
+        sceneToLoad = sceneDropdown.options[sceneDropdown.value].text;
+        roomName = $"Nivel_{sceneToLoad}";
+        Debug.Log($"Intentando unirse a la sala: {roomName}");
+        JoinRoom(roomName);
+    }
+
+    public void CreateRoom(string nombre)
+    {
+        if (!PhotonNetwork.IsConnectedAndReady) return;
 
         RoomOptions options = new RoomOptions
         {
             MaxPlayers = maxPlayers
         };
 
-        PhotonNetwork.CreateRoom(newRoomName, options);
+        PhotonNetwork.CreateRoom(nombre, options);
     }
 
-    
+    public void JoinRoom(string nombre)
+    {
+        if (!PhotonNetwork.IsConnectedAndReady) return;
+
+        PhotonNetwork.JoinRoom(nombre);
+    }
+
     public override void OnJoinedRoom()
     {
-        Debug.Log($"Se ha unido a la sala: {PhotonNetwork.CurrentRoom.Name}");
-        Debug.Log($"Jugadores en la sala: {PhotonNetwork.CurrentRoom.PlayerCount}/{PhotonNetwork.CurrentRoom.MaxPlayers}");
+        Debug.Log($"🎮 Se ha unido a la sala: {PhotonNetwork.CurrentRoom.Name}");
+        Debug.Log($"Jugadores en sala: {PhotonNetwork.CurrentRoom.PlayerCount}/{PhotonNetwork.CurrentRoom.MaxPlayers}");
 
-        // 👇 Cargar la escena automáticamente
         if (!string.IsNullOrEmpty(sceneToLoad))
         {
             Debug.Log($"Cargando escena: {sceneToLoad}");
-            PhotonNetwork.LoadLevel(sceneToLoad); 
-        }
-        else
-        {
-            Debug.LogWarning("No se asignó ninguna escena para cargar.");
+            PhotonNetwork.LoadLevel(sceneToLoad);
         }
     }
 
-    // Llamado si la conexión falla
+    public override void OnJoinRoomFailed(short returnCode, string message)
+    {
+        Debug.LogWarning($"⚠ Falló JoinRoom ({message}), creando la sala {roomName}...");
+        CreateRoom(roomName);
+    }
+
+    public override void OnCreatedRoom()
+    {
+        Debug.Log($"✅ Sala creada: {PhotonNetwork.CurrentRoom.Name}");
+    }
+
+    public override void OnCreateRoomFailed(short returnCode, string message)
+    {
+        Debug.LogError($"❌ Falló CreateRoom. Código: {returnCode} | Mensaje: {message}");
+    }
+
     public override void OnDisconnected(DisconnectCause cause)
     {
-        Debug.LogError($"Desconectado de Photon. Motivo: {cause}");
+        Debug.LogError($"❌ Desconectado de Photon. Motivo: {cause}");
+        crearButton.interactable = false;
+        unirButton.interactable = false;
+        enLobby = false;
     }
 }

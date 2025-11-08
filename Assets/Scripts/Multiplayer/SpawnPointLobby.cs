@@ -1,48 +1,45 @@
-﻿using Photon.Pun;
-using System.Collections;
+﻿
+
+using Photon.Pun;
+using Photon.Realtime;
 using UnityEngine;
 
-public class SpawnPoint : MonoBehaviourPunCallbacks
+public class SpawnPointLobby : MonoBehaviourPunCallbacks
 {
-    public Transform[] spawnPoints;
-    public GameObject playerPrefab;
+    public Transform[] spawnPoints; // Asigna varios puntos en el inspector
+    public GameObject playerPrefab; // Prefab del jugador
 
     private bool playerSpawned = false;
 
-    private void OnEnable()
+    private void Start()
     {
-        // Si el jugador ya está en una sala (por ejemplo, el creador de la sala tras LoadLevel)
+        // Si ya está conectado y en una sala (por ejemplo, el creador)
         if (PhotonNetwork.InRoom)
         {
-            Debug.Log("Escena cargada y jugador ya en sala. Iniciando spawn...");
-            StartCoroutine(SpawnPlayerWhenReady());
+            Debug.Log("Jugador ya en sala al iniciar escena. Spawneando...");
+            SpawnPlayer();
         }
     }
 
+    // Este método se llama automáticamente cuando el jugador entra a la sala
     public override void OnJoinedRoom()
     {
-        Debug.Log("OnJoinedRoom ejecutado. Preparando spawn...");
-        StartCoroutine(SpawnPlayerWhenReady());
+        Debug.Log("Jugador se unió a la sala. Spawneando...");
+        SpawnPlayer();
     }
 
-    private IEnumerator SpawnPlayerWhenReady()
+    private void SpawnPlayer()
     {
-        // Esperar a que Photon y la escena estén completamente listos
-        while (!PhotonNetwork.IsConnectedAndReady || spawnPoints == null || spawnPoints.Length == 0)
-        {
-            yield return null;
-        }
-
-        // Esperar a que el prefab del jugador esté cargado en la escena
-        while (playerPrefab == null)
-        {
-            yield return null;
-        }
-
         if (playerSpawned)
         {
-            Debug.LogWarning("Jugador ya instanciado, evitando duplicado.");
-            yield break;
+            Debug.LogWarning("Jugador ya instanciado. Ignorando duplicado.");
+            return;
+        }
+
+        if (spawnPoints == null || spawnPoints.Length == 0)
+        {
+            Debug.LogError("No hay spawnPoints asignados en la escena.");
+            return;
         }
 
         int index = (PhotonNetwork.LocalPlayer.ActorNumber - 1) % spawnPoints.Length;
