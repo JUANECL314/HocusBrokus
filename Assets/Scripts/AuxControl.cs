@@ -13,24 +13,43 @@ public class AuxControl : MonoBehaviourPun
 
     private void OnTriggerEnter(Collider other)
     {
-        if (other.CompareTag("Portal") && PhotonNetwork.IsMasterClient)
+        if (!PhotonNetwork.IsMasterClient) return;
+        if (other.CompareTag("Portal"))
         {
             canvas.SetActive(true);
+            
+            Cursor.lockState = CursorLockMode.None;
+            Cursor.visible = true;
+            
         }
     }
 
-    private void Awake()
+    private void OnTriggerExit(Collider other)
     {
-        PhotonNetwork.AutomaticallySyncScene = false;
+        
+        if (!PhotonNetwork.IsMasterClient) return;
+
+        if (other.CompareTag("Portal"))
+        {
+            canvas.SetActive(false);
+
+            Cursor.lockState = CursorLockMode.Locked;
+            Cursor.visible = false;
+            Debug.Log("Canvas desactivado por el Master Client.");
+        }
     }
 
-    void Update()
+    private void Update()
     {
-        if (PhotonNetwork.IsMasterClient && Input.GetKeyDown(KeyCode.R))
+        if (!PhotonNetwork.IsMasterClient) return;
+
+        if (Input.GetKeyDown(KeyCode.R))
         {
             Debug.Log("Master recargando TownRoom...");
             photonView.RPC("RPC_LoadLevel", RpcTarget.AllBuffered, "TownRoom");
         }
+
+        
     }
 
     public void Level1_1Enter()

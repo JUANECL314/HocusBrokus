@@ -6279,7 +6279,7 @@ MonoBehaviour:
   - {fileID: 1420781751}
   - {fileID: 3950423415122172184, guid: 958f865dd9775a940aef1abbb9c31fa7, type: 3}
   path: Puzzle3Resources/Models/
-  reapacerAlInicio: 1
+  reaparecerAlInicio: 1
   soloMaestroAparece: 1
 --- !u!4 &145403988
 Transform:
@@ -9536,7 +9536,7 @@ MeshCollider:
   serializedVersion: 5
   m_Convex: 0
   m_CookingOptions: 30
-  m_Mesh: {fileID: 865789138}
+  m_Mesh: {fileID: 263894029}
 --- !u!33 &222347917
 MeshFilter:
   m_ObjectHideFlags: 10
@@ -12930,7 +12930,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!4 &293962862
 Transform:
   m_ObjectHideFlags: 0
@@ -13479,7 +13479,7 @@ MeshCollider:
   serializedVersion: 5
   m_Convex: 0
   m_CookingOptions: 30
-  m_Mesh: {fileID: 1811483350}
+  m_Mesh: {fileID: 561587877}
 --- !u!33 &332671442
 MeshFilter:
   m_ObjectHideFlags: 10
@@ -22344,7 +22344,7 @@ MeshCollider:
   serializedVersion: 5
   m_Convex: 0
   m_CookingOptions: 30
-  m_Mesh: {fileID: 0}
+  m_Mesh: {fileID: 241338144}
 --- !u!33 &496387051
 MeshFilter:
   m_ObjectHideFlags: 10
@@ -23144,6 +23144,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 527655312}
+  - component: {fileID: 527655313}
   m_Layer: 0
   m_Name: Pillars
   m_TagString: Untagged
@@ -23189,6 +23190,19 @@ Transform:
   - {fileID: 386588022}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &527655313
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 527655311}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 8a23d46115a10f5449951f46bec7fedf, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  magic: {fileID: 0}
 --- !u!43 &528485034
 Mesh:
   m_ObjectHideFlags: 0
@@ -24203,7 +24217,7 @@ MeshCollider:
   serializedVersion: 5
   m_Convex: 0
   m_CookingOptions: 30
-  m_Mesh: {fileID: 1099113432}
+  m_Mesh: {fileID: 987625381}
 --- !u!33 &547106580
 MeshFilter:
   m_ObjectHideFlags: 10
@@ -35116,7 +35130,7 @@ MeshCollider:
   serializedVersion: 5
   m_Convex: 0
   m_CookingOptions: 30
-  m_Mesh: {fileID: 0}
+  m_Mesh: {fileID: 1804408615}
 --- !u!33 &857977800
 MeshFilter:
   m_ObjectHideFlags: 10
@@ -37940,7 +37954,7 @@ MeshCollider:
   serializedVersion: 5
   m_Convex: 0
   m_CookingOptions: 30
-  m_Mesh: {fileID: 0}
+  m_Mesh: {fileID: 865789138}
 --- !u!33 &923365206
 MeshFilter:
   m_ObjectHideFlags: 10
@@ -42492,7 +42506,7 @@ MeshCollider:
   serializedVersion: 5
   m_Convex: 0
   m_CookingOptions: 30
-  m_Mesh: {fileID: 0}
+  m_Mesh: {fileID: 1099113432}
 --- !u!33 &1032634191
 MeshFilter:
   m_ObjectHideFlags: 10
@@ -56531,7 +56545,7 @@ MeshCollider:
   serializedVersion: 5
   m_Convex: 0
   m_CookingOptions: 30
-  m_Mesh: {fileID: 1811483350}
+  m_Mesh: {fileID: 1275458857}
 --- !u!33 &1406099619
 MeshFilter:
   m_ObjectHideFlags: 10
@@ -57455,7 +57469,7 @@ PrefabInstance:
       objectReference: {fileID: 1855113761}
     - target: {fileID: 5299922118336007224, guid: c956bb60fa162074a8193f810ce06aae, type: 3}
       propertyPath: m_VersionIndex
-      value: 5964
+      value: 5967
       objectReference: {fileID: 0}
     - target: {fileID: 5890477225732929115, guid: c956bb60fa162074a8193f810ce06aae, type: 3}
       propertyPath: m_Mesh
@@ -64840,12 +64854,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 2b339f0310c52414893a8845a594d2eb, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  gameObjectToUse: Mirror_Pillar_1
-  sceneObject: {fileID: 0}
-  mirrorController: {fileID: 0}
-  lista:
-  - {fileID: 862370335}
-  - {fileID: 1564664515}
+  _gameObjectToUse: 
+  _sceneObject: {fileID: 0}
+  _mirrorController: {fileID: 0}
+  _lista: []
 --- !u!1 &1698034953
 GameObject:
   m_ObjectHideFlags: 0
@@ -75577,12 +75589,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 2b339f0310c52414893a8845a594d2eb, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  gameObjectToUse: Mirror_Pillar_3
-  sceneObject: {fileID: 0}
-  mirrorController: {fileID: 984069054}
-  lista:
-  - {fileID: 1349731814}
-  - {fileID: 451799170}
+  _gameObjectToUse: 
+  _sceneObject: {fileID: 0}
+  _mirrorController: {fileID: 0}
+  _lista: []
 --- !u!1 &2048655387
 GameObject:
   m_ObjectHideFlags: 0
@@ -78140,7 +78150,7 @@ PrefabInstance:
       objectReference: {fileID: 1507313847}
     - target: {fileID: 6328585320501002256, guid: 958f865dd9775a940aef1abbb9c31fa7, type: 3}
       propertyPath: m_VersionIndex
-      value: 5910
+      value: 5913
       objectReference: {fileID: 0}
     - target: {fileID: 8903803693310464849, guid: 958f865dd9775a940aef1abbb9c31fa7, type: 3}
       propertyPath: m_Mesh
@@ -78292,3 +78302,4 @@ SceneRoots:
   - {fileID: 1281586861}
   - {fileID: 1265116961}
   - {fileID: 1646992856}
+  - {fileID: 495284548}

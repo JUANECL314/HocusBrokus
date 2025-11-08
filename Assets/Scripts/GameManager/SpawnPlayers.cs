@@ -6,8 +6,8 @@ using UnityEngine.SceneManagement;
 public class SpawnPlayers : MonoBehaviour
 {
     public GameObject jugadorPrefab;
-    [SerializeField] string nombreEscenaLobbyMultiJugador = "TownRoom";
-    [SerializeField] string nombreEscenaLobbyIndividual = "Lobby";
+    [SerializeField] string _nombreEscenaLobbyMultiJugador = "TownRoom";
+    [SerializeField] string _nombreEscenaLobbyIndividual = "Lobby";
 
     private void Start()
     {
@@ -18,9 +18,9 @@ public class SpawnPlayers : MonoBehaviour
     {
         string nombreEscena = SceneManager.GetActiveScene().name;
 
-        if (nombreEscena == nombreEscenaLobbyIndividual)
+        if (nombreEscena == _nombreEscenaLobbyIndividual)
             AparicionLobbyIndividual();
-        else if (nombreEscena == nombreEscenaLobbyMultiJugador)
+        else if (nombreEscena == _nombreEscenaLobbyMultiJugador)
             AparicionLobbyMultijugador();
     }
 
