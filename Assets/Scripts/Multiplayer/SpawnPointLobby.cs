@@ -1,22 +1,56 @@
-using Photon.Pun;
+﻿using Photon.Pun;
+using System.Collections;
 using UnityEngine;
 
-public class SpawnPoint : MonoBehaviour
+public class SpawnPoint : MonoBehaviourPunCallbacks
 {
-    public Transform[] spawnPoints; // Asigna varios puntos en el inspector
-    public GameObject playerPrefab; // Prefab del jugador
+    public Transform[] spawnPoints;
+    public GameObject playerPrefab;
 
-    void Start()
+    private bool playerSpawned = false;
+
+    private void OnEnable()
     {
-        // Si a�n no hay un jugador local instanciado
-        if (PhotonNetwork.IsConnectedAndReady)
+        // Si el jugador ya está en una sala (por ejemplo, el creador de la sala tras LoadLevel)
+        if (PhotonNetwork.InRoom)
         {
-            // Puedes hacer que cada jugador use un spawn distinto basado en su actor number
-            int index = PhotonNetwork.LocalPlayer.ActorNumber-1;
-           
-            Transform spawn = spawnPoints[index];
-
-            PhotonNetwork.Instantiate(playerPrefab.name, spawn.position, spawn.rotation);
+            Debug.Log("Escena cargada y jugador ya en sala. Iniciando spawn...");
+            StartCoroutine(SpawnPlayerWhenReady());
         }
+    }
+
+    public override void OnJoinedRoom()
+    {
+        Debug.Log("OnJoinedRoom ejecutado. Preparando spawn...");
+        StartCoroutine(SpawnPlayerWhenReady());
+    }
+
+    private IEnumerator SpawnPlayerWhenReady()
+    {
+        // Esperar a que Photon y la escena estén completamente listos
+        while (!PhotonNetwork.IsConnectedAndReady || spawnPoints == null || spawnPoints.Length == 0)
+        {
+            yield return null;
+        }
+
+        // Esperar a que el prefab del jugador esté cargado en la escena
+        while (playerPrefab == null)
+        {
+            yield return null;
+        }
+
+        if (playerSpawned)
+        {
+            Debug.LogWarning("Jugador ya instanciado, evitando duplicado.");
+            yield break;
+        }
+
+        int index = (PhotonNetwork.LocalPlayer.ActorNumber - 1) % spawnPoints.Length;
+        Transform spawn = spawnPoints[index];
+
+        Debug.Log($"Spawneando jugador {PhotonNetwork.LocalPlayer.NickName} en {spawn.name}");
+        PhotonNetwork.Instantiate(playerPrefab.name, spawn.position, spawn.rotation);
+
+        playerSpawned = true;
     }
 }

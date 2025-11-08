@@ -1,40 +1,61 @@
-﻿using UnityEngine;
-using Photon.Pun;
+﻿using Photon.Pun;
 using Photon.Realtime;
+using UnityEngine;
 using UnityEngine.SceneManagement; // 👈 Necesario para cargar escenas
-
+using TMPro;
+using UnityEngine.UI;
 public class PhotonAutoConnect : MonoBehaviourPunCallbacks
 {
-    [Header("Configuración de conexión")]
     
-    public string roomName = "";
+    
+    string roomName = "";
 
     
-    public byte maxPlayers = 4;
+    byte maxPlayers = 4;
 
-    [Header("Escena a cargar al unirse a la sala")]
-    
-    public string sceneToLoad = ""; 
+    public Button connectButton;
+
+    string sceneToLoad = "";
+    public TMP_Dropdown sceneDropdown;
 
     void Start()
     {
-        Debug.Log("🔌 Conectando a Photon...");
-        PhotonNetwork.AutomaticallySyncScene = true; 
-        PhotonNetwork.ConnectUsingSettings();
+        Debug.Log("Conectando a Photon...");
+        PhotonNetwork.AutomaticallySyncScene = true;
+        if (connectButton != null) connectButton.onClick.AddListener(CargarEscena);
     }
 
+
+    void CargarEscena()
+    {
+        sceneToLoad = sceneDropdown.options[sceneDropdown.value].text;
+        roomName = $"Nivel_{sceneDropdown.options[sceneDropdown.value].text}";
+        PhotonNetwork.ConnectUsingSettings();
+    }
     // Llamado cuando se conecta al servidor maestro de Photon
     public override void OnConnectedToMaster()
     {
         Debug.Log("Conectado al servidor maestro de Photon.");
-        PhotonNetwork.JoinRandomRoom(); 
+        PhotonNetwork.JoinLobby();
     }
 
+
+    
+    public override void OnJoinedLobby()
+    {
+
+
+
+        if (PhotonNetwork.IsConnectedAndReady)
+        {
+            PhotonNetwork.JoinRoom(roomName);
+        }
+    }
     // Si no hay salas disponibles, se crea una nueva
-    public override void OnJoinRandomFailed(short returnCode, string message)
+    public override void OnJoinRoomFailed(short returnCode, string message)
     {
         Debug.Log("⚠No se encontró sala disponible. Creando una nueva...");
-
+        Debug.Log(roomName);
         string newRoomName = string.IsNullOrEmpty(roomName) ? "Sala_" + Random.Range(1000, 9999) : roomName;
 
         RoomOptions options = new RoomOptions
@@ -54,7 +75,7 @@ public class PhotonAutoConnect : MonoBehaviourPunCallbacks
         // 👇 Cargar la escena automáticamente
         if (!string.IsNullOrEmpty(sceneToLoad))
         {
-            Debug.Log($"🌍 Cargando escena: {sceneToLoad}");
+            Debug.Log($"Cargando escena: {sceneToLoad}");
             PhotonNetwork.LoadLevel(sceneToLoad); 
         }
         else
