@@ -6,8 +6,8 @@ public class Detect_objects : MonoBehaviour
     public float radioDeteccion = 5f;
     public string tagObjetivoLobby = "Libro";
     public string tagObjetivoMultijugador = "Portal";
-    [SerializeField] string nombreEscenaLobbyMultiJugador = "TownRoom";
-    [SerializeField] string nombreEscenaLobbyIndividual = "Lobby";
+    [SerializeField] string _nombreEscenaLobbyMultiJugador = "TownRoom";
+    [SerializeField] string _nombreEscenaLobbyIndividual = "Lobby";
     public Vector3 offset = new Vector3(0, 4f, 0);
     public CreateAndJoinRooms roomsScript;
 
@@ -24,11 +24,11 @@ public class Detect_objects : MonoBehaviour
     void Update()
     {
         string nombreEscena = SceneManager.GetActiveScene().name;
-        if (roomsScript != null && nombreEscena == nombreEscenaLobbyIndividual)
+        if (roomsScript != null && nombreEscena == _nombreEscenaLobbyIndividual)
         {
             DetectarObjetos();
         }
-        else if (nombreEscena == nombreEscenaLobbyMultiJugador)
+        else if (nombreEscena == _nombreEscenaLobbyMultiJugador)
         {
 
         }

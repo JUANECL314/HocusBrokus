@@ -5,7 +5,7 @@ public static class PhotonOfflineBootstrap
 {
     /*
     // 1) Antes de cargar la primera escena: activar OfflineMode
-    [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSceneLoad)]
+   /* [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSceneLoad)]
     static void EnableOffline()
     {
         PhotonNetwork.OfflineMode = true;                 // RPC/Instantiate funcionan local

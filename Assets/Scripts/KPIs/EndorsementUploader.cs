@@ -373,6 +373,8 @@ public class EndorsementUploader : MonoBehaviour
     {
         string url = config.apiBaseUrl.TrimEnd('/') + config.batchPath;
 
+        Debug.Log("[Uploader] Enviando Endorsements a: " + url);
+
         var json = JsonConvert.SerializeObject(batch, _jsonSettings);
 
         var req = new UnityWebRequest(url, "POST");
@@ -389,11 +391,14 @@ public class EndorsementUploader : MonoBehaviour
         req.SetRequestHeader("Idempotency-Key", batch.idempotencyKey);
         return req;
     }
+
 
     private UnityWebRequest BuildRequestCompatibility(CompatBatchWrapper batch)
     {
         string url = config.apiBaseUrl.TrimEnd('/') + compatibilityPath;
 
+        Debug.Log("[CompatUploader] Enviando Compatibility a: " + url);
+
         var json = JsonConvert.SerializeObject(batch, _jsonSettings);
 
         var req = new UnityWebRequest(url, "POST");
@@ -410,4 +415,5 @@ public class EndorsementUploader : MonoBehaviour
         req.SetRequestHeader("Idempotency-Key", batch.idempotencyKey);
         return req;
     }
+
 }

@@ -77,7 +77,7 @@ public class ElementalPuzzle : MonoBehaviour
             windHit = true;
 
         if (other.CompareTag("Water"))
-            waterHit = true; 
+            waterHit = true;
 
         // Activar engranajes con Fire + Wind (permitimos reactivar después de overheat)
         if (fireHit && windHit && !puzzleActivated)
@@ -105,7 +105,6 @@ public class ElementalPuzzle : MonoBehaviour
 
             ScheduleActivateGears();
         }
-
     }
 
     // Pausar/reanudar puerta
@@ -113,7 +112,6 @@ public class ElementalPuzzle : MonoBehaviour
     {
         doorPaused = pause;
     }
-
 
     // Pausa la puerta y resetea TODOS los engranajes a su posición inicial.
     public void ResetFromOverheatAndReturnAll()
@@ -188,17 +186,16 @@ public class ElementalPuzzle : MonoBehaviour
 
     IEnumerator _ActivateNextFrame()
     {
-
         yield return null;
         _activateScheduled = false;
-        ActivateGears();             
+        ActivateGears();
     }
 
+    // 🚪 Nuevo método modificado: ahora rota las puertas en lugar de destruirlas
     void OpenDoor()
     {
-        // Destruir puertas al completar el progreso
-        var doors = GameObject.FindGameObjectsWithTag("Puerta");
-        foreach (var d in doors) Destroy(d);
+        // Inicia la rotación de las puertas en lugar de destruirlas
+        StartCoroutine(RotateDoors());
 
         // Reset de estado del puzzle
         puzzleActivated = false;
@@ -209,7 +206,36 @@ public class ElementalPuzzle : MonoBehaviour
         canTriggerRandomFall = false;
     }
 
-    //Random fall con cooldown y gracia
+    // 🌀 Corutina para rotar puertas suavemente
+    IEnumerator RotateDoors()
+    {
+        GameObject[] doors = GameObject.FindGameObjectsWithTag("Puerta");
+        float duration = 2f; // segundos que tarda en abrirse
+        float elapsed = 0f;
+
+        Quaternion[] startRot = new Quaternion[doors.Length];
+        Quaternion[] endRot = new Quaternion[doors.Length];
+
+        for (int i = 0; i < doors.Length; i++)
+        {
+            startRot[i] = doors[i].transform.rotation;
+            endRot[i] = Quaternion.Euler(doors[i].transform.eulerAngles + new Vector3(0f, 90f, 0f));
+        }
+
+        while (elapsed < duration)
+        {
+            elapsed += Time.deltaTime;
+            float t = Mathf.Clamp01(elapsed / duration);
+            for (int i = 0; i < doors.Length; i++)
+            {
+                if (doors[i] != null)
+                    doors[i].transform.rotation = Quaternion.Slerp(startRot[i], endRot[i], t);
+            }
+            yield return null;
+        }
+    }
+
+    // Random fall con cooldown y gracia
     IEnumerator RandomFallTick()
     {
         canTriggerRandomFall = false;
