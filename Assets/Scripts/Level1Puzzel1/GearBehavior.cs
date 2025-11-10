@@ -1,7 +1,8 @@
-﻿using System.Collections;
+﻿using Photon.Pun;
+using System.Collections;
 using UnityEngine;
 
-public class GearBehavior : MonoBehaviour
+public class GearBehavior : MonoBehaviourPun
 {
     private Renderer rend;
     private Rigidbody rb;
@@ -28,7 +29,7 @@ public class GearBehavior : MonoBehaviour
     private Coroutine destroyDoorsCo;
     private Coroutine overheatCo;
     private bool cooledDuringWindow = false;
-
+    [PunRPC]
     void Start()
     {
         rend = GetComponent<Renderer>();
@@ -45,7 +46,7 @@ public class GearBehavior : MonoBehaviour
         initialPosition = transform.position;
         rend.material.color = Color.gray;
     }
-
+    [PunRPC]
     void Update()
     {
         if (isRotating) transform.Rotate(Vector3.forward * -rotationSpeed * Time.deltaTime, Space.Self);
@@ -55,7 +56,7 @@ public class GearBehavior : MonoBehaviour
             rb.linearVelocity = new Vector3(0, -fallSpeed, 0);
         }
     }
-
+    [PunRPC]
     public void StartRotation()
     {
         if (isRotating) return;
@@ -71,7 +72,7 @@ public class GearBehavior : MonoBehaviour
         if (overheatCo != null) StopCoroutine(overheatCo);
         overheatCo = StartCoroutine(OverheatCountdown());
     }
-
+    [PunRPC]
     public void StopRotation()
     {
         if (!isRotating) return;
@@ -83,7 +84,7 @@ public class GearBehavior : MonoBehaviour
         if (rotateFlowCo != null) { StopCoroutine(rotateFlowCo); rotateFlowCo = null; }
         if (overheatCo != null) { StopCoroutine(overheatCo); overheatCo = null; }
     }
-
+    [PunRPC]
     private IEnumerator RotateAndChangeColorFlow()
     {
         rend.material.color = Color.gray;
@@ -96,7 +97,7 @@ public class GearBehavior : MonoBehaviour
 
         rend.material.color = Color.red;
     }
-
+    [PunRPC]
     public void CoolDown()
     {
         rend.material.color = Color.gray;
@@ -105,7 +106,7 @@ public class GearBehavior : MonoBehaviour
         if (overheatCo != null) StopCoroutine(overheatCo);
         StartCoroutine(RearmOverheatAfterDelay());
     }
-
+    [PunRPC]
     public void ResetToInitialPosition(bool smooth = true)
     {
         isFalling = false;
@@ -120,7 +121,7 @@ public class GearBehavior : MonoBehaviour
         if (!smooth) transform.position = initialPosition;
         else StartCoroutine(ReturnToInitialPosition());
     }
-
+    [PunRPC]
     private IEnumerator OverheatCountdown()
     {
         cooledDuringWindow = false;
@@ -134,7 +135,7 @@ public class GearBehavior : MonoBehaviour
         }
         Overheat();
     }
-
+    [PunRPC]
     private IEnumerator RearmOverheatAfterDelay()
     {
         float t = 0f;
@@ -146,14 +147,14 @@ public class GearBehavior : MonoBehaviour
         }
         if (isRotating) overheatCo = StartCoroutine(OverheatCountdown());
     }
-
+    [PunRPC]
     private void Overheat()
     {
         StopRotation();
         var puzzle = FindObjectOfType<ElementalPuzzle>();
         if (puzzle != null) puzzle.ResetFromOverheatAndReturnAll();
     }
-
+    [PunRPC]
     public void ReactivateAfterLand()
     {
         if (!isRotating && !isFalling)
@@ -164,7 +165,7 @@ public class GearBehavior : MonoBehaviour
             SoundManager.Instance?.StartLoop(LoopId, SfxKey.GearLoop, transform);
         }
     }
-
+    [PunRPC]
     public void MakeFall()
     {
         if (isFalling) return;
@@ -175,7 +176,7 @@ public class GearBehavior : MonoBehaviour
         rb.linearVelocity = Vector3.zero;
         rb.angularVelocity = Vector3.zero;
 
-        rb.constraints = RigidbodyConstraints.FreezeRotation; // 🔹 bloquea rotación XYZ
+        rb.constraints = RigidbodyConstraints.FreezeRotation; 
 
         SoundManager.Instance?.StopLoop(LoopId);
         SoundManager.Instance?.Play(SfxKey.GearFall, transform);
@@ -183,7 +184,7 @@ public class GearBehavior : MonoBehaviour
         var puzzle = FindObjectOfType<ElementalPuzzle>();
         if (puzzle != null) puzzle.DoorPause(true);
     }
-
+    [PunRPC]
     void OnCollisionEnter(Collision collision)
     {
         if (collision.gameObject.CompareTag("Water") && isRotating)
@@ -202,7 +203,7 @@ public class GearBehavior : MonoBehaviour
             SoundManager.Instance?.Play(SfxKey.GearStop, transform);
         }
     }
-
+    [PunRPC]
     IEnumerator ReturnToInitialPosition()
     {
         isFalling = false;
