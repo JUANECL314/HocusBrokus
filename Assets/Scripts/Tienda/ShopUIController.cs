@@ -9,32 +9,51 @@ using UnityEngine.Networking;
 public class ShopUIController : MonoBehaviour
 {
     [Header("API")]
-    [SerializeField] private string apiBaseUrl = "http://127.0.0.1:8000";
+    [SerializeField] private string apiBaseUrl = "https://hokusbackend-production.up.railway.app";
     [SerializeField] private float requestTimeoutSeconds = 15f;
 
     [Header("UI")]
     [SerializeField] private TextMeshProUGUI txtCoins;
-    [SerializeField] private Transform contentGrid;     // Grid Layout Group
-    [SerializeField] private GameObject itemCardPrefab; // Prefab con ShopItemCardUI
-    [SerializeField] private TextMeshProUGUI txtStatus; // Mensajes cortos
+    [SerializeField] private Transform contentGrid;       // Grid Layout Group
+    [SerializeField] private GameObject itemCardPrefab;   // Prefab con ShopItemCardUI
+    [SerializeField] private TextMeshProUGUI txtStatus;   // Mensajes cortos
 
     [Header("Opcional")]
     [SerializeField] private bool refreshOnEnable = true;
 
-    // DTOs
+    // --- DTOs que mapean tu backend actual ---
     [Serializable] private class WalletResponse { public int user_id; public int balance; public string updated_at; }
-    [Serializable] private class ShopItem { public string sku; public string title; public int price; public string image_url; }
+
+    [Serializable]
+    private class ShopItem
+    {
+        public int id;
+        public string sku;
+        public string title;
+        public string description;
+        public int price;
+        public string image_url;
+        public bool active;
+    }
+
+    [Serializable]
+    private class InventoryItem
+    {
+        public string sku;
+        public string title;
+        public string description;
+        public int price;
+        public string image_url;
+        public int quantity;
+        public string purchased_at;
+    }
     [Serializable] private class CatalogResponse { public List<ShopItem> items; }
 
-    [Serializable] private class InventoryItem { public string sku; public string title; public int quantity; public string purchased_at; }
-    [Serializable] private class InventoryResponse { public List<InventoryItem> items; }
-
     [Serializable] private class PurchaseRequest { public int user_id; public string sku; public int quantity = 1; }
-    [Serializable] private class PurchaseResponse { public int balance; public InventoryItem item; }
 
-    // Estado
-    private readonly HashSet<string> _ownedSkus = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
-    private readonly Dictionary<string, ShopItemCardUI> _cardsBySku = new Dictionary<string, ShopItemCardUI>(StringComparer.OrdinalIgnoreCase);
+    // --- Estado local ---
+    private readonly HashSet<string> _ownedSkus = new(StringComparer.OrdinalIgnoreCase);
+    private readonly Dictionary<string, ShopItemCardUI> _cardsBySku = new(StringComparer.OrdinalIgnoreCase);
 
     private void OnEnable()
     {
@@ -68,23 +87,28 @@ public class ShopUIController : MonoBehaviour
         return true;
     }
 
+    // ---------------------- Cargar datos ----------------------
+
     private IEnumerator CoLoadWallet()
     {
-        var url = $"{apiBaseUrl.TrimEnd('/')}/wallet?userId={AuthState.UserId}";
+        var url = $"{apiBaseUrl.TrimEnd('/')}/wallet/{AuthState.UserId}";
         using var req = UnityWebRequest.Get(url);
         req.timeout = Mathf.RoundToInt(requestTimeoutSeconds);
         SetAuth(req);
 
         yield return req.SendWebRequest();
+
         if (HasError(req))
         {
             SetStatus("No se pudo cargar tu saldo.");
+            Debug.LogWarning($"[Shop] Wallet error {req.responseCode}: {req.downloadHandler.text}");
             yield break;
         }
 
         var data = JsonUtility.FromJson<WalletResponse>(req.downloadHandler.text);
-        if (txtCoins) txtCoins.text = $"Monedas: {data.balance}";
+        if (txtCoins) txtCoins.text = data != null ? $"Monedas: {data.balance}" : "Monedas: -";
     }
+
 
     private IEnumerator CoLoadInventory()
     {
@@ -94,63 +118,141 @@ public class ShopUIController : MonoBehaviour
         SetAuth(req);
 
         yield return req.SendWebRequest();
+
         if (HasError(req))
         {
-            // No es fatal; la tienda puede cargar sin inventario
             Debug.LogWarning($"[Shop] Inventario no disponible: {req.responseCode} {req.downloadHandler.text}");
             yield break;
         }
 
-        var inv = JsonUtility.FromJson<InventoryResponse>(req.downloadHandler.text);
+        var invArray = JsonHelper.FromJsonArray<InventoryItem>(req.downloadHandler.text);
         _ownedSkus.Clear();
-        if (inv != null && inv.items != null)
+        foreach (var it in invArray)
         {
-            foreach (var it in inv.items)
-            {
-                if (it.quantity > 0 && !string.IsNullOrEmpty(it.sku))
-                    _ownedSkus.Add(it.sku);
-            }
+            if (it != null && !string.IsNullOrEmpty(it.sku) && it.quantity > 0)
+                _ownedSkus.Add(it.sku);
         }
     }
 
+
     private IEnumerator CoLoadCatalog()
     {
-        // Limpia grid
-        foreach (Transform c in contentGrid) Destroy(c.gameObject);
+        if (contentGrid == null)
+        {
+            SetStatus("Falta Content Grid en el inspector.");
+            yield break;
+        }
+
+        // Limpia el grid
+        for (int i = contentGrid.childCount - 1; i >= 0; i--)
+            Destroy(contentGrid.GetChild(i).gameObject);
         _cardsBySku.Clear();
 
-        var url = $"{apiBaseUrl.TrimEnd('/')}/shop/catalog";
+        var baseUrl = apiBaseUrl != null ? apiBaseUrl.TrimEnd('/') : "";
+        var url = $"{baseUrl}/shop/catalog";
+
         using var req = UnityWebRequest.Get(url);
         req.timeout = Mathf.RoundToInt(requestTimeoutSeconds);
         SetAuth(req);
 
+        Debug.Log($"[Shop] Solicitando catálogo: {url}"); // <- LOG clave
+
         yield return req.SendWebRequest();
-        if (HasError(req))
+
+#if UNITY_2020_2_OR_NEWER
+        bool transportError = req.result != UnityWebRequest.Result.Success;
+#else
+    bool transportError = req.isNetworkError || req.isHttpError;
+#endif
+
+        if (transportError || req.responseCode < 200 || req.responseCode >= 300)
         {
-            SetStatus("No se pudo cargar el catálogo.");
+            SetStatus($"No se pudo cargar el catálogo. ({req.responseCode})");
+            Debug.LogWarning($"[Shop] Catálogo error {req.responseCode}: {req.downloadHandler.text}\nURL: {url}");
             yield break;
         }
 
-        var catalog = JsonUtility.FromJson<CatalogResponse>(req.downloadHandler.text);
-        if (catalog?.items == null || catalog.items.Count == 0)
+        var body = req.downloadHandler.text;
+        Debug.Log($"[Shop] Catálogo recibido: {body}");
+
+        // Soportar ambas formas: array puro o { items: [...] }
+        List<ShopItem> items = null;
+
+        // 1) ¿array puro?
+        if (body.TrimStart().StartsWith("["))
+        {
+            try
+            {
+                var arr = JsonHelper.FromJsonArray<ShopItem>(body);
+                items = new List<ShopItem>(arr);
+            }
+            catch (Exception e)
+            {
+                Debug.LogWarning($"[Shop] No pude parsear array puro: {e}");
+            }
+        }
+        else
+        {
+            // 2) ¿objeto con 'items'?
+            try
+            {
+                var catalogObj = JsonUtility.FromJson<CatalogResponse>(body);
+                if (catalogObj != null && catalogObj.items != null)
+                    items = catalogObj.items;
+            }
+            catch (Exception e)
+            {
+                Debug.LogWarning($"[Shop] No pude parsear objeto con items: {e}");
+            }
+        }
+
+        if (items == null || items.Count == 0)
         {
             SetStatus("No hay artículos disponibles.");
+            Debug.LogWarning($"[Shop] Catálogo vacío o no parseable. Body: {body}");
             yield break;
         }
 
-        foreach (var it in catalog.items)
+        if (itemCardPrefab == null)
         {
+            SetStatus("Falta asignar Item Card Prefab en el inspector.");
+            yield break;
+        }
+
+        foreach (var it in items)
+        {
+            if (it == null || string.IsNullOrEmpty(it.sku)) continue;
+
             var go = Instantiate(itemCardPrefab, contentGrid);
             var ui = go.GetComponent<ShopItemCardUI>();
-            bool owned = _ownedSkus.Contains(it.sku);
-            ui.Bind(it.sku, it.title, it.price, owned, () =>
+            if (ui == null)
             {
-                if (!owned) StartCoroutine(CoPurchase(it.sku, 1));
-            });
+                Debug.LogError("[Shop] El prefab no tiene ShopItemCardUI.");
+                Destroy(go);
+                continue;
+            }
+
+            bool isOwned = _ownedSkus.Contains(it.sku);
+            ui.Bind(
+                sku: it.sku,
+                title: string.IsNullOrEmpty(it.title) ? it.sku : it.title,
+                price: it.price,
+                isOwned: isOwned,
+                imageUrl: it.image_url,   
+                onBuy: () =>
+                {
+                    if (!isOwned) StartCoroutine(CoPurchase(it.sku, 1));
+                }
+            );
 
             _cardsBySku[it.sku] = ui;
         }
+
+        SetStatus("");
     }
+
+
+    // ---------------------- Comprar ----------------------
 
     private IEnumerator CoPurchase(string sku, int qty)
     {
@@ -185,16 +287,15 @@ public class ShopUIController : MonoBehaviour
             yield break;
         }
 
-        var resp = JsonUtility.FromJson<PurchaseResponse>(req.downloadHandler.text);
-        if (txtCoins) txtCoins.text = $"Monedas: {resp.balance}";
-
-        // Marca como comprado en UI y estado local
+        // Compra OK: marcar y refrescar saldo
         _ownedSkus.Add(sku);
         card.SetOwned(true);
-        SetStatus($"Comprado: {resp.item.title}");
+
+        yield return StartCoroutine(CoLoadWallet()); // refresca Monedas: X
+        SetStatus("Compra realizada.");
     }
 
-    // Helpers ---------------------------------------------------------------
+    // ---------------------- Helpers ----------------------
 
     private void SetAuth(UnityWebRequest req)
     {
@@ -212,7 +313,11 @@ public class ShopUIController : MonoBehaviour
         return req.responseCode < 200 || req.responseCode >= 300;
     }
 
-    private void SetStatus(string msg) { if (txtStatus) txtStatus.text = msg; Debug.Log("[Shop] " + msg); }
+    private void SetStatus(string msg)
+    {
+        if (txtStatus) txtStatus.text = msg;
+        Debug.Log("[Shop] " + msg);
+    }
 
     private string MapFriendlyError(int status, string body)
     {
@@ -222,5 +327,18 @@ public class ShopUIController : MonoBehaviour
         if (status == 404) return "El artículo no está disponible.";
         if (status >= 500) return "Error del servidor. Intenta más tarde.";
         return "No se pudo completar la compra.";
+    }
+
+    // JsonUtility no soporta arrays top-level; helper para envolver y parsear arrays.
+    public static class JsonHelper
+    {
+        [Serializable] private class Wrapper<T> { public T[] items; }
+        public static T[] FromJsonArray<T>(string json)
+        {
+            if (string.IsNullOrEmpty(json)) return Array.Empty<T>();
+            string wrapped = "{\"items\":" + json + "}"; // envolvemos el array en un objeto
+            var w = JsonUtility.FromJson<Wrapper<T>>(wrapped);
+            return w?.items ?? Array.Empty<T>();
+        }
     }
 }
