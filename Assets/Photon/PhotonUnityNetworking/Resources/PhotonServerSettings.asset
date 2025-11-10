@@ -19,7 +19,7 @@ MonoBehaviour:
     AppIdVoice: 610ed236-d22a-4c3a-a8d5-67beb41c8e54
     AppVersion: 1
     UseNameServer: 1
-    FixedRegion: 
+    FixedRegion: us
     Server: 
     Port: 0
     ProxyServer: 
@@ -45,6 +45,7 @@ MonoBehaviour:
   - RPC_MoveUp
   - RPC_RotateLeft
   - RPC_RotateRight
+  - RPC_LoadLevel
   DisableAutoOpenWizard: 1
   ShowSettings: 1
   DevRegionSetOnce: 1

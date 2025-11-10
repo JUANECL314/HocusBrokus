@@ -133,8 +133,8 @@ Transform:
   m_GameObject: {fileID: 2050824272751794264}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0.17, y: 0, z: 0.24}
-  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_LocalPosition: {x: -0.39, y: 0.62, z: 0.2}
+  m_LocalScale: {x: 0.25, y: 0.25, z: 0.25}
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 8091859749913964977}
@@ -173,8 +173,8 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 5045199997608424386}
   serializedVersion: 2
-  m_LocalRotation: {x: -0, y: -0.30141518, z: -0, w: 0.95349306}
-  m_LocalPosition: {x: 181.19801, y: -14.900002, z: 80.12258}
+  m_LocalRotation: {x: 0, y: -0.3014131, z: 0, w: 0.9534937}
+  m_LocalPosition: {x: 181.19801, y: -28, z: 80.12258}
   m_LocalScale: {x: 10, y: 80, z: 10}
   m_ConstrainProportionsScale: 0
   m_Children:
@@ -269,13 +269,13 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 7fc320d7e312a544dbc66a085f21d35e, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  rotateAngle: 1
+  rotateAngle: 1.63333
   rotateAxis: {x: 0, y: 1, z: 0}
-  maxRotationOffset: 5
-  defaultMoveAmount: 5
+  maxRotationOffset: 30
+  defaultMoveAmount: 12.5
   maxUpOffset: 40
   revertMoveSpeed: 5
-  revertDelay: 200
+  revertDelay: 20
   revertRotationSpeed: 0.5
   forceMoveUpMode: 0
 --- !u!114 &6758627438738057238
@@ -599,7 +599,7 @@ MonoBehaviour:
   m_PreserveMeshAssetOnDestroy: 0
   assetGuid: 
   m_Mesh: {fileID: 0}
-  m_VersionIndex: 5844
+  m_VersionIndex: 5955
   m_IsSelectable: 1
   m_SelectedFaces: 
   m_SelectedEdges: []
