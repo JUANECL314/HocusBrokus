@@ -588,7 +588,10 @@ MonoBehaviour:
   createInput: {fileID: 1136908806877373369}
   joinInput: {fileID: 3640758094860335054}
   botonCrearUnirSalas: {fileID: 1856475848827082517}
+  texto: {fileID: 0}
   uiCrearSalas: {fileID: 8784282069032103865}
+  jugador: {fileID: 0}
+  teclaAbrirMenu: 101
 --- !u!1 &566206292473051795
 GameObject:
   m_ObjectHideFlags: 0
@@ -7103,8 +7106,8 @@ MonoBehaviour:
   radioDeteccion: 4
   tagObjetivoLobby: Libro
   tagObjetivoMultijugador: Portal
-  nombreEscenaLobbyMultiJugador: TownRoom
-  nombreEscenaLobbyIndividual: Lobby
+  _nombreEscenaLobbyMultiJugador: TownRoom
+  _nombreEscenaLobbyIndividual: Lobby
   offset: {x: 0, y: 5, z: 0}
   roomsScript: {fileID: 0}
 --- !u!114 &-4602816905405591270
@@ -7121,7 +7124,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   debugFreeFly: 0
   walkSpeed: 15
-  jumpForce: 5
+  jumpForce: 20
   groundMask:
     serializedVersion: 2
     m_Bits: 4294967295

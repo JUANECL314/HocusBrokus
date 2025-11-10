@@ -11,7 +11,7 @@ public class FreeFlyCameraMulti : MonoBehaviourPun
 
     [Header("Movement (Normal)")]
     public float walkSpeed = 5f;
-    public float jumpForce = 5f;
+    public float jumpForce = 20f;
     public LayerMask groundMask = ~0;
     public float groundCheckDistance = 0.2f;
 
@@ -42,6 +42,7 @@ public class FreeFlyCameraMulti : MonoBehaviourPun
     private Vector2 lookInput;   // Input Actions: Look (Vector2)
     private bool jumpPressed;
     private bool isLocalMode;
+    private bool isFrozen = false;
 
     void Awake()
     {
@@ -86,7 +87,9 @@ public class FreeFlyCameraMulti : MonoBehaviourPun
     {
         if (!isLocalMode && !photonView.IsMine) return;
 
-        // Toggle modo debug
+        if (isFrozen) return;
+        // Toggle de modo debug (F1)
+
         if (Keyboard.current != null && Keyboard.current.f1Key.wasPressedThisFrame)
             debugFreeFly = !debugFreeFly;
 
@@ -151,9 +154,10 @@ public class FreeFlyCameraMulti : MonoBehaviourPun
     void FixedUpdate()
     {
         if (!isLocalMode && !photonView.IsMine) return;
-        if (debugFreeFly) return; // free-fly se maneja en Update
 
-        // Movimiento normal con física (XZ)
+        if (debugFreeFly) return; // el free-fly ya se mueve en Update
+        if (isFrozen) return;
+        // MOVIMIENTO NORMAL con física (plano XZ)
         Vector3 wishDir = (characterModel.forward * moveInput.y) + (characterModel.right * moveInput.x);
         if (wishDir.sqrMagnitude > 1f) wishDir.Normalize();
 
@@ -208,5 +212,27 @@ public class FreeFlyCameraMulti : MonoBehaviourPun
     {
         Cursor.lockState = locked ? CursorLockMode.Locked : CursorLockMode.None;
         Cursor.visible = !locked;
+    }
+
+    public void SetFrozen(bool frozen)
+    {
+        isFrozen = frozen;
+
+        if (frozen)
+        {
+            // Detener cualquier movimiento actual
+            rb.linearVelocity = Vector3.zero;
+            rb.angularVelocity = Vector3.zero;
+
+            // Liberar el cursor para usar UI
+            Cursor.lockState = CursorLockMode.None;
+            Cursor.visible = true;
+        }
+        else
+        {
+            // Recuperar control normal del cursor
+            Cursor.lockState = CursorLockMode.Locked;
+            Cursor.visible = false;
+        }
     }
 }

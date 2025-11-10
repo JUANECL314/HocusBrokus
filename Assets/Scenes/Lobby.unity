@@ -3179,13 +3179,13 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 705507993}
   serializedVersion: 2
-  m_LocalRotation: {x: 0.40821788, y: -0.23456968, z: 0.10938163, w: 0.8754261}
+  m_LocalRotation: {x: -0.8562266, y: -0.08589184, z: 0.26337802, w: -0.43603978}
   m_LocalPosition: {x: 0, y: 3, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 0}
-  m_LocalEulerAnglesHint: {x: 50, y: -30, z: 0}
+  m_LocalEulerAnglesHint: {x: 412.367, y: -141.977, z: -172.225}
 --- !u!114 &705507996
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -8578,7 +8578,10 @@ MonoBehaviour:
   createInput: {fileID: 855256898}
   joinInput: {fileID: 678996080}
   botonCrearUnirSalas: {fileID: 0}
+  texto: {fileID: 0}
   uiCrearSalas: {fileID: 0}
+  jugador: {fileID: 0}
+  teclaAbrirMenu: 101
 --- !u!1 &2011574528
 GameObject:
   m_ObjectHideFlags: 0

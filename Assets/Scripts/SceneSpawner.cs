@@ -4,12 +4,12 @@ public class SceneSpawner : MonoBehaviourPunCallbacks
 {
     public GameObject[] prefabs;
     public string path;
-    public bool reapacerAlInicio = true;
+    public bool reaparecerAlInicio = true;
     public bool soloMaestroAparece = true;
 
-    void Awake()
+    private void Awake()
     {
-        if(reapacerAlInicio)
+        if(reaparecerAlInicio)
         {
             AparecerLosObjectosEnEscena();
         }
