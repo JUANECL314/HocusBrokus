@@ -5,13 +5,14 @@ using Photon.Pun;
 [RequireComponent(typeof(Rigidbody))]
 public class FreeFlyCameraMulti : MonoBehaviourPun
 {
+
     [Header("Mode")]
     [Tooltip("F1 alterna en runtime. Cuando está desactivado, usa movimiento normal con física.")]
     public bool debugFreeFly = false;
 
     [Header("Movement (Normal)")]
     public float walkSpeed = 5f;
-    public float jumpForce = 5f;
+    public float jumpForce = 20f;
     public LayerMask groundMask = ~0;
     public float groundCheckDistance = 0.2f;
 
@@ -28,7 +29,11 @@ public class FreeFlyCameraMulti : MonoBehaviourPun
     [Header("References")]
     public Transform characterModel;  // yaw (cuerpo)
     public Transform cameraTransform; // pitch (cámara)
+
+    
+
     public Vector3 cameraOffset = Vector3.zero;
+
 
     // state
     private Rigidbody rb;
@@ -37,6 +42,7 @@ public class FreeFlyCameraMulti : MonoBehaviourPun
     private Vector2 lookInput;   // Input Actions: Look (Vector2)
     private bool jumpPressed;
     private bool isLocalMode;
+    private bool isFrozen = false;
 
     void Awake()
     {
@@ -46,8 +52,21 @@ public class FreeFlyCameraMulti : MonoBehaviourPun
         if (!characterModel) characterModel = transform;
     }
 
+
+    [Header("Jump Settings")]
+    public float jumpHeight = 10f;
+    public float gravity = -9.81f;
+
+    private float verticalVelocity = 0f;
+    private bool hasJumped = false;
+
     void Start()
     {
+        rb = GetComponent<Rigidbody>();
+        rb.freezeRotation = true;          // prevent unwanted spinning
+        rb.useGravity = true;              // let Unity handle gravity
+
+
         isLocalMode = !PhotonNetwork.IsConnected;
 
         // Settings iniciales y suscripción
@@ -57,6 +76,7 @@ public class FreeFlyCameraMulti : MonoBehaviourPun
 
         if (characterModel == null)
             characterModel = transform;
+
 
         // try to find Animator first on the characterModel, then in its children
         _animator = characterModel.GetComponent<Animator>();
@@ -95,12 +115,14 @@ public class FreeFlyCameraMulti : MonoBehaviourPun
 
         LockCursor(true);
         if (cameraTransform) cameraTransform.localPosition = cameraOffset;
+        Cursor.lockState = CursorLockMode.None;
+        Cursor.visible = true;
     }
 
     void Update()
     {
         if (!isLocalMode && !photonView.IsMine) return;
-
+        if (isFrozen) return;
         // Toggle de modo debug (F1)
         if (Keyboard.current != null && Keyboard.current.f1Key.wasPressedThisFrame)
             debugFreeFly = !debugFreeFly;
@@ -159,13 +181,24 @@ public class FreeFlyCameraMulti : MonoBehaviourPun
             if (!rb.useGravity) rb.useGravity = true;
         }
         // --- MOVIMIENTO CON WASD ---
+
+        // Jump input
+        if (Input.GetKeyDown(KeyCode.Space) && !hasJumped && IsGrounded())
+        {
+            float v = Mathf.Sqrt(Mathf.Max(0f, jumpHeight * -2f * gravity));
+            verticalVelocity = v;
+            rb.AddForce(Vector3.up * v, ForceMode.VelocityChange);
+            hasJumped = true;
+            if (_animator != null) _animator.SetTrigger("Jump");
+            StartCoroutine(ResetJumpAfterDelay(0.2f));
+        }
+
+        // Movement input
         float horizontal = Input.GetAxis("Horizontal");
         float vertical = Input.GetAxis("Vertical");
-
-        // use raw move (not normalized) to keep magnitude proportional to input
         Vector3 rawMove = characterModel.forward * vertical + characterModel.right * horizontal;
-        float inputMagnitude = Mathf.Clamp01(new Vector2(horizontal, vertical).magnitude); // 0..1
-
+        float inputMagnitude = Mathf.Clamp01(new Vector2(horizontal, vertical).magnitude);
+        Vector3 moveDir = rawMove.normalized * walkSpeed * inputMagnitude;
         Vector3 move = rawMove.normalized; // direction for movement
         // apply _animator speed using inputMagnitude (matches joystick/WASD amount)
         if (_animator != null)
@@ -179,15 +212,27 @@ public class FreeFlyCameraMulti : MonoBehaviourPun
             Debug.Log("Animator is null, can't set Speed");
         }
 
-        //transform.position += move * walkSpeed * inputMagnitude * Time.deltaTime;
+        //transform.position += move * walkSpeed * inputMagnitude * Time.deltaTime
 
+
+        // Apply movement with Rigidbody
+        Vector3 newPosition = rb.position + moveDir * Time.deltaTime;
+        rb.MovePosition(newPosition);
     }
+
+    private System.Collections.IEnumerator ResetJumpAfterDelay(float delay)
+    {
+        yield return new WaitForSeconds(delay);
+        hasJumped = false;
+    }
+
+    
 
     void FixedUpdate()
     {
         if (!isLocalMode && !photonView.IsMine) return;
         if (debugFreeFly) return; // el free-fly ya se mueve en Update
-
+        if (isFrozen) return;
         // MOVIMIENTO NORMAL con física (plano XZ)
         Vector3 wishDir = (characterModel.forward * moveInput.y) + (characterModel.right * moveInput.x);
         if (wishDir.sqrMagnitude > 1f) wishDir.Normalize();
@@ -244,5 +289,27 @@ public class FreeFlyCameraMulti : MonoBehaviourPun
     {
         Cursor.lockState = locked ? CursorLockMode.Locked : CursorLockMode.None;
         Cursor.visible = !locked;
+    }
+
+    public void SetFrozen(bool frozen)
+    {
+        isFrozen = frozen;
+
+        if (frozen)
+        {
+            // Detener cualquier movimiento actual
+            rb.linearVelocity = Vector3.zero;
+            rb.angularVelocity = Vector3.zero;
+
+            // Liberar el cursor para usar UI
+            Cursor.lockState = CursorLockMode.None;
+            Cursor.visible = true;
+        }
+        else
+        {
+            // Recuperar control normal del cursor
+            Cursor.lockState = CursorLockMode.Locked;
+            Cursor.visible = false;
+        }
     }
 }
