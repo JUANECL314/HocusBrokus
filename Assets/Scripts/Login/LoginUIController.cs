@@ -78,7 +78,7 @@ public class LoginUIController : MonoBehaviour
         }
 
         StartCoroutine(CoLogin(email, pass));
-        photonConnector.EntrarLobbyIndividual();
+        NetworkManager.Instance.EntrarLobbyIndividual();
     }
 
     private IEnumerator CoLogin(string email, string password)

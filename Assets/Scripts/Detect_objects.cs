@@ -1,41 +1,67 @@
+using System.Runtime.CompilerServices;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
 public class Detect_objects : MonoBehaviour
 {
+    [Header("Rango y objetivo a detectar")]
     public float radioDeteccion = 5f;
-    public string tagObjetivoLobby = "Libro";
-    public string tagObjetivoMultijugador = "Portal";
-    [SerializeField] string _nombreEscenaLobbyMultiJugador = "TownRoom";
-    [SerializeField] string _nombreEscenaLobbyIndividual = "Lobby";
+    public string tagObjetivo = "Player";
+    public string escenaDeterminada;
     public Vector3 offset = new Vector3(0, 4f, 0);
-    public CreateAndJoinRooms roomsScript;
+    [Header("UI")]
+    public GameObject[] ui_oculto;
+    public KeyCode teclaAbrir = KeyCode.E;
+    private bool jugadorCerca = false;
 
-
-    void Start()
+    public GameObject jugador;
+    void Awake()
     {
         // Busca el script incluso si el objeto hijo está desactivado
-        roomsScript = GetComponentInChildren<CreateAndJoinRooms>(true);
-
-        if (roomsScript == null)
-            Debug.LogWarning("No se encontró el script CreateAndJoinRooms en los hijos.");
+        foreach (GameObject ui in ui_oculto)
+        {
+            if (ui != null)
+                ui.SetActive(false);
+        }
+        escenaDeterminada = SceneManager.GetActiveScene().name;
     }
 
     void Update()
     {
-        string nombreEscena = SceneManager.GetActiveScene().name;
-        if (roomsScript != null && nombreEscena == _nombreEscenaLobbyIndividual)
-        {
-            DetectarObjetos();
-        }
-        else if (nombreEscena == _nombreEscenaLobbyMultiJugador)
-        {
-
-        }
-        
+        string nombreEscena = escenaDeterminada;
+        if (string.IsNullOrEmpty(escenaDeterminada))
+            return;
+        if (jugador != null || !jugadorCerca) return;
+        seleccionAccion(nombreEscena);
     }
 
-    void DetectarObjetos()
+    void seleccionAccion(string nombreEscena)
+    {
+        if (ui_oculto != null && nombreEscena == escenaDeterminada && ui_oculto.Length == 2)
+        {
+
+            DetectarObjetos(ui_oculto[0]);
+            if (Input.GetKeyDown(teclaAbrir))
+            {
+                if (!jugador) return;
+                jugador.GetComponent<FreeFlyDebug>().enabled = false;
+                Cursor.lockState = CursorLockMode.None;
+                Cursor.visible = true;
+                EjecutarAccion(ui_oculto[1]);
+            }
+            else if (Input.GetKeyUp(teclaAbrir))
+            {
+
+                EjecutarAccion(ui_oculto[1]);
+                jugador.GetComponent<FreeFlyDebug>().enabled = true;
+                Cursor.lockState = CursorLockMode.Locked;
+                Cursor.visible = false;
+
+            }
+
+        }
+    }
+    void DetectarObjetos(GameObject ui)
     {
         bool encontrado = false;
 
@@ -45,27 +71,25 @@ public class Detect_objects : MonoBehaviour
 
         foreach (Collider col in objetos)
         {
-            if (col.CompareTag(tagObjetivoLobby))
+            if (col.CompareTag(tagObjetivo))
             {
                 encontrado = true;
+                jugador = col.gameObject;
                 break;
             }
         }
 
-        if (roomsScript != null)
-        {
-            if (encontrado)
-            {
-                Debug.Log("Detectado objeto con tag " + tagObjetivoLobby);
-                roomsScript.ActivarBoton();
-            }
-            else
-            {
-                roomsScript.DesactivarBoton();
-            }
-        }
+
+        jugadorCerca = encontrado;
+
+        if (ui != null)
+            ui.SetActive(encontrado);
     }
 
+    void EjecutarAccion(GameObject ui)
+    {
+        ui.SetActive(jugadorCerca);
+    }
     void OnDrawGizmosSelected()
     {
         Gizmos.color = Color.yellow;

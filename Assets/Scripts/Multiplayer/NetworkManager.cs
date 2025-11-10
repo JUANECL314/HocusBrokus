@@ -16,7 +16,7 @@ public class NetworkManager : MonoBehaviourPunCallbacks
     public string salaMultijugadorNombre = "TownRoom"; // Escena de sala multijugador
 
     private bool entroPorBoton = false; // Bandera de control para el ingreso de escenas
-
+    public int maxPlayers = 4;
     private string nombreSalaParaCrear = null; 
     
     void Awake()
@@ -90,7 +90,13 @@ public class NetworkManager : MonoBehaviourPunCallbacks
             return; 
         }
         entroPorBoton = true;
-        PhotonNetwork.CreateRoom(nombreSala);
+        RoomOptions options = new RoomOptions
+        {
+            MaxPlayers = maxPlayers
+        };
+
+        
+        PhotonNetwork.CreateRoom(nombreSala, options);
         
     }
 
