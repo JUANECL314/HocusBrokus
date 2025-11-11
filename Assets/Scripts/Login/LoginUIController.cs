@@ -134,7 +134,7 @@ public class LoginUIController : MonoBehaviour
         }
 
         // Guardar token y user
-        AuthState.SetToken(resp.token, resp.user?.username, resp.user?.email, rememberToken);
+        AuthState.SetToken(resp.token, resp.user?.id ?? 0, resp.user?.username, resp.user?.email, rememberToken);
 
         // Pásalo al uploader si existe
         if (EndorsementUploader.Instance != null)
@@ -234,21 +234,25 @@ public class LoginUIController : MonoBehaviour
 public static class AuthState
 {
     public static string Token { get; private set; }
+    public static int UserId { get; private set; }
     public static string Username { get; private set; }
     public static string Email { get; private set; }
 
     private const string PP_TOKEN = "auth.token";
     private const string PP_USER = "auth.user";
+    private const string PP_USERID = "auth.userId";
 
-    public static void SetToken(string token, string username, string email, bool persist)
+    public static void SetToken(string token, int userId, string username, string email, bool persist)
     {
         Token = token;
+        UserId = userId;
         Username = username;
         Email = email;
 
         if (persist)
         {
             PlayerPrefs.SetString(PP_TOKEN, token);
+            PlayerPrefs.SetInt(PP_USERID, userId);
             PlayerPrefs.SetString(PP_USER, username ?? "");
             PlayerPrefs.Save();
         }
@@ -258,16 +262,21 @@ public static class AuthState
     {
         if (!PlayerPrefs.HasKey(PP_TOKEN)) return false;
         Token = PlayerPrefs.GetString(PP_TOKEN, "");
+        UserId = PlayerPrefs.GetInt(PP_USERID, 0);
         Username = PlayerPrefs.GetString(PP_USER, "");
-        return !string.IsNullOrEmpty(Token);
+        return !string.IsNullOrEmpty(Token) && UserId > 0;
     }
 
     public static void Clear()
     {
         Token = null;
+        UserId = 0;
         Username = null;
         Email = null;
         PlayerPrefs.DeleteKey(PP_TOKEN);
         PlayerPrefs.DeleteKey(PP_USER);
+        PlayerPrefs.DeleteKey(PP_USERID);
     }
 }
+
+
