@@ -3,6 +3,7 @@ using UnityEngine;
 
 public static class PhotonOfflineBootstrap
 {
+    /*
     // 1) Antes de cargar la primera escena: activar OfflineMode
    /* [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSceneLoad)]
     static void EnableOffline()
