@@ -31,28 +31,36 @@ public class Detect_objects : MonoBehaviour
         string nombreEscena = escenaDeterminada;
         if (string.IsNullOrEmpty(escenaDeterminada))
             return;
-        if (jugador != null || !jugadorCerca) return;
+        
         seleccionAccion(nombreEscena);
     }
 
     void seleccionAccion(string nombreEscena)
     {
-        if (ui_oculto != null && nombreEscena == escenaDeterminada && ui_oculto.Length == 2)
+        // UI Lobby libro
+        if (ui_oculto != null && nombreEscena == escenaDeterminada && ui_oculto.Length == 5)
         {
 
             DetectarObjetos(ui_oculto[0]);
-            if (Input.GetKeyDown(teclaAbrir))
+            if (Input.GetKeyDown(teclaAbrir) && !ui_oculto[1].activeSelf && !ui_oculto[2].activeSelf && !ui_oculto[3].activeSelf && !ui_oculto[4].activeSelf && ui_oculto[0].activeSelf)
             {
                 if (!jugador) return;
                 jugador.GetComponent<FreeFlyDebug>().enabled = false;
                 Cursor.lockState = CursorLockMode.None;
                 Cursor.visible = true;
-                EjecutarAccion(ui_oculto[1]);
+
+                EjecutarAccion(ui_oculto[1], true);
+                EjecutarAccion(ui_oculto[2], true);
+
             }
-            else if (Input.GetKeyUp(teclaAbrir))
+            else if (Input.GetKeyDown(teclaAbrir) && ui_oculto[1].activeSelf && ui_oculto[2].activeSelf && !ui_oculto[3].activeSelf && !ui_oculto[4].activeSelf && ui_oculto[0].activeSelf)
             {
 
-                EjecutarAccion(ui_oculto[1]);
+                
+                for (int i = 1; i < ui_oculto.Length; i++)
+                {
+                    EjecutarAccion(ui_oculto[i], false);
+                }
                 jugador.GetComponent<FreeFlyDebug>().enabled = true;
                 Cursor.lockState = CursorLockMode.Locked;
                 Cursor.visible = false;
@@ -61,6 +69,9 @@ public class Detect_objects : MonoBehaviour
 
         }
     }
+
+    
+
     void DetectarObjetos(GameObject ui)
     {
         bool encontrado = false;
@@ -86,9 +97,9 @@ public class Detect_objects : MonoBehaviour
             ui.SetActive(encontrado);
     }
 
-    void EjecutarAccion(GameObject ui)
+    void EjecutarAccion(GameObject ui,bool activar)
     {
-        ui.SetActive(jugadorCerca);
+        ui.SetActive(activar);
     }
     void OnDrawGizmosSelected()
     {

@@ -6655,12 +6655,12 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   radioDeteccion: 4
-  tagObjetivoLobby: Libro
-  tagObjetivoMultijugador: Portal
-  _nombreEscenaLobbyMultiJugador: TownRoom
-  _nombreEscenaLobbyIndividual: Lobby
+  tagObjetivo: Player
+  escenaDeterminada: 
   offset: {x: 0, y: 5, z: 0}
-  roomsScript: {fileID: 0}
+  ui_oculto: []
+  teclaAbrir: 101
+  jugador: {fileID: 0}
 --- !u!114 &-4602816905405591270
 MonoBehaviour:
   m_ObjectHideFlags: 0

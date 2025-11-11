@@ -16,11 +16,18 @@ public class RoomListManager : MonoBehaviourPunCallbacks
 
     void Start()
     {
-        refreshButton.onClick.AddListener(RefreshList);
+        if (refreshButton != null) refreshButton.onClick.AddListener(RefreshList);
+        if (!PhotonNetwork.InLobby)
+        {
+            Debug.Log("No estás en el lobby, intentando unir...");
+            PhotonNetwork.JoinLobby(); // Fuerza la unión si aún no se hizo
+        }
     }
 
     public void RefreshList()
     {
+        Debug.Log("Actualizar salas");
+        Debug.Log($"Salas detectadas: {roomCache.Count}");
         foreach (Transform child in content)
             Destroy(child.gameObject);
 
@@ -37,10 +44,12 @@ public class RoomListManager : MonoBehaviourPunCallbacks
                 PhotonNetwork.JoinRoom(info.Name);
             });
         }
+        Debug.Log("Actualización completada.");
     }
 
     public override void OnRoomListUpdate(List<RoomInfo> roomList)
     {
+        Debug.Log("Se encontró salas nuevas o actualizadas");
         foreach (RoomInfo room in roomList)
         {
             if (room.RemovedFromList)

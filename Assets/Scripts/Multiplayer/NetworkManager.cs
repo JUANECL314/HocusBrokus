@@ -48,6 +48,9 @@ public class NetworkManager : MonoBehaviourPunCallbacks
         Debug.Log("Realizando conexión a photon...");
         // Se asegura que no este en offline
         //PhotonNetwork.OfflineMode = false;
+        PhotonNetwork.PhotonServerSettings.AppSettings.FixedRegion = "us"; 
+        
+
         PhotonNetwork.ConnectUsingSettings();
     }
 
@@ -60,7 +63,12 @@ public class NetworkManager : MonoBehaviourPunCallbacks
 
     public override void OnJoinedLobby()
     {
-        Debug.Log("Unido al lobby de Photon");    
+        Debug.Log("Unido al lobby de Photon");
+        var roomListManager = FindObjectOfType<RoomListManager>();
+        if (roomListManager != null)
+        {
+            roomListManager.RefreshList();
+        }
     }
 
     public override void OnDisconnected(DisconnectCause cause)
@@ -92,7 +100,9 @@ public class NetworkManager : MonoBehaviourPunCallbacks
         entroPorBoton = true;
         RoomOptions options = new RoomOptions
         {
-            MaxPlayers = maxPlayers
+            MaxPlayers = maxPlayers,
+            IsVisible = true,    
+            IsOpen = true
         };
 
         
@@ -171,5 +181,41 @@ public class NetworkManager : MonoBehaviourPunCallbacks
     public void CargarEscenarioLocal(string nombreEscena)
     {
         SceneManager.LoadScene(nombreEscena);
+    }
+
+    // ------------------- Manejo cuando el MasterClient se desconecta -------------------
+
+    public override void OnMasterClientSwitched(Player newMasterClient)
+    {
+        Debug.Log($"El MasterClient se ha desconectado. Nuevo Master: {newMasterClient.NickName}");
+
+        // Puedes elegir entre las dos opciones según el comportamiento que desees:
+        // OPCIÓN 1: todos regresan al lobby manualmente (más segura)
+        StartCoroutine(RegresarAlLobby());
+
+        
+    }
+
+    private IEnumerator RegresarAlLobby()
+    {
+        Debug.Log("Saliendo de la sala y regresando al lobby...");
+
+        PhotonNetwork.LeaveRoom();
+
+        // Espera hasta salir de la sala
+        while (PhotonNetwork.InRoom)
+            yield return null;
+
+        CargarEscenarioLocal("Lobby");
+    }
+
+    void OnApplicationQuit()
+    {
+        if (PhotonNetwork.IsConnected)
+        {
+            Debug.Log("Jugador cerró el juego, saliendo de la sala y desconectando de Photon...");
+            PhotonNetwork.LeaveRoom();
+            PhotonNetwork.Disconnect();
+        }
     }
 }
