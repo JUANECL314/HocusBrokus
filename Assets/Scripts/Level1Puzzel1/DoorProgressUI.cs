@@ -1,18 +1,19 @@
 using UnityEngine;
 using UnityEngine.UI;
+using Photon.Pun;
 
-public class DoorProgressUI : MonoBehaviour
+public class DoorProgressUI : MonoBehaviourPun
 {
     public ElementalPuzzle puzzle;
     public Slider slider;
     public Text statusText;     // opcional
-
+    [PunRPC]
     void Reset()
     {
         slider = GetComponentInChildren<Slider>();
         statusText = GetComponentInChildren<Text>();
     }
-
+    [PunRPC]
     void Update()
     {
         if (puzzle == null || slider == null) return;
