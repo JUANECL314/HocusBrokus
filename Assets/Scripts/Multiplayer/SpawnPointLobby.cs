@@ -9,7 +9,14 @@ public class SpawnPointLobby : MonoBehaviourPunCallbacks
     public Transform[] spawnPoints; // Asigna varios puntos en el inspector
     public GameObject playerPrefab; // Prefab del jugador
     string _salaLocal = "Lobby";
+    public static Transform[] SpawnPointsStatic;
+    void Awake()
+    {
+        SpawnPointsStatic = spawnPoints;
+    }
+
     private bool playerSpawned = false;
+
 
     private void Start()
     {
@@ -29,6 +36,15 @@ public class SpawnPointLobby : MonoBehaviourPunCallbacks
         }
     }
 
+    // Helper to get a spawn for a given actor number (wraps array length)
+    public static Transform GetSpawnForActor(int actorNumber)
+    {
+        if (SpawnPointsStatic == null || SpawnPointsStatic.Length == 0) return null;
+        int index = (actorNumber - 1) % SpawnPointsStatic.Length;
+        if (index < 0) index += SpawnPointsStatic.Length;
+        return SpawnPointsStatic[index];
+    }
+    
     // Este método se llama automáticamente cuando el jugador entra a la sala
     public override void OnJoinedRoom()
     {
