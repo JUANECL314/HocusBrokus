@@ -78,6 +78,8 @@ public class LoginUIController : MonoBehaviour
         }
 
         StartCoroutine(CoLogin(email, pass));
+        PhotonNetwork.NickName = email;
+        Debug.Log("Nombre: " + PhotonNetwork.NickName);
         NetworkManager.Instance.EntrarLobbyIndividual();
     }
 
@@ -142,6 +144,7 @@ public class LoginUIController : MonoBehaviour
         if (connectPhotonAfterLogin && photonConnector != null)
         {
             PhotonNetwork.NickName = string.IsNullOrWhiteSpace(AuthState.Username) ? "Player" : AuthState.Username;
+            Debug.Log("Nombre: " + PhotonNetwork.NickName);
 
             photonConnector.ConectarServidor();
 

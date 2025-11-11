@@ -1,4 +1,5 @@
 using System.Runtime.CompilerServices;
+using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
@@ -15,6 +16,8 @@ public class Detect_objects : MonoBehaviour
     private bool jugadorCerca = false;
 
     public GameObject jugador;
+    public int longitudArreglo = 6;
+
     void Awake()
     {
         // Busca el script incluso si el objeto hijo está desactivado
@@ -32,13 +35,26 @@ public class Detect_objects : MonoBehaviour
         if (string.IsNullOrEmpty(escenaDeterminada))
             return;
         
-        seleccionAccion(nombreEscena);
+        if(ui_oculto != null) seleccionAccion(nombreEscena);
     }
 
     void seleccionAccion(string nombreEscena)
     {
-        // UI Lobby libro
-        if (ui_oculto != null && nombreEscena == escenaDeterminada && ui_oculto.Length == 5)
+        switch (gameObject.tag)
+        {
+            // UI Lobby libro
+            case "Libro":
+                LibroLobby(nombreEscena);
+                break;
+            default:
+                break;
+        }
+        
+    }
+
+    void LibroLobby(string nombreEscena)
+    {
+        if (nombreEscena == escenaDeterminada && ui_oculto.Length == longitudArreglo)
         {
 
             DetectarObjetos(ui_oculto[0]);
@@ -56,7 +72,7 @@ public class Detect_objects : MonoBehaviour
             else if (Input.GetKeyDown(teclaAbrir) && ui_oculto[1].activeSelf && ui_oculto[2].activeSelf && !ui_oculto[3].activeSelf && !ui_oculto[4].activeSelf && ui_oculto[0].activeSelf)
             {
 
-                
+
                 for (int i = 1; i < ui_oculto.Length; i++)
                 {
                     EjecutarAccion(ui_oculto[i], false);
@@ -69,8 +85,6 @@ public class Detect_objects : MonoBehaviour
 
         }
     }
-
-    
 
     void DetectarObjetos(GameObject ui)
     {
