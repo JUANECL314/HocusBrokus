@@ -21,7 +21,7 @@ public class LoginUIController : MonoBehaviour
     [SerializeField] private GameObject panelAlRegresar;
 
     [Header("Photon")]
-    [SerializeField] private ConnectToServer photonConnector;
+    [SerializeField] private NetworkManager photonConnector;
 
     [Header("API")]
     [SerializeField] private string apiBaseUrl = "https://hokusbackend-production.up.railway.app";
@@ -55,7 +55,7 @@ public class LoginUIController : MonoBehaviour
             if (photonConnector != null && connectPhotonAfterLogin)
             {
                 PhotonNetwork.NickName = string.IsNullOrWhiteSpace(AuthState.Username) ? "Player" : AuthState.Username;
-                photonConnector.conectarServidor();
+                photonConnector.ConectarServidor();
             }
         }
     }
@@ -77,8 +77,10 @@ public class LoginUIController : MonoBehaviour
             return;
         }
 
-        // ✅ Importante: hacemos login contra el backend (no conectar directo a Photon)
         StartCoroutine(CoLogin(email, pass));
+        PhotonNetwork.NickName = email;
+        Debug.Log("Nombre: " + PhotonNetwork.NickName);
+        NetworkManager.Instance.EntrarLobbyIndividual();
     }
 
     private IEnumerator CoLogin(string email, string password)
@@ -142,8 +144,12 @@ public class LoginUIController : MonoBehaviour
         if (connectPhotonAfterLogin && photonConnector != null)
         {
             PhotonNetwork.NickName = string.IsNullOrWhiteSpace(AuthState.Username) ? "Player" : AuthState.Username;
-            photonConnector.conectarServidor();
+            Debug.Log("Nombre: " + PhotonNetwork.NickName);
+
+            photonConnector.ConectarServidor();
+
             SetEstado("¡Login correcto! Conectando a servidor...");
+
         }
         else
         {
