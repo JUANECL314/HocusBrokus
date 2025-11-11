@@ -1,86 +1,80 @@
-using Photon.Pun;
+﻿using Photon.Pun;
 using UnityEngine;
-
 using UnityEngine.InputSystem;
-
 using System.Collections;
-
 
 public class PlayerMagicInput : MonoBehaviourPun
 {
+    [Header("Refs")]
     public Magic magic;
-
-    private PhotonView pv;
-
-
-    // Animator for attack animation (optional)
     public Animator animator;
 
-    // Delay (seconds) from animation start to actual launch
+    [Header("Attack Timing")]
+    [Tooltip("Retraso entre disparar la animación y ejecutar el launch real.")]
     public float attackDelay = 1.25f;
 
-    // Prevent overlapping attack coroutines
+    // Nombre del parámetro en el Animator (configura en PhotonAnimatorView como Trigger → Discrete)
+    [SerializeField] private string attackTriggerParam = "Attack";
+
+    // Estado para no solapar ataques
     bool isAttacking = false;
 
+    PhotonView pv;
 
-    private void Reset()
+    void Reset()
     {
         if (magic == null) magic = GetComponent<Magic>();
         if (animator == null) animator = GetComponent<Animator>();
     }
 
-    private void Awake()
+    void Awake()
     {
-
         pv = GetComponent<PhotonView>();
 
         if (magic == null) magic = GetComponent<Magic>();
         if (magic == null) magic = GetComponentInChildren<Magic>();
-        if (magic == null) Debug.LogWarning("PlayerMagicInput: Magic no asignado.");
 
-
-        // try to find Animator first on this GameObject, then in its children,
-        // then try the Magic object's animator as a last resort (matches FreeFlyCameraMulti approach)
+        // Buscar Animator en este GO, hijos, o en el objeto Magic
         if (animator == null) animator = GetComponent<Animator>();
         if (animator == null) animator = GetComponentInChildren<Animator>(true);
         if (animator == null && magic != null) animator = magic.GetComponent<Animator>();
         if (animator == null && magic != null) animator = magic.GetComponentInChildren<Animator>(true);
 
-        Debug.Log("PlayerMagicInput: Animator = " + (animator != null ? "found on " + animator.gameObject.name : "null"));
-
+        if (animator == null)
+            Debug.LogWarning($"PlayerMagicInput: Animator no encontrado en {name} ni en Magic.");
     }
 
+    // Input System (PlayerInput → Send Messages) binding a la acción "Cast"
     public void OnCast(InputValue value)
     {
-        if (!pv.IsMine) return;
+        if (!pv.IsMine) return;           // Solo el dueño procesa entrada
         if (magic == null) return;
 
-        // Left click to launch (plays animation first, then launches after delay)
-        if (value.isPressed)
+        if (value.isPressed && !isAttacking)
         {
-            if (!isAttacking)
-            {
-                if (animator != null) animator.SetTrigger("Attack");
-                // if we have an animator we delay the actual launch, otherwise launch immediately
-                if (animator != null)
-                    StartCoroutine(PerformAttackAfterDelay());
-                else
-                    magic.launchElement();
-            }
+            // Dispara la anim (solo local); PhotonAnimatorView replicará el Trigger a todos.
+            if (animator != null && !string.IsNullOrEmpty(attackTriggerParam))
+                animator.SetTrigger(attackTriggerParam);
+
+            // Si hay anim, esperamos; si no, lanzamos inmediato
+            if (animator != null && attackDelay > 0f)
+                StartCoroutine(PerformAttackAfterDelay());
+            else
+                magic.launchElement();
         }
-
-        // Press L to print element description
-        if (Input.GetKeyDown(KeyCode.L)) magic.elementDescription();
-
     }
 
-    
     IEnumerator PerformAttackAfterDelay()
     {
         isAttacking = true;
         yield return new WaitForSeconds(attackDelay);
-        // Double-check references/state before launching
-        if (magic != null) magic.launchElement();
+
+        // Seguridad por si se destruye o desactiva
+        if (magic != null)
+            magic.launchElement();
+
         isAttacking = false;
     }
+
+
 }
