@@ -1,13 +1,15 @@
 using UnityEngine;
 using System.Collections;
+using Photon.Pun;
 
-public class SecretTrigg : MonoBehaviour
+public class SecretTrigg : MonoBehaviourPun
 {
     public float moveDistance = 3f;  // Distancia que sube la puerta
     public float moveSpeed = 2f;     // Velocidad del movimiento
     private bool doorOpen = false;
     private Transform door;
 
+    [PunRPC]
     void Start()
     {
         GameObject doorObj = GameObject.FindGameObjectWithTag("puertaBut");
@@ -20,7 +22,7 @@ public class SecretTrigg : MonoBehaviour
             Debug.LogWarning("No se encontró ningún objeto con el tag 'puertaBut'");
         }
     }
-
+    [PunRPC]
     void OnTriggerEnter(Collider other)
     {
         // Si el objeto que entra tiene el tag "MainCamera"
@@ -29,7 +31,7 @@ public class SecretTrigg : MonoBehaviour
             StartCoroutine(OpenDoor());
         }
     }
-
+    [PunRPC]
     IEnumerator OpenDoor()
     {
         doorOpen = true;

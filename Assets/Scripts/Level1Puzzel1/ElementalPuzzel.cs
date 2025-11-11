@@ -1,8 +1,9 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using Photon.Pun;
 
-public class ElementalPuzzle : MonoBehaviour
+public class ElementalPuzzle : MonoBehaviourPun
 {
     // --- Activador elemental ---
     private bool fireHit = false;
@@ -33,6 +34,7 @@ public class ElementalPuzzle : MonoBehaviour
     private bool canTriggerRandomFall = true;
     private float nextRandomFallAllowedTime = 0f; // tiempo extra
 
+    [PunRPC]
     void Update()
     {
         // Pausar/Reanudar puzzles
@@ -64,7 +66,7 @@ public class ElementalPuzzle : MonoBehaviour
         if (puzzleActivated && canTriggerRandomFall && Time.time >= nextRandomFallAllowedTime)
             StartCoroutine(RandomFallTick());
     }
-
+    [PunRPC]
     void OnTriggerEnter(Collider other)
     {
         if (other.CompareTag("Fire") && !fireHit)
@@ -107,13 +109,13 @@ public class ElementalPuzzle : MonoBehaviour
         }
     }
 
-    // Pausar/reanudar puerta
+    [PunRPC]
     public void DoorPause(bool pause)
     {
         doorPaused = pause;
     }
 
-    // Pausa la puerta y resetea TODOS los engranajes a su posición inicial.
+    [PunRPC]
     public void ResetFromOverheatAndReturnAll()
     {
         overheated = true;
@@ -141,7 +143,7 @@ public class ElementalPuzzle : MonoBehaviour
         }
     }
 
-    // estabilidad de los engranajes
+    [PunRPC]
     bool AllGearsStable()
     {
         var gears = GameObject.FindGameObjectsWithTag("Engranaje");
@@ -157,7 +159,7 @@ public class ElementalPuzzle : MonoBehaviour
         return true;
     }
 
-    // Activacion segura
+    [PunRPC]
     void ActivateGears()
     {
         if (_isActivating) return;
@@ -176,22 +178,21 @@ public class ElementalPuzzle : MonoBehaviour
             _isActivating = false;
         }
     }
-
+    [PunRPC]
     void ScheduleActivateGears()
     {
         if (_activateScheduled) return;
         _activateScheduled = true;
         StartCoroutine(_ActivateNextFrame());
     }
-
+    [PunRPC]
     IEnumerator _ActivateNextFrame()
     {
         yield return null;
         _activateScheduled = false;
         ActivateGears();
     }
-
-    // 🚪 Nuevo método modificado: ahora rota las puertas en lugar de destruirlas
+    [PunRPC]
     void OpenDoor()
     {
         // Inicia la rotación de las puertas en lugar de destruirlas
@@ -206,7 +207,7 @@ public class ElementalPuzzle : MonoBehaviour
         canTriggerRandomFall = false;
     }
 
-    // 🌀 Corutina para rotar puertas suavemente
+    [PunRPC]
     IEnumerator RotateDoors()
     {
         GameObject[] doors = GameObject.FindGameObjectsWithTag("Puerta");
@@ -235,7 +236,7 @@ public class ElementalPuzzle : MonoBehaviour
         }
     }
 
-    // Random fall con cooldown y gracia
+    [PunRPC]
     IEnumerator RandomFallTick()
     {
         canTriggerRandomFall = false;
