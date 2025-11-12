@@ -7393,6 +7393,7 @@ GameObject:
   m_Component:
   - component: {fileID: 848807492}
   - component: {fileID: 848807493}
+  - component: {fileID: 848807494}
   m_Layer: 0
   m_Name: Armario
   m_TagString: Armario
@@ -7446,8 +7447,27 @@ MonoBehaviour:
   - {fileID: 987392028}
   - {fileID: 1810949219}
   teclaAbrir: 101
-  jugador: {fileID: 0}
   longitudArreglo: 2
+  enterKey: 12
+  loopKey: 13
+  DEBUG_LOGS: 1
+--- !u!114 &848807494
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 848807491}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: bcce1a404159e8347bacb2645e493ffa, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  enabledOverride: 1
+  spatialBlend: 1
+  rolloff: 0
+  minDistance: 1
+  maxDistance: 4
 --- !u!1 &867951488
 GameObject:
   m_ObjectHideFlags: 0
@@ -12983,6 +13003,7 @@ GameObject:
   - component: {fileID: 1722422899}
   - component: {fileID: 1722422898}
   - component: {fileID: 1722422902}
+  - component: {fileID: 1722422903}
   m_Layer: 0
   m_Name: Libro
   m_TagString: Libro
@@ -13110,8 +13131,27 @@ MonoBehaviour:
   - {fileID: 1439456618}
   - {fileID: 2097129209}
   teclaAbrir: 101
-  jugador: {fileID: 0}
   longitudArreglo: 6
+  enterKey: 12
+  loopKey: 13
+  DEBUG_LOGS: 1
+--- !u!114 &1722422903
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1722422897}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: bcce1a404159e8347bacb2645e493ffa, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  enabledOverride: 1
+  spatialBlend: 1
+  rolloff: 0
+  minDistance: 1
+  maxDistance: 4
 --- !u!1 &1733044491
 GameObject:
   m_ObjectHideFlags: 0
@@ -14556,7 +14596,7 @@ AudioListener:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 2006685803}
-  m_Enabled: 1
+  m_Enabled: 0
 --- !u!20 &2006685806
 Camera:
   m_ObjectHideFlags: 0

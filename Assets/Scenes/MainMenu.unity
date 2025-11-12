@@ -5557,6 +5557,82 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 9143167570444424153, guid: cc1758a5c1b6b5c4bb8dbe2c00e111bb, type: 3}
+      propertyPath: initialPool
+      value: 14
+      objectReference: {fileID: 0}
+    - target: {fileID: 9143167570444424153, guid: cc1758a5c1b6b5c4bb8dbe2c00e111bb, type: 3}
+      propertyPath: clips.Array.size
+      value: 14
+      objectReference: {fileID: 0}
+    - target: {fileID: 9143167570444424153, guid: cc1758a5c1b6b5c4bb8dbe2c00e111bb, type: 3}
+      propertyPath: clips.Array.data[12].key
+      value: 12
+      objectReference: {fileID: 0}
+    - target: {fileID: 9143167570444424153, guid: cc1758a5c1b6b5c4bb8dbe2c00e111bb, type: 3}
+      propertyPath: clips.Array.data[13].key
+      value: 13
+      objectReference: {fileID: 0}
+    - target: {fileID: 9143167570444424153, guid: cc1758a5c1b6b5c4bb8dbe2c00e111bb, type: 3}
+      propertyPath: clips.Array.data[12].clip
+      value: 
+      objectReference: {fileID: 8300000, guid: 55ef434bd2022964f8c48bc656ac545c, type: 3}
+    - target: {fileID: 9143167570444424153, guid: cc1758a5c1b6b5c4bb8dbe2c00e111bb, type: 3}
+      propertyPath: clips.Array.data[13].clip
+      value: 
+      objectReference: {fileID: 8300000, guid: e69b7feac4972a34ba85555c8925ed9f, type: 3}
+    - target: {fileID: 9143167570444424153, guid: cc1758a5c1b6b5c4bb8dbe2c00e111bb, type: 3}
+      propertyPath: clips.Array.data[12].volume
+      value: 0.239
+      objectReference: {fileID: 0}
+    - target: {fileID: 9143167570444424153, guid: cc1758a5c1b6b5c4bb8dbe2c00e111bb, type: 3}
+      propertyPath: clips.Array.data[13].volume
+      value: 0.239
+      objectReference: {fileID: 0}
+    - target: {fileID: 9143167570444424153, guid: cc1758a5c1b6b5c4bb8dbe2c00e111bb, type: 3}
+      propertyPath: clips.Array.data[12].spatial
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 9143167570444424153, guid: cc1758a5c1b6b5c4bb8dbe2c00e111bb, type: 3}
+      propertyPath: clips.Array.data[13].spatial
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 9143167570444424153, guid: cc1758a5c1b6b5c4bb8dbe2c00e111bb, type: 3}
+      propertyPath: clips.Array.data[13].loopable
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 9143167570444424153, guid: cc1758a5c1b6b5c4bb8dbe2c00e111bb, type: 3}
+      propertyPath: clips.Array.data[12].spatialBlend
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 9143167570444424153, guid: cc1758a5c1b6b5c4bb8dbe2c00e111bb, type: 3}
+      propertyPath: clips.Array.data[13].spatialBlend
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 9143167570444424153, guid: cc1758a5c1b6b5c4bb8dbe2c00e111bb, type: 3}
+      propertyPath: clips.Array.data[12].pitchJitter.x
+      value: 0.95
+      objectReference: {fileID: 0}
+    - target: {fileID: 9143167570444424153, guid: cc1758a5c1b6b5c4bb8dbe2c00e111bb, type: 3}
+      propertyPath: clips.Array.data[12].pitchJitter.y
+      value: 1.15
+      objectReference: {fileID: 0}
+    - target: {fileID: 9143167570444424153, guid: cc1758a5c1b6b5c4bb8dbe2c00e111bb, type: 3}
+      propertyPath: clips.Array.data[13].pitchJitter.x
+      value: 0.95
+      objectReference: {fileID: 0}
+    - target: {fileID: 9143167570444424153, guid: cc1758a5c1b6b5c4bb8dbe2c00e111bb, type: 3}
+      propertyPath: clips.Array.data[13].pitchJitter.y
+      value: 1.15
+      objectReference: {fileID: 0}
+    - target: {fileID: 9143167570444424153, guid: cc1758a5c1b6b5c4bb8dbe2c00e111bb, type: 3}
+      propertyPath: clips.Array.data[12].maxOneShotDuration
+      value: -1
+      objectReference: {fileID: 0}
+    - target: {fileID: 9143167570444424153, guid: cc1758a5c1b6b5c4bb8dbe2c00e111bb, type: 3}
+      propertyPath: clips.Array.data[13].maxOneShotDuration
+      value: -1
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
