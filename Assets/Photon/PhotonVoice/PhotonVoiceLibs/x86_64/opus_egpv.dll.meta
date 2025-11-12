@@ -1,5 +1,5 @@
 fileFormatVersion: 2
-guid: 6a558ae793155af4b9b9ab945fc64a0f
+guid: 07700460c83f30940a12bd7ccd173b9e
 PluginImporter:
   externalObjects: {}
   serializedVersion: 2
@@ -12,54 +12,44 @@ PluginImporter:
   validateReferences: 1
   platformData:
   - first:
-      '': Any
+      : Any
     second:
       enabled: 0
       settings:
-        Exclude Android: 0
+        Exclude Android: 1
         Exclude Editor: 0
-        Exclude GameCoreScarlett: 0
-        Exclude GameCoreXboxOne: 0
         Exclude Linux: 0
         Exclude Linux64: 0
         Exclude LinuxUniversal: 0
-        Exclude Lumin: 0
         Exclude OSXUniversal: 0
-        Exclude PS4: 0
-        Exclude PS5: 0
-        Exclude Switch: 0
-        Exclude WebGL: 0
-        Exclude Win: 0
+        Exclude Win: 1
         Exclude Win64: 0
-        Exclude WindowsStoreApps: 0
-        Exclude XboxOne: 0
-        Exclude iOS: 0
-        Exclude tvOS: 0
+        Exclude WindowsStoreApps: 1
   - first:
       Android: Android
     second:
-      enabled: 1
+      enabled: 0
       settings:
         CPU: ARMv7
   - first:
       Any: 
     second:
-      enabled: 1
+      enabled: 0
       settings: {}
   - first:
       Editor: Editor
     second:
       enabled: 1
       settings:
-        CPU: AnyCPU
+        CPU: x86_64
         DefaultValueInitialized: true
-        OS: AnyOS
+        OS: Windows
   - first:
       Facebook: Win
     second:
       enabled: 0
       settings:
-        CPU: AnyCPU
+        CPU: None
   - first:
       Facebook: Win64
     second:
@@ -93,9 +83,9 @@ PluginImporter:
   - first:
       Standalone: Win
     second:
-      enabled: 1
+      enabled: 0
       settings:
-        CPU: AnyCPU
+        CPU: None
   - first:
       Standalone: Win64
     second:
@@ -103,63 +93,15 @@ PluginImporter:
       settings:
         CPU: AnyCPU
   - first:
-      WebGL: WebGL
-    second:
-      enabled: 1
-      settings: {}
-  - first:
       Windows Store Apps: WindowsStoreApps
     second:
-      enabled: 1
+      enabled: 0
       settings:
         CPU: AnyCPU
-        DontProcess: false
+        DontProcess: False
         PlaceholderPath: 
         SDK: AnySDK
-        ScriptingBackend: Il2Cpp
-  - first:
-      iPhone: iOS
-    second:
-      enabled: 1
-      settings:
-        AddToEmbeddedBinaries: false
-        CompileFlags: 
-        FrameworkDependencies: 
-  - first:
-      PS4: PS4
-    second:
-      enabled: 1
-      settings: {}
-  - first:
-      PS5: PS5
-    second:
-      enabled: 1
-      settings: {}
-  - first:
-      Nintendo Switch: Switch
-    second:
-      enabled: 1
-      settings: {}
-  - first:
-      XboxOne: XboxOne
-    second:
-      enabled: 1
-      settings: {}
-  - first:
-      GameCoreScarlett: GameCoreScarlett
-    second:
-      enabled: 1
-      settings: {}
-  - first:
-      GameCoreXboxOne: GameCoreXboxOne
-    second:
-      enabled: 1
-      settings: {}
-  - first:
-      Lumin: Lumin
-    second:
-      enabled: 1
-      settings: {}
+        ScriptingBackend: AnyScriptingBackend
   userData: 
   assetBundleName: 
   assetBundleVariant: 
@@ -168,5 +110,5 @@ AssetOrigin:
   productId: 130518
   packageName: Photon Voice 2
   packageVersion: 2.59
-  assetPath: Assets/Photon/PhotonLibs/netstandard2.0/Photon3Unity3D.dll
+  assetPath: Assets/Photon/PhotonVoice/PhotonVoiceLibs/x86_64/opus_egpv.dll
   uploadId: 756092
