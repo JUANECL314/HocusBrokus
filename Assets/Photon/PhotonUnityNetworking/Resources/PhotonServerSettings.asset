@@ -17,9 +17,9 @@ MonoBehaviour:
     AppIdFusion: 
     AppIdChat: 
     AppIdVoice: 610ed236-d22a-4c3a-a8d5-67beb41c8e54
-    AppVersion: 1
+    AppVersion: 
     UseNameServer: 1
-    FixedRegion: us
+    FixedRegion: 
     Server: 
     Port: 0
     ProxyServer: 
@@ -28,7 +28,7 @@ MonoBehaviour:
     AuthMode: 0
     EnableLobbyStatistics: 0
     NetworkLogging: 1
-  DevRegion: us
+  DevRegion: 
   PunLogging: 0
   EnableSupportLogger: 0
   RunInBackground: 1
@@ -39,39 +39,39 @@ MonoBehaviour:
   - ClickRpc
   - DestroyRpc
   - HeresWhy
-  - DestroySpaceship
-  - Fire
-  - RespawnSpaceship
-  - RPC_MoveUp
-  - RPC_RotateLeft
-  - RPC_RotateRight
-  - RPC_LoadLevel
-  - SyncName
-  - CoolDown
-  - MakeFall
-  - OnCollisionEnter
-  - Overheat
-  - OverheatCountdown
-  - ReactivateAfterLand
-  - RearmOverheatAfterDelay
-  - ResetToInitialPosition
-  - ReturnToInitialPosition
-  - RotateAndChangeColorFlow
-  - Start
-  - StartRotation
-  - StopRotation
-  - Update
   - _ActivateNextFrame
   - ActivateGears
   - AllGearsStable
+  - CoolDown
+  - DestroySpaceship
   - DoorPause
+  - Fire
+  - MakeFall
+  - OnCollisionEnter
   - OnTriggerEnter
   - OpenDoor
+  - Overheat
+  - OverheatCountdown
   - RandomFallTick
+  - ReactivateAfterLand
+  - RearmOverheatAfterDelay
   - Reset
   - ResetFromOverheatAndReturnAll
+  - ResetToInitialPosition
+  - RespawnSpaceship
+  - ReturnToInitialPosition
+  - RotateAndChangeColorFlow
   - RotateDoors
+  - RPC_LoadLevel
+  - RPC_MoveUp
+  - RPC_RotateLeft
+  - RPC_RotateRight
   - ScheduleActivateGears
+  - Start
+  - StartRotation
+  - StopRotation
+  - SyncName
+  - Update
   DisableAutoOpenWizard: 1
   ShowSettings: 1
-  DevRegionSetOnce: 1
+  DevRegionSetOnce: 0
