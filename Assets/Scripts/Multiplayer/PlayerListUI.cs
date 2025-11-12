@@ -9,10 +9,12 @@ public class PlayerNameListUI : MonoBehaviourPunCallbacks
     [Header("Referencias UI")]
     public Transform contenedorJugadores;   // Donde se instancian los nombres
     public GameObject prefabJugadorItem;    // Prefab con un TMP_Text dentro
-
+    public TextMeshProUGUI nombreSala;
     private readonly Dictionary<Player, TMP_Text> itemsUI = new();
     private PlayerName jugadorLocal;
     public string jugadorLocalTexto = "Tú";
+    private string salaTitulo = "Sala";
+
     void Start()
     {
         // Solo el jugador local controla su UI
@@ -20,6 +22,11 @@ public class PlayerNameListUI : MonoBehaviourPunCallbacks
         {
             gameObject.SetActive(false);
             return;
+        }
+        // Nombre de la sala
+        if (PhotonNetwork.InRoom)
+        {
+            nombreSala.text = $"{salaTitulo}: {PhotonNetwork.CurrentRoom.Name}";
         }
 
         // Buscar al jugador local
@@ -32,7 +39,6 @@ public class PlayerNameListUI : MonoBehaviourPunCallbacks
             }
         }
 
-        // Crear los textos iniciales
         ActualizarListaUI();
 
         // Actualizar cada 0.5 segundos
@@ -54,13 +60,13 @@ public class PlayerNameListUI : MonoBehaviourPunCallbacks
             var info = kvp.Value;
 
             GameObject item = Instantiate(prefabJugadorItem, contenedorJugadores);
-            TMP_Text texto = item.GetComponent<TMP_Text>();
+            TMP_Text texto = item.GetComponentInChildren<TMP_Text>();
 
             texto.text = info.photonView.IsMine
                 ? $"{info.playerName} ({jugadorLocalTexto})"
                 : $"{info.playerName}";
 
-            itemsUI[jugador] = texto;
+            itemsUI[jugador] = texto; 
         }
     }
 
