@@ -6,7 +6,6 @@ using Photon.Pun;
 public class FreeFlyCameraMulti : MonoBehaviourPun
 {
     [Header("Mode")]
-    [Tooltip("F1 alterna en runtime. Cuando está desactivado, usa movimiento normal con física.")]
     public bool debugFreeFly = false;
 
     [Header("Movement (Normal)")]
@@ -25,7 +24,7 @@ public class FreeFlyCameraMulti : MonoBehaviourPun
     public bool invertY = false;
 
     [Header("References")]
-    public Transform characterModel;  
+    public Transform characterModel;
     public Transform cameraTransform;
     public Vector3 cameraOffset = Vector3.zero;
 
@@ -45,17 +44,24 @@ public class FreeFlyCameraMulti : MonoBehaviourPun
     private float verticalVelocity = 0f;
     private bool hasJumped = false;
 
+    // 👁 For Eye Look System
+    [HideInInspector] public Vector2 eyeLookOffset;
+    private float currentLookAngle = 0f;
+
+    // 👁 Optional getter for external access (e.g. iris)
+    public Vector2 EyeLookOffset => eyeLookOffset;
+
     void Awake()
     {
         rb = GetComponent<Rigidbody>();
         if (!cameraTransform)
             cameraTransform = GetComponentInChildren<Camera>(true)?.transform;
-        if (!characterModel) characterModel = transform;
+        if (!characterModel)
+            characterModel = transform;
     }
 
     void Start()
     {
-        rb = GetComponent<Rigidbody>();
         rb.freezeRotation = true;
         rb.useGravity = true;
         rb.collisionDetectionMode = CollisionDetectionMode.ContinuousDynamic;
@@ -73,27 +79,14 @@ public class FreeFlyCameraMulti : MonoBehaviourPun
         if (_animator == null)
             _animator = characterModel.GetComponentInChildren<Animator>(true);
 
-        Debug.Log("characterModel: " + (characterModel ? characterModel.name : "null") +
-                  ", Animator: " + (_animator != null ? "found on " + _animator.gameObject.name : "null"));
-
         yaw = characterModel.eulerAngles.y;
         pitch = cameraTransform.localEulerAngles.x;
-
-        if (SettingsManager.I)
-        {
-            mouseSensitivity = SettingsManager.I.MouseSensitivity;
-            gamepadSensitivity = SettingsManager.I.GamepadSensitivity;
-            invertY = SettingsManager.I.InvertY;
-            SettingsManager.I.OnChanged += ApplySettings;
-        }
-
-        if (isLocalMode || photonView.IsMine) ActivateCamera();
-        else DeactivateCamera();
 
         rb.constraints = RigidbodyConstraints.FreezeRotationX | RigidbodyConstraints.FreezeRotationZ;
 
         LockCursor(true);
-        if (cameraTransform) cameraTransform.localPosition = cameraOffset;
+        if (cameraTransform)
+            cameraTransform.localPosition = cameraOffset;
     }
 
     void Update()
@@ -105,26 +98,49 @@ public class FreeFlyCameraMulti : MonoBehaviourPun
         if (Keyboard.current != null && Keyboard.current.f1Key.wasPressedThisFrame)
             debugFreeFly = !debugFreeFly;
 
-        // Rotation input
+        // Input Sensitivity
         bool usingGamepad = Gamepad.current != null && Gamepad.current.rightStick.IsActuated();
         float sens = usingGamepad ? gamepadSensitivity : mouseSensitivity;
 
-        if (lookInput.sqrMagnitude < 0.0005f) lookInput = Vector2.zero;
+        if (lookInput.sqrMagnitude < 0.0005f)
+            lookInput = Vector2.zero;
+
         float lookX = lookInput.x * sens;
         float lookY = lookInput.y * sens * (invertY ? 1f : -1f);
 
-        yaw += lookX;
+        // Apply camera pitch (up/down)
         pitch = Mathf.Clamp(pitch + lookY, -maxHeadTilt, maxHeadTilt);
 
-        if (characterModel)
-            characterModel.rotation = Quaternion.Euler(0f, yaw, 0f);
+        // Accumulate yaw freely for 360° rotation
+        yaw += lookX;
+
+        // Apply rotation to the body
+        transform.rotation = Quaternion.Euler(0f, yaw, 0f);
+
+        // Apply rotation to the camera
         if (cameraTransform)
         {
             cameraTransform.localRotation = Quaternion.Euler(pitch, 0f, 0f);
             cameraTransform.localPosition = cameraOffset;
         }
 
-        // Input
+        // --- Eye Offset Calculation (local to the body) ---
+        float maxLookAngle = 25f;   // how far eyes/head can look relative to body
+        float deadzone = 15f;       // circular radius for eyes-only movement
+        float reCenterSpeed = 5f;   // how fast eyes recenters
+
+        // Calculate yaw difference between camera and body (handles 360° wrap)
+        float localYawDelta = Mathf.DeltaAngle(transform.eulerAngles.y, cameraTransform.eulerAngles.y);
+        float clampedYaw = Mathf.Clamp(localYawDelta, -maxLookAngle, maxLookAngle);
+
+        // Smoothly recenters when player rotates
+        if (Mathf.Abs(clampedYaw) > deadzone)
+            clampedYaw = Mathf.Lerp(clampedYaw, 0f, Time.deltaTime * reCenterSpeed);
+
+        // Store this for the iris/eye system
+        eyeLookOffset = new Vector2(clampedYaw / maxLookAngle, lookY / maxHeadTilt);
+
+        // Movement input
         moveInput.x = Input.GetAxisRaw("Horizontal");
         moveInput.y = Input.GetAxisRaw("Vertical");
 
@@ -178,7 +194,8 @@ public class FreeFlyCameraMulti : MonoBehaviourPun
         {
             rb.linearVelocity = new Vector3(rb.linearVelocity.x, 0f, rb.linearVelocity.z);
             rb.AddForce(Vector3.up * jumpForce, ForceMode.VelocityChange);
-            if (_animator) _animator.SetTrigger("Jump");
+            if (_animator)
+                _animator.SetTrigger("Jump");
         }
         jumpPressed = false;
     }
@@ -195,30 +212,19 @@ public class FreeFlyCameraMulti : MonoBehaviourPun
         return Physics.SphereCast(origin, radius, Vector3.down, out _, castDistance, groundMask, QueryTriggerInteraction.Ignore);
     }
 
-
     public void OnMove(InputValue value) => moveInput = value.Get<Vector2>();
     public void OnLook(InputValue value) => lookInput = value.Get<Vector2>();
-    public void OnJump(InputValue value) { if (value.isPressed) jumpPressed = true; }
+    public void OnJump(InputValue value)
+    {
+        if (value.isPressed)
+            jumpPressed = true;
+    }
+
     public void OnToggleCursor(InputValue value)
     {
-        if (value.isPressed) LockCursor(Cursor.lockState != CursorLockMode.Locked);
+        if (value.isPressed)
+            LockCursor(Cursor.lockState != CursorLockMode.Locked);
     }
-
-    void ApplySettings()
-    {
-        if (!SettingsManager.I) return;
-        mouseSensitivity = SettingsManager.I.MouseSensitivity;
-        gamepadSensitivity = SettingsManager.I.GamepadSensitivity;
-        invertY = SettingsManager.I.InvertY;
-    }
-
-    void OnDestroy()
-    {
-        if (SettingsManager.I) SettingsManager.I.OnChanged -= ApplySettings;
-    }
-
-    void ActivateCamera() { if (cameraTransform) cameraTransform.gameObject.SetActive(true); }
-    void DeactivateCamera() { if (cameraTransform) cameraTransform.gameObject.SetActive(false); }
 
     void LockCursor(bool locked)
     {
