@@ -141,7 +141,7 @@ public class LoginUIController : MonoBehaviour
             yield break;
         }
 
-        // Guarda token + user para la tienda y endpoints protegidos
+        // Guardar token y user
         AuthState.SetToken(resp.token, resp.user?.id ?? 0, resp.user?.username, resp.user?.email, rememberToken);
 
         // Establece NickName y conecta Photon si procede
@@ -275,3 +275,5 @@ public static class AuthState
         PlayerPrefs.DeleteKey(PP_USERID);
     }
 }
+
+

@@ -5062,8 +5062,9 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   magic: {fileID: 5691635643254298859}
-  animator: {fileID: 0}
-  attackDelay: 0.8
+  animator: {fileID: 3709998520433020869}
+  attackDelay: 1.1
+  attackTriggerParam: Attack
 --- !u!114 &9081232492156747955
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -5084,6 +5085,7 @@ MonoBehaviour:
   observableSearch: 2
   ObservedComponents:
   - {fileID: -6334809897886953100}
+  - {fileID: 2452294355352645977}
   sceneViewId: 0
   InstantiationId: 0
   isRuntimeInstantiated: 0
@@ -6845,22 +6847,17 @@ PrefabInstance:
     m_AddedGameObjects:
     - targetCorrespondingSourceObject: {fileID: -3321919801592875672, guid: fd2cb19a1e39f554cb791b311148dd79, type: 3}
       insertIndex: -1
-      addedObject: {fileID: 3145279105968228639}
-    - targetCorrespondingSourceObject: {fileID: -3321919801592875672, guid: fd2cb19a1e39f554cb791b311148dd79, type: 3}
+      addedObject: {fileID: 3709998520433020869}
+    - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: 051d646ab498e564bbcfee17f6f2999e, type: 3}
       insertIndex: -1
-      addedObject: {fileID: 421865034608733159}
-    - targetCorrespondingSourceObject: {fileID: -3321919801592875672, guid: fd2cb19a1e39f554cb791b311148dd79, type: 3}
-      insertIndex: -1
-      addedObject: {fileID: 917615550049861940}
-    - targetCorrespondingSourceObject: {fileID: -3321919801592875672, guid: fd2cb19a1e39f554cb791b311148dd79, type: 3}
-      insertIndex: -1
-      addedObject: {fileID: 4180651953382397973}
-    m_AddedComponents:
-    - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: fd2cb19a1e39f554cb791b311148dd79, type: 3}
-      insertIndex: -1
-      addedObject: {fileID: 1904110702939578498}
-  m_SourcePrefab: {fileID: 100100000, guid: fd2cb19a1e39f554cb791b311148dd79, type: 3}
---- !u!1 &3472299022310010686 stripped
+      addedObject: {fileID: 2452294355352645977}
+  m_SourcePrefab: {fileID: 100100000, guid: 051d646ab498e564bbcfee17f6f2999e, type: 3}
+--- !u!4 &1560034592017536667 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: -8679921383154817045, guid: 051d646ab498e564bbcfee17f6f2999e, type: 3}
+  m_PrefabInstance: {fileID: 1309670421934354800}
+  m_PrefabAsset: {fileID: 0}
+--- !u!1 &2228590904362830881 stripped
 GameObject:
   m_CorrespondingSourceObject: {fileID: 919132149155446097, guid: fd2cb19a1e39f554cb791b311148dd79, type: 3}
   m_PrefabInstance: {fileID: 4391427733342933615}
@@ -6887,13 +6884,33 @@ Animator:
   m_AllowConstantClipSamplingOptimization: 1
   m_KeepAnimatorStateOnDisable: 0
   m_WriteDefaultValuesOnDisable: 0
---- !u!4 &4286236335217915268 stripped
-Transform:
-  m_CorrespondingSourceObject: {fileID: -8679921383154817045, guid: fd2cb19a1e39f554cb791b311148dd79, type: 3}
-  m_PrefabInstance: {fileID: 4391427733342933615}
+--- !u!114 &2452294355352645977
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
---- !u!4 &7860848207663474439 stripped
-Transform:
-  m_CorrespondingSourceObject: {fileID: -3321919801592875672, guid: fd2cb19a1e39f554cb791b311148dd79, type: 3}
-  m_PrefabInstance: {fileID: 4391427733342933615}
-  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2228590904362830881}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 9b8c4a61274f60b4ea5fb4299cfdbf14, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  ShowLayerWeightsInspector: 1
+  ShowParameterInspector: 1
+  m_SynchronizeParameters:
+  - Type: 1
+    SynchronizeType: 2
+    Name: Speed
+  - Type: 9
+    SynchronizeType: 1
+    Name: Jump
+  - Type: 9
+    SynchronizeType: 1
+    Name: Attack
+  - Type: 4
+    SynchronizeType: 1
+    Name: Grounded
+  m_SynchronizeLayers:
+  - SynchronizeType: 1
+    LayerIndex: 0
