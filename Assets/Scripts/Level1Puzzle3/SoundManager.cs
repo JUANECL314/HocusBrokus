@@ -17,7 +17,9 @@ public enum SfxKey
     GearFall,          // one-shot: caída/metalazo
     GearCoolHiss,      // one-shot: agua que enfría (hiss)
     FireIgniteLoop,    // loop: fuego en el activador
-    FireWindBoost      // one-shot: soplo/ignite al sumar viento y activar
+    FireWindBoost,    // one-shot: soplo/ignite al sumar viento y activar
+    UIProximityEnter, 
+    UIProximityLoop
 }
 
 public class SoundManager : MonoBehaviour

@@ -83,19 +83,16 @@ public class LaserTarget : MonoBehaviour
     {
         if (activeBeams.Add(beamId))
             Debug.Log($"LaserTarget: beam {beamId} started hitting. Count = {activeBeams.Count}");
-        // Blinking lo maneja el Update/coroutine
     }
 
     public void Deactivate(int beamId)
     {
         if (activeBeams.Remove(beamId))
             Debug.Log($"LaserTarget: beam {beamId} stopped hitting. Count = {activeBeams.Count}");
-        // Blinking lo maneja el Update/coroutine
     }
 
     void Update()
     {
-        // Si ya quedó en glow permanente, solo pulso
         if (permanentlyGlowing)
         {
             UpdateGlowEffect();
@@ -103,7 +100,6 @@ public class LaserTarget : MonoBehaviour
             return;
         }
 
-        // Modo de parpadeo deseado
         BlinkMode desiredMode = BlinkMode.None;
         if (activeBeams.Count == 1) desiredMode = BlinkMode.Single;
         else if (activeBeams.Count >= requiredBeams) desiredMode = BlinkMode.FastMulti;
@@ -121,7 +117,6 @@ public class LaserTarget : MonoBehaviour
                 ResetGlow();
         }
 
-        // Condición de éxito
         if (activeBeams.Count >= requiredBeams)
         {
             timer += Time.deltaTime;
@@ -229,9 +224,12 @@ public class LaserTarget : MonoBehaviour
 
             if (!muralCompleted && hit.collider != null && hit.collider.CompareTag("SunMural"))
             {
-                SetObjectColor(hit.collider.gameObject, glowColor);
+                var mural = hit.collider.GetComponent<SunMuralQuad>();
+                if (mural != null)
+                    mural.Show(); // make the quad visible when hit
                 muralCompleted = true;
             }
+
         }
         else
         {

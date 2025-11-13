@@ -14,7 +14,7 @@ GameObject:
   - component: {fileID: 8948194427896057954}
   - component: {fileID: 2811735329295285371}
   - component: {fileID: -599520896609631493}
-  - component: {fileID: -8404888019860808482}
+  - component: {fileID: -5907943710767944678}
   m_Layer: 0
   m_Name: Water
   m_TagString: Water
@@ -124,9 +124,9 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   idName: Water
-  velocityMov: 13
+  velocityMov: 39
   weight: 3
-  elementType: 2
+  elementType: 0
 --- !u!114 &-599520896609631493
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -146,11 +146,11 @@ MonoBehaviour:
   OwnershipTransfer: 0
   observableSearch: 2
   ObservedComponents:
-  - {fileID: -8404888019860808482}
+  - {fileID: -5907943710767944678}
   sceneViewId: 0
   InstantiationId: 0
   isRuntimeInstantiated: 0
---- !u!114 &-8404888019860808482
+--- !u!114 &-5907943710767944678
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -159,27 +159,10 @@ MonoBehaviour:
   m_GameObject: {fileID: 4595107794438353599}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 8efc6b1d64977384eb3405357896c656, type: 3}
+  m_Script: {fileID: 11500000, guid: 627855c7f81362d41938ffe0b1475957, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  m_PositionModel:
-    SynchronizeEnabled: 1
-    TeleportEnabled: 1
-    TeleportIfDistanceGreaterThan: 3
-    InterpolateOption: 2
-    InterpolateMoveTowardsSpeed: 1
-    InterpolateLerpSpeed: 1
-    ExtrapolateOption: 0
-    ExtrapolateSpeed: 1
-    ExtrapolateIncludingRoundTripTime: 1
-    ExtrapolateNumberOfStoredPositions: 1
-  m_RotationModel:
-    SynchronizeEnabled: 1
-    InterpolateOption: 1
-    InterpolateRotateTowardsSpeed: 180
-    InterpolateLerpSpeed: 5
-  m_ScaleModel:
-    SynchronizeEnabled: 0
-    InterpolateOption: 0
-    InterpolateMoveTowardsSpeed: 1
-    InterpolateLerpSpeed: 0
+  m_SynchronizePosition: 1
+  m_SynchronizeRotation: 1
+  m_SynchronizeScale: 0
+  m_UseLocal: 1

@@ -1,13 +1,11 @@
 ﻿using UnityEngine;
-using UnityEngine.InputSystem; // Input System
+using UnityEngine.InputSystem;
 using Photon.Pun;
 
 [RequireComponent(typeof(Rigidbody))]
 public class FreeFlyCameraMulti : MonoBehaviourPun
 {
-
     [Header("Mode")]
-    [Tooltip("F1 alterna en runtime. Cuando está desactivado, usa movimiento normal con física.")]
     public bool debugFreeFly = false;
 
     [Header("Movement (Normal)")]
@@ -19,38 +17,31 @@ public class FreeFlyCameraMulti : MonoBehaviourPun
     [Header("Movement (Free-Fly Debug)")]
     public float flySpeed = 8f;
 
-    private Animator _animator;
     [Header("Look")]
     public float mouseSensitivity = 1.5f;
-    public float gamepadSensitivity = 0.7f; // menor para stick
+    public float gamepadSensitivity = 0.7f;
     public float maxHeadTilt = 80f;
     public bool invertY = false;
 
     [Header("References")]
     public Transform characterModel;  // yaw (cuerpo)
     public Transform cameraTransform; // pitch (cámara)
-
-    
-
     public Vector3 cameraOffset = Vector3.zero;
 
+    // Animator (sincronizado por PhotonAnimatorView)
+    private Animator _animator;
+    private const string PARAM_SPEED = "Speed";
+    private const string PARAM_GROUNDED = "Grounded";
+    private const string PARAM_JUMP = "Jump";
 
     // state
     private Rigidbody rb;
     private float yaw, pitch;
-    private Vector2 moveInput;   // Input Actions: Move (Vector2)
-    private Vector2 lookInput;   // Input Actions: Look (Vector2)
+    private Vector2 moveInput;
+    private Vector2 lookInput;
     private bool jumpPressed;
     private bool isLocalMode;
     private bool isFrozen = false;
-
-    void Awake()
-    {
-        rb = GetComponent<Rigidbody>();
-        if (!cameraTransform)
-            cameraTransform = GetComponentInChildren<Camera>(true)?.transform;
-        if (!characterModel) characterModel = transform;
-    }
 
 
     [Header("Jump Settings")]
@@ -60,35 +51,32 @@ public class FreeFlyCameraMulti : MonoBehaviourPun
     private float verticalVelocity = 0f;
     private bool hasJumped = false;
 
-    void Start()
+    // 👁 For Eye Look System
+    [HideInInspector] public Vector2 eyeLookOffset;
+    private float currentLookAngle = 0f;
+
+    // 👁 Optional getter for external access (e.g. iris)
+    public Vector2 EyeLookOffset => eyeLookOffset;
+
+    void Awake()
     {
         rb = GetComponent<Rigidbody>();
-        rb.freezeRotation = true;          // prevent unwanted spinning
-        rb.useGravity = true;              // let Unity handle gravity
+        if (!cameraTransform)
+            cameraTransform = GetComponentInChildren<Camera>(true)?.transform;
+        if (!characterModel)
+            characterModel = transform;
+        // animator vive en el modelo del personaje
+        _animator = characterModel ? characterModel.GetComponentInChildren<Animator>(true) : null;
+    }
 
+    void Start()
+    {
+        rb.freezeRotation = true;
+        rb.useGravity = true;
+        rb.collisionDetectionMode = CollisionDetectionMode.ContinuousDynamic;
+        rb.interpolation = RigidbodyInterpolation.Interpolate;
 
         isLocalMode = !PhotonNetwork.IsConnected;
-
-        // Settings iniciales y suscripción
-        
-        if (cameraTransform == null)
-            cameraTransform = GetComponentInChildren<Camera>(true)?.transform;
-
-        if (characterModel == null)
-            characterModel = transform;
-
-
-        // try to find Animator first on the characterModel, then in its children
-        _animator = characterModel.GetComponent<Animator>();
-        if (_animator == null)
-            _animator = characterModel.GetComponentInChildren<Animator>(true);
-            
-        Debug.Log("characterModel: " + (characterModel ? characterModel.name : "null") +
-                  ", Animator: " + (_animator != null ? "found on " + _animator.gameObject.name : "null"));
-        yaw = characterModel.eulerAngles.y;
-        pitch = cameraTransform.localEulerAngles.x;
-
-        // --- Control de cámara según modo ---
         if (SettingsManager.I)
         {
             mouseSensitivity = SettingsManager.I.MouseSensitivity;
@@ -96,63 +84,104 @@ public class FreeFlyCameraMulti : MonoBehaviourPun
             invertY = SettingsManager.I.InvertY;
             SettingsManager.I.OnChanged += ApplySettings;
         }
-
-        // Solo mi player controla y muestra su cámara
+         // Cámara solo del dueño
         if (isLocalMode || photonView.IsMine) ActivateCamera();
-        else
-        {
-            DeactivateCamera();
-            // (Opcional) Deshabilitar el script completo si no es mío:
-            // enabled = false; return;
-        }
+        else DeactivateCamera();
+        if (cameraTransform == null)
+            cameraTransform = GetComponentInChildren<Camera>(true)?.transform;
 
-        // Rigidbody settings para movimiento normal
-        rb.useGravity = true;
-        rb.constraints = RigidbodyConstraints.FreezeRotationX | RigidbodyConstraints.FreezeRotationZ;
+        if (characterModel == null)
+            characterModel = transform;
+
+        _animator = characterModel.GetComponent<Animator>();
+        if (_animator == null)
+            _animator = characterModel.GetComponentInChildren<Animator>(true);
 
         yaw = characterModel.eulerAngles.y;
-        pitch = cameraTransform ? cameraTransform.localEulerAngles.x : 0f;
+        pitch = cameraTransform.localEulerAngles.x;
+
+
+
+        rb.constraints = RigidbodyConstraints.FreezeRotationX | RigidbodyConstraints.FreezeRotationZ;
 
         LockCursor(true);
-        if (cameraTransform) cameraTransform.localPosition = cameraOffset;
-        Cursor.lockState = CursorLockMode.None;
-        Cursor.visible = true;
+        if (cameraTransform)
+            cameraTransform.localPosition = cameraOffset;
     }
 
     void Update()
     {
         if (!isLocalMode && !photonView.IsMine) return;
+
         if (isFrozen) return;
         // Toggle de modo debug (F1)
+
         if (Keyboard.current != null && Keyboard.current.f1Key.wasPressedThisFrame)
             debugFreeFly = !debugFreeFly;
 
-        // Sensibilidad según fuente (mouse vs stick)
+        // LOOK
         bool usingGamepad = Gamepad.current != null && Gamepad.current.rightStick.IsActuated();
         float sens = usingGamepad ? gamepadSensitivity : mouseSensitivity;
 
-        // Limpieza de ruido mínimo en look
         if (lookInput.sqrMagnitude < 0.0005f) lookInput = Vector2.zero;
 
-        // ROTACIÓN
         float lookX = lookInput.x * sens;
         float lookY = lookInput.y * sens * (invertY ? 1f : -1f);
 
-        yaw += lookX;
-        pitch += lookY;
-        pitch = Mathf.Clamp(pitch, -maxHeadTilt, maxHeadTilt);
+        // Apply camera pitch (up/down)
+        pitch = Mathf.Clamp(pitch + lookY, -maxHeadTilt, maxHeadTilt);
 
-        if (characterModel) characterModel.rotation = Quaternion.Euler(0f, yaw, 0f);
+        // Accumulate yaw freely for 360° rotation
+        yaw += lookX;
+
+        // Apply rotation to the body
+        transform.rotation = Quaternion.Euler(0f, yaw, 0f);
+
+        // Apply rotation to the camera
         if (cameraTransform)
         {
             cameraTransform.localRotation = Quaternion.Euler(pitch, 0f, 0f);
             cameraTransform.localPosition = cameraOffset;
         }
 
+        // --- Eye Offset Calculation (local to the body) ---
+        float maxLookAngle = 25f;   // how far eyes/head can look relative to body
+        float deadzone = 15f;       // circular radius for eyes-only movement
+        float reCenterSpeed = 5f;   // how fast eyes recenters
 
-        // UP/DOWN solo en modo free-fly (E/Q)
+        // Calculate yaw difference between camera and body (handles 360° wrap)
+        float localYawDelta = Mathf.DeltaAngle(transform.eulerAngles.y, cameraTransform.eulerAngles.y);
+        float clampedYaw = Mathf.Clamp(localYawDelta, -maxLookAngle, maxLookAngle);
+
+        // Smoothly recenters when player rotates
+        if (Mathf.Abs(clampedYaw) > deadzone)
+            clampedYaw = Mathf.Lerp(clampedYaw, 0f, Time.deltaTime * reCenterSpeed);
+
+        // Store this for the iris/eye system
+        eyeLookOffset = new Vector2(clampedYaw / maxLookAngle, lookY / maxHeadTilt);
+
+        // Movement input
+        moveInput.x = Input.GetAxisRaw("Horizontal");
+        moveInput.y = Input.GetAxisRaw("Vertical");
+
+        if (Input.GetKeyDown(KeyCode.Space))
+            jumpPressed = true;
+
+        float inputMagnitude = Mathf.Clamp01(moveInput.magnitude);
+        if (_animator)
+            _animator.SetFloat("Speed", inputMagnitude, 0.1f, Time.deltaTime);
+    }
+
+    /*void FixedUpdate()
+    {
+        if (!isLocalMode && !photonView.IsMine) return;
+        if (isFrozen) return;
+
         if (debugFreeFly)
         {
+            rb.useGravity = false;
+            rb.linearVelocity = Vector3.zero;
+
             float upDown = 0f;
             var kb = Keyboard.current;
             if (kb != null)
@@ -161,111 +190,84 @@ public class FreeFlyCameraMulti : MonoBehaviourPun
                 if (kb.qKey.isPressed) upDown -= 1f;
             }
 
-            // Movimiento directo sin inercia
-            Vector3 desired =
+            Vector3 desired =(
                 characterModel.forward * moveInput.y +
                 characterModel.right * moveInput.x +
-                Vector3.up * upDown;
+                Vector3.up * upDown
+            ).normalized;
 
             if (desired.sqrMagnitude < 0.001f) desired = Vector3.zero;
             if (desired.sqrMagnitude > 1f) desired.Normalize();
 
-            // Desacoplar de física mientras vuelas
             rb.useGravity = false;
-            rb.linearVelocity = Vector3.zero; // <<< corregido
+            rb.linearVelocity = Vector3.zero;
             transform.position += desired * flySpeed * Time.deltaTime;
         }
         else
         {
-            // Volvemos a física normal
             if (!rb.useGravity) rb.useGravity = true;
         }
-        // --- MOVIMIENTO CON WASD ---
 
-        // Jump input
-        if (Input.GetKeyDown(KeyCode.Space) && !hasJumped && IsGrounded())
+        // === ANIMACIÓN (solo dueño escribe; PhotonAnimatorView replica) ===
+        if (_animator)
         {
-            float v = Mathf.Sqrt(Mathf.Max(0f, jumpHeight * -2f * gravity));
-            verticalVelocity = v;
-            rb.AddForce(Vector3.up * v, ForceMode.VelocityChange);
-            hasJumped = true;
-            if (_animator != null) _animator.SetTrigger("Jump");
-            StartCoroutine(ResetJumpAfterDelay(0.2f));
+            float speed = Mathf.Clamp01(moveInput.magnitude); // 0..1 desde Input System
+            bool grounded = IsGrounded();
+            _animator.SetFloat(PARAM_SPEED, speed, 0.1f, Time.deltaTime);
+            _animator.SetBool(PARAM_GROUNDED, grounded);
         }
-
-        // Movement input
-        float horizontal = Input.GetAxis("Horizontal");
-        float vertical = Input.GetAxis("Vertical");
-        Vector3 rawMove = characterModel.forward * vertical + characterModel.right * horizontal;
-        float inputMagnitude = Mathf.Clamp01(new Vector2(horizontal, vertical).magnitude);
-        Vector3 moveDir = rawMove.normalized * walkSpeed * inputMagnitude;
-        Vector3 move = rawMove.normalized; // direction for movement
-        // apply _animator speed using inputMagnitude (matches joystick/WASD amount)
-        if (_animator != null)
-        {
-            // ensure the parameter name "Speed" exactly matches your Animator parameter
-            _animator.SetFloat("Speed", inputMagnitude, 0.1f, Time.deltaTime);
-            Debug.Log("Set Animator 'Speed' = " + inputMagnitude);
-        }
-        else
-        {
-            Debug.Log("Animator is null, can't set Speed");
-        }
-
-        //transform.position += move * walkSpeed * inputMagnitude * Time.deltaTime
-
-
-        // Apply movement with Rigidbody
-        Vector3 newPosition = rb.position + moveDir * Time.deltaTime;
-        rb.MovePosition(newPosition);
-    }
-
-    private System.Collections.IEnumerator ResetJumpAfterDelay(float delay)
-    {
-        yield return new WaitForSeconds(delay);
-        hasJumped = false;
-    }
+    }*/
 
     
-
     void FixedUpdate()
     {
         if (!isLocalMode && !photonView.IsMine) return;
+
         if (debugFreeFly) return; // el free-fly ya se mueve en Update
         if (isFrozen) return;
         // MOVIMIENTO NORMAL con física (plano XZ)
         Vector3 wishDir = (characterModel.forward * moveInput.y) + (characterModel.right * moveInput.x);
         if (wishDir.sqrMagnitude > 1f) wishDir.Normalize();
 
-        // Conserva la Y de la física (gravedad / saltos), controla XZ
-        Vector3 vel = rb.linearVelocity; // <<< corregido
+        Vector3 vel = rb.linearVelocity;
         Vector3 targetXZ = wishDir * walkSpeed;
-        rb.linearVelocity = new Vector3(targetXZ.x, vel.y, targetXZ.z); // <<< corregido
+        rb.linearVelocity = new Vector3(targetXZ.x, vel.y, targetXZ.z);
 
-        // Salto
+        // Salto (consumimos bandera)
         if (jumpPressed && IsGrounded())
         {
-            // reset Y para salto consistente
-            rb.linearVelocity = new Vector3(rb.linearVelocity.x, 0f, rb.linearVelocity.z); // <<< corregido
+            rb.linearVelocity = new Vector3(rb.linearVelocity.x, 0f, rb.linearVelocity.z);
             rb.AddForce(Vector3.up * jumpForce, ForceMode.VelocityChange);
+
+            if (_animator) _animator.SetTrigger(PARAM_JUMP); // dispara trigger para sync
         }
-        jumpPressed = false; // consumir
+        jumpPressed = false;
     }
 
     bool IsGrounded()
     {
-        // chequeo simple al centro del capsule/collider
-        Vector3 origin = transform.position + Vector3.up * 0.05f;
-        return Physics.Raycast(origin, Vector3.down, groundCheckDistance + 0.05f, groundMask, QueryTriggerInteraction.Ignore);
+        CapsuleCollider capsule = GetComponent<CapsuleCollider>();
+        if (capsule == null) return false;
+
+        float radius = capsule.radius * 0.95f;
+        float castDistance = groundCheckDistance;
+        Vector3 origin = transform.position + Vector3.up * (capsule.radius + 0.05f);
+
+        return Physics.SphereCast(origin, radius, Vector3.down, out _, castDistance, groundMask, QueryTriggerInteraction.Ignore);
     }
 
-    // ===== Input System (PlayerInput → Send Messages) =====
     public void OnMove(InputValue value) => moveInput = value.Get<Vector2>();
     public void OnLook(InputValue value) => lookInput = value.Get<Vector2>();
-    public void OnJump(InputValue value) { if (value.isPressed) jumpPressed = true; }
+    public void OnJump(InputValue value)
+    {
+        if (value.isPressed)
+            jumpPressed = true;
+    }
+
     public void OnToggleCursor(InputValue value)
     {
-        if (value.isPressed) LockCursor(Cursor.lockState != CursorLockMode.Locked);
+        if (value.isPressed)
+            LockCursor(Cursor.lockState != CursorLockMode.Locked);
     }
 
     // ===== Settings binding =====
@@ -279,7 +281,7 @@ public class FreeFlyCameraMulti : MonoBehaviourPun
 
     void OnDestroy()
     {
-        if (SettingsManager.I) SettingsManager.I.OnChanged -= ApplySettings; // <<< importante
+        if (SettingsManager.I) SettingsManager.I.OnChanged -= ApplySettings;
     }
 
     // ===== Helpers =====
@@ -297,17 +299,14 @@ public class FreeFlyCameraMulti : MonoBehaviourPun
 
         if (frozen)
         {
-            // Detener cualquier movimiento actual
             rb.linearVelocity = Vector3.zero;
             rb.angularVelocity = Vector3.zero;
 
-            // Liberar el cursor para usar UI
             Cursor.lockState = CursorLockMode.None;
             Cursor.visible = true;
         }
         else
         {
-            // Recuperar control normal del cursor
             Cursor.lockState = CursorLockMode.Locked;
             Cursor.visible = false;
         }

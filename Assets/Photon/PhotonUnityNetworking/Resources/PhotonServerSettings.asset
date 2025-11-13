@@ -17,9 +17,9 @@ MonoBehaviour:
     AppIdFusion: 
     AppIdChat: 
     AppIdVoice: 610ed236-d22a-4c3a-a8d5-67beb41c8e54
-    AppVersion: 1
+    AppVersion: 
     UseNameServer: 1
-    FixedRegion: us
+    FixedRegion: 
     Server: 
     Port: 0
     ProxyServer: 
@@ -28,7 +28,7 @@ MonoBehaviour:
     AuthMode: 0
     EnableLobbyStatistics: 0
     NetworkLogging: 1
-  DevRegion: us
+  DevRegion: ussc
   PunLogging: 0
   EnableSupportLogger: 0
   RunInBackground: 1
@@ -39,13 +39,45 @@ MonoBehaviour:
   - ClickRpc
   - DestroyRpc
   - HeresWhy
+  - _ActivateNextFrame
+  - ActivateGears
+  - AllGearsStable
+  - CoolDown
   - DestroySpaceship
+  - DoorPause
   - Fire
+  - MakeFall
+  - OnCollisionEnter
+  - OnTriggerEnter
+  - OpenDoor
+  - Overheat
+  - OverheatCountdown
+  - RandomFallTick
+  - ReactivateAfterLand
+  - RearmOverheatAfterDelay
+  - Reset
+  - ResetFromOverheatAndReturnAll
+  - ResetToInitialPosition
   - RespawnSpaceship
+  - ReturnToInitialPosition
+  - RotateAndChangeColorFlow
+  - RotateDoors
+  - RPC_LoadLevel
   - RPC_MoveUp
   - RPC_RotateLeft
   - RPC_RotateRight
-  - RPC_LoadLevel
+  - ScheduleActivateGears
+  - Start
+  - StartRotation
+  - StopRotation
+  - SyncName
+  - Update
+  - RPC_AlignToTarget
+  - RPC_OnPuzzleSolved
+  - RPC_RegisterInput
+  - RPC_SetActive
+  - RPC_ShowPath
+  - TriggerElement
   DisableAutoOpenWizard: 1
   ShowSettings: 1
   DevRegionSetOnce: 1

@@ -1,13 +1,13 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using Photon.Pun;
 
-public class ElementalPuzzle : MonoBehaviour
+public class ElementalPuzzle : MonoBehaviourPun
 {
     // --- Activador elemental ---
     private bool fireHit = false;
     private bool windHit = false;
-    private bool waterHit = false;
     private bool puzzleActivated = false;
     private bool overheated = false;  // Sobrecalentamiento
     private string FireLoopId => $"activator_fire_{GetInstanceID()}";
@@ -33,6 +33,7 @@ public class ElementalPuzzle : MonoBehaviour
     private bool canTriggerRandomFall = true;
     private float nextRandomFallAllowedTime = 0f; // tiempo extra
 
+    
     void Update()
     {
         // Pausar/Reanudar puzzles
@@ -64,32 +65,48 @@ public class ElementalPuzzle : MonoBehaviour
         if (puzzleActivated && canTriggerRandomFall && Time.time >= nextRandomFallAllowedTime)
             StartCoroutine(RandomFallTick());
     }
-
+ 
     void OnTriggerEnter(Collider other)
     {
-        if (other.CompareTag("Fire") && !fireHit)
+        if (!photonView.IsMine)
+        {
+            // 🔹 Si este cliente NO tiene autoridad sobre el puzzle, 
+            // manda la acción a todos.
+            if (other.CompareTag("Fire"))
+                photonView.RPC("TriggerElement", RpcTarget.All, "Fire");
+
+            if (other.CompareTag("Wind"))
+                photonView.RPC("TriggerElement", RpcTarget.All, "Wind");
+
+            return;
+        }
+
+        // 🔹 Si SÍ tiene autoridad (el host), ejecuta directamente:
+        if (other.CompareTag("Fire"))
+            TriggerElement("Fire");
+        if (other.CompareTag("Wind"))
+            TriggerElement("Wind");
+    }
+    [PunRPC]
+    void TriggerElement(string element)
+    {
+        if (element == "Fire" && !fireHit)
         {
             fireHit = true;
             SoundManager.Instance?.StartLoop(FireLoopId, SfxKey.FireIgniteLoop, transform);
         }
 
-        if (other.CompareTag("Wind"))
+        if (element == "Wind")
             windHit = true;
 
-        if (other.CompareTag("Water"))
-            waterHit = true;
-
-        // Activar engranajes con Fire + Wind (permitimos reactivar después de overheat)
+        // 🔹 Si ambos elementos están presentes, activa el puzzle
         if (fireHit && windHit && !puzzleActivated)
         {
-            // Si veniamos de overheat, simplemente rearmamos todo
             overheated = false;
-
             puzzleActivated = true;
             doorProgress = 0f;
             doorPaused = false;
 
-            // 5 s de gracia antes de la primera caida random
             nextRandomFallAllowedTime = Time.time + randomFallGrace;
             canTriggerRandomFall = true;
 
@@ -107,13 +124,16 @@ public class ElementalPuzzle : MonoBehaviour
         }
     }
 
-    // Pausar/reanudar puerta
+   
+
+
+    [PunRPC]
     public void DoorPause(bool pause)
     {
         doorPaused = pause;
     }
 
-    // Pausa la puerta y resetea TODOS los engranajes a su posición inicial.
+    [PunRPC]
     public void ResetFromOverheatAndReturnAll()
     {
         overheated = true;
@@ -121,7 +141,7 @@ public class ElementalPuzzle : MonoBehaviour
         // limpiar flags de activacion (para obligar a relanzar Fuego+Viento)
         fireHit = false;
         windHit = false;
-        waterHit = false;
+       
 
         DoorPause(true);
         puzzleActivated = false;
@@ -141,7 +161,7 @@ public class ElementalPuzzle : MonoBehaviour
         }
     }
 
-    // estabilidad de los engranajes
+    [PunRPC]
     bool AllGearsStable()
     {
         var gears = GameObject.FindGameObjectsWithTag("Engranaje");
@@ -157,7 +177,7 @@ public class ElementalPuzzle : MonoBehaviour
         return true;
     }
 
-    // Activacion segura
+    [PunRPC]
     void ActivateGears()
     {
         if (_isActivating) return;
@@ -176,22 +196,21 @@ public class ElementalPuzzle : MonoBehaviour
             _isActivating = false;
         }
     }
-
+    [PunRPC]
     void ScheduleActivateGears()
     {
         if (_activateScheduled) return;
         _activateScheduled = true;
         StartCoroutine(_ActivateNextFrame());
     }
-
+    [PunRPC]
     IEnumerator _ActivateNextFrame()
     {
         yield return null;
         _activateScheduled = false;
         ActivateGears();
     }
-
-    // 🚪 Nuevo método modificado: ahora rota las puertas en lugar de destruirlas
+    [PunRPC]
     void OpenDoor()
     {
         // Inicia la rotación de las puertas en lugar de destruirlas
@@ -206,7 +225,7 @@ public class ElementalPuzzle : MonoBehaviour
         canTriggerRandomFall = false;
     }
 
-    // 🌀 Corutina para rotar puertas suavemente
+    [PunRPC]
     IEnumerator RotateDoors()
     {
         GameObject[] doors = GameObject.FindGameObjectsWithTag("Puerta");
@@ -235,7 +254,7 @@ public class ElementalPuzzle : MonoBehaviour
         }
     }
 
-    // Random fall con cooldown y gracia
+    [PunRPC]
     IEnumerator RandomFallTick()
     {
         canTriggerRandomFall = false;

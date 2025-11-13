@@ -2419,7 +2419,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 1, y: 1}
-  m_AnchoredPosition: {x: -13.799011, y: 0}
+  m_AnchoredPosition: {x: -13.799072, y: 0}
   m_SizeDelta: {x: 27.598, y: 0}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &638183238
@@ -5381,9 +5381,8 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 1398286947}
-  - component: {fileID: 1398286948}
   - component: {fileID: 1398286949}
-  - component: {fileID: 1398286950}
+  - component: {fileID: 1398286951}
   m_Layer: 0
   m_Name: Manager
   m_TagString: Untagged
@@ -5406,18 +5405,6 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &1398286948
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1398286945}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 0d5d470171c6f9345beeb878f31d92ca, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
 --- !u!114 &1398286949
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -5432,7 +5419,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   inicio: {fileID: 28383143}
   inicioSesion: {fileID: 1589349742}
---- !u!114 &1398286950
+--- !u!114 &1398286951
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -5441,11 +5428,13 @@ MonoBehaviour:
   m_GameObject: {fileID: 1398286945}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 99eb07e8aac59da4bb888acc89d2492f, type: 3}
+  m_Script: {fileID: 11500000, guid: 114949fba44c4b941a55b78f9af93ec6, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  player: {fileID: 215463803}
-  password: {fileID: 677232703}
+  pantallaInicio: MainMenu
+  salaIndividualNombre: Lobby
+  salaMultijugadorNombre: TownRoom
+  maxPlayers: 4
 --- !u!1 &1519191406
 GameObject:
   m_ObjectHideFlags: 0
@@ -5583,7 +5572,7 @@ MonoBehaviour:
   btnRegresar: {fileID: 777216398}
   lblEstado: {fileID: 752091270}
   panelAlRegresar: {fileID: 28383143}
-  photonConnector: {fileID: 1398286948}
+  photonConnector: {fileID: 1398286951}
   apiBaseUrl: https://hokusbackend-production.up.railway.app
   requestTimeoutSeconds: 15
   rememberToken: 0
@@ -5640,6 +5629,82 @@ PrefabInstance:
     - target: {fileID: 5171903145508555749, guid: cc1758a5c1b6b5c4bb8dbe2c00e111bb, type: 3}
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 9143167570444424153, guid: cc1758a5c1b6b5c4bb8dbe2c00e111bb, type: 3}
+      propertyPath: initialPool
+      value: 14
+      objectReference: {fileID: 0}
+    - target: {fileID: 9143167570444424153, guid: cc1758a5c1b6b5c4bb8dbe2c00e111bb, type: 3}
+      propertyPath: clips.Array.size
+      value: 14
+      objectReference: {fileID: 0}
+    - target: {fileID: 9143167570444424153, guid: cc1758a5c1b6b5c4bb8dbe2c00e111bb, type: 3}
+      propertyPath: clips.Array.data[12].key
+      value: 12
+      objectReference: {fileID: 0}
+    - target: {fileID: 9143167570444424153, guid: cc1758a5c1b6b5c4bb8dbe2c00e111bb, type: 3}
+      propertyPath: clips.Array.data[13].key
+      value: 13
+      objectReference: {fileID: 0}
+    - target: {fileID: 9143167570444424153, guid: cc1758a5c1b6b5c4bb8dbe2c00e111bb, type: 3}
+      propertyPath: clips.Array.data[12].clip
+      value: 
+      objectReference: {fileID: 8300000, guid: 55ef434bd2022964f8c48bc656ac545c, type: 3}
+    - target: {fileID: 9143167570444424153, guid: cc1758a5c1b6b5c4bb8dbe2c00e111bb, type: 3}
+      propertyPath: clips.Array.data[13].clip
+      value: 
+      objectReference: {fileID: 8300000, guid: e69b7feac4972a34ba85555c8925ed9f, type: 3}
+    - target: {fileID: 9143167570444424153, guid: cc1758a5c1b6b5c4bb8dbe2c00e111bb, type: 3}
+      propertyPath: clips.Array.data[12].volume
+      value: 0.239
+      objectReference: {fileID: 0}
+    - target: {fileID: 9143167570444424153, guid: cc1758a5c1b6b5c4bb8dbe2c00e111bb, type: 3}
+      propertyPath: clips.Array.data[13].volume
+      value: 0.239
+      objectReference: {fileID: 0}
+    - target: {fileID: 9143167570444424153, guid: cc1758a5c1b6b5c4bb8dbe2c00e111bb, type: 3}
+      propertyPath: clips.Array.data[12].spatial
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 9143167570444424153, guid: cc1758a5c1b6b5c4bb8dbe2c00e111bb, type: 3}
+      propertyPath: clips.Array.data[13].spatial
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 9143167570444424153, guid: cc1758a5c1b6b5c4bb8dbe2c00e111bb, type: 3}
+      propertyPath: clips.Array.data[13].loopable
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 9143167570444424153, guid: cc1758a5c1b6b5c4bb8dbe2c00e111bb, type: 3}
+      propertyPath: clips.Array.data[12].spatialBlend
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 9143167570444424153, guid: cc1758a5c1b6b5c4bb8dbe2c00e111bb, type: 3}
+      propertyPath: clips.Array.data[13].spatialBlend
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 9143167570444424153, guid: cc1758a5c1b6b5c4bb8dbe2c00e111bb, type: 3}
+      propertyPath: clips.Array.data[12].pitchJitter.x
+      value: 0.95
+      objectReference: {fileID: 0}
+    - target: {fileID: 9143167570444424153, guid: cc1758a5c1b6b5c4bb8dbe2c00e111bb, type: 3}
+      propertyPath: clips.Array.data[12].pitchJitter.y
+      value: 1.15
+      objectReference: {fileID: 0}
+    - target: {fileID: 9143167570444424153, guid: cc1758a5c1b6b5c4bb8dbe2c00e111bb, type: 3}
+      propertyPath: clips.Array.data[13].pitchJitter.x
+      value: 0.95
+      objectReference: {fileID: 0}
+    - target: {fileID: 9143167570444424153, guid: cc1758a5c1b6b5c4bb8dbe2c00e111bb, type: 3}
+      propertyPath: clips.Array.data[13].pitchJitter.y
+      value: 1.15
+      objectReference: {fileID: 0}
+    - target: {fileID: 9143167570444424153, guid: cc1758a5c1b6b5c4bb8dbe2c00e111bb, type: 3}
+      propertyPath: clips.Array.data[12].maxOneShotDuration
+      value: -1
+      objectReference: {fileID: 0}
+    - target: {fileID: 9143167570444424153, guid: cc1758a5c1b6b5c4bb8dbe2c00e111bb, type: 3}
+      propertyPath: clips.Array.data[13].maxOneShotDuration
+      value: -1
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []

@@ -1,7 +1,8 @@
 using UnityEngine;
+using Photon.Pun;
 
 [RequireComponent(typeof(LineRenderer))]
-public class LaserBeam : MonoBehaviour
+public class LaserBeam : MonoBehaviourPun
 {
     public Transform laserOrigin;
     public int maxReflections = 6;
@@ -12,15 +13,21 @@ public class LaserBeam : MonoBehaviour
     private LaserTarget lastHitTarget;
     private int beamId;
 
+    private bool isActive = false; // Track whether the laser is currently active
+
     void Start()
     {
         lr = GetComponent<LineRenderer>();
         beamId = gameObject.GetInstanceID();
+        lr.enabled = isActive; // start inactive by default
     }
 
     void Update()
     {
-        DrawLaser();
+        if (isActive)
+            DrawLaser();
+        else
+            lr.enabled = false;
     }
 
     void DrawLaser()
@@ -36,11 +43,10 @@ public class LaserBeam : MonoBehaviour
 
         for (int i = 0; i < maxReflections; i++)
         {
-            if (Physics.Raycast(position, direction, out RaycastHit hit, maxDistance))
+            if (Physics.Raycast(position, direction, out RaycastHit hit, maxDistance, reflectableLayers))
             {
                 lr.positionCount++;
                 lr.SetPosition(lr.positionCount - 1, hit.point);
-
 
                 // Rebote en espejo (SIN SONIDO)
                 if (hit.collider.CompareTag("Mirror"))
@@ -50,41 +56,28 @@ public class LaserBeam : MonoBehaviour
                     position = hit.point;
                     continue;
                 }
-
                 else if (hit.collider.CompareTag("Target"))
                 {
                     currentTarget = hit.collider.GetComponent<LaserTarget>();
-                    if (currentTarget != null)
+                    if (currentTarget != null && lastHitTarget != currentTarget)
                     {
-                        if (lastHitTarget != currentTarget)
-                        {
-                            lastHitTarget?.Deactivate(beamId);
-                            currentTarget.Activate(beamId);
-                            lastHitTarget = currentTarget;
-                        }
-                        hitTargetThisFrame = true;
+                        lastHitTarget?.Deactivate(beamId);
+                        currentTarget.Activate(beamId);
+                        lastHitTarget = currentTarget;
                     }
-
+                    hitTargetThisFrame = true;
                     break;
                 }
-                // Impacta un Pilar
                 else if (hit.collider.CompareTag("Pillar"))
                 {
-                    if (lastHitTarget != null)
-                    {
-                        lastHitTarget.Deactivate(beamId);
-                        lastHitTarget = null;
-                    }
+                    lastHitTarget?.Deactivate(beamId);
+                    lastHitTarget = null;
                     break;
                 }
-                // Otro obst�culo
                 else
                 {
-                    if (lastHitTarget != null)
-                    {
-                        lastHitTarget.Deactivate(beamId);
-                        lastHitTarget = null;
-                    }
+                    lastHitTarget?.Deactivate(beamId);
+                    lastHitTarget = null;
                     break;
                 }
             }
@@ -97,6 +90,32 @@ public class LaserBeam : MonoBehaviour
         }
 
         if (!hitTargetThisFrame && lastHitTarget != null)
+        {
+            lastHitTarget.Deactivate(beamId);
+            lastHitTarget = null;
+        }
+    }
+
+    // ────────────────────────────────────────────────
+    // Photon RPC for activating/deactivating the laser for all clients
+    // ────────────────────────────────────────────────
+    public void SetLaserActive(bool active)
+    {
+        if (photonView != null)
+            photonView.RPC(nameof(RPC_SetActive), RpcTarget.AllBuffered, active);
+        else
+            RPC_SetActive(active); // fallback if no PhotonView
+    }
+
+    [PunRPC]
+    private void RPC_SetActive(bool active)
+    {
+        isActive = active;
+        if (lr != null)
+            lr.enabled = active;
+
+        // Turn off the last hit target when deactivating
+        if (!active && lastHitTarget != null)
         {
             lastHitTarget.Deactivate(beamId);
             lastHitTarget = null;
