@@ -218,7 +218,7 @@ public class FreeFlyCameraMulti : MonoBehaviourPun
         }
     }
 
-    void FixedUpdate()
+    /*void FixedUpdate()
     {
         if (!isLocalMode && !photonView.IsMine) return;
 
@@ -241,7 +241,7 @@ public class FreeFlyCameraMulti : MonoBehaviourPun
             if (_animator) _animator.SetTrigger(PARAM_JUMP); // dispara trigger para sync
         }
         jumpPressed = false;
-    }
+    }*/
 
     bool IsGrounded()
     {
