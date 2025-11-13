@@ -12,6 +12,10 @@ public class MagicPillarPuzzleManager : MonoBehaviourPun
     public Transform[] mirrorTargets; // assign scene targets in inspector
     public List<MirrorController> mirrorsToAlign = new List<MirrorController>();
 
+    [Header("Laser Beams")]
+    public LaserBeam halfwayLaser; // assign the laser that activates at halfway
+    public LaserBeam fullLaser;    // assign the laser that activates at full code
+
     private List<string> currentInput = new List<string>();
     public float resetDelay = 2f;
 
@@ -32,6 +36,13 @@ public class MagicPillarPuzzleManager : MonoBehaviourPun
     {
         Debug.Log($"RegisterInput called on MagicPillarPuzzleManager, element: {element}");
         currentInput.Add(element);
+
+        // Halfway check
+        if (currentInput.Count == correctSequence.Count / 2)
+        {
+            halfwayLaser?.SetLaserActive(true);
+            Debug.Log("🔹 Halfway laser activated!");
+        }
 
         if (!IsPrefixMatch())
         {
@@ -61,6 +72,10 @@ public class MagicPillarPuzzleManager : MonoBehaviourPun
     {
         StopAllCoroutines();
         StartCoroutine(ResetAfterDelay());
+
+        // Deactivate lasers immediately on reset
+        halfwayLaser?.SetLaserActive(false);
+        fullLaser?.SetLaserActive(false);
     }
 
     private System.Collections.IEnumerator ResetAfterDelay()
@@ -74,6 +89,10 @@ public class MagicPillarPuzzleManager : MonoBehaviourPun
     void RPC_OnPuzzleSolved()
     {
         Debug.Log("✨ Puzzle solved! Aligning mirrors...");
+
+        // Activate full laser
+        fullLaser?.SetLaserActive(true);
+
         foreach (var mirror in mirrorsToAlign)
         {
             if (mirror != null)

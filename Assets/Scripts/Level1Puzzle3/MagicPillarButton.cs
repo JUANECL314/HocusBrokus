@@ -1,11 +1,10 @@
 using UnityEngine;
-using Photon.Pun;
 
 [RequireComponent(typeof(Collider))]
-public class MagicPillarButton : MonoBehaviourPun
+public class MagicPillarButton : MonoBehaviour
 {
     [Header("Element Type")]
-    public string elementTag = "Fire"; // Fire, Water, Wind, Earth
+    public string elementTag = "Fire"; // Example: Fire, Water, Wind, Earth
     public MagicPillarPuzzleManager puzzleManager;
     public bool useTrigger = true;
 
@@ -18,7 +17,7 @@ public class MagicPillarButton : MonoBehaviourPun
         if (rend != null)
             defaultColor = rend.material.color;
 
-        // Try to auto-assign manager
+        // Auto-find puzzle manager if not assigned
         if (puzzleManager == null)
             puzzleManager = FindObjectOfType<MagicPillarPuzzleManager>();
     }
@@ -35,33 +34,23 @@ public class MagicPillarButton : MonoBehaviourPun
             rend.material.color = defaultColor;
     }
 
-   void OnTriggerEnter(Collider other)
-{
-    if (!useTrigger) return;
-
-    if (!IsMagicActivator(other.gameObject))
-        return;
-
-    // Try to assign puzzleManager dynamically if null
-    if (puzzleManager == null)
-        puzzleManager = FindObjectOfType<MagicPillarPuzzleManager>();
-
-    if (puzzleManager == null)
+    void OnTriggerEnter(Collider other)
     {
-        Debug.LogWarning($"{name}: PuzzleManager not found yet! Ignoring input.");
-        return; // exit safely, do not crash
-    }
+        if (!useTrigger) return;
 
-    // Only MasterClient sends the main input
-    if (PhotonNetwork.IsMasterClient)
-    {
-        puzzleManager.RegisterInput(elementTag);
-
-        // RPC for other clients
-        if (photonView != null && photonView.IsMine)
-            photonView.RPC(nameof(RPC_RegisterInput), RpcTarget.OthersBuffered, elementTag);
+        // Only activate for player or spell objects
+        if (IsMagicActivator(other.gameObject))
+        {
+            if (puzzleManager != null)
+            {
+                puzzleManager.RegisterInput(elementTag);
+            }
+            else
+            {
+                Debug.LogWarning($"PuzzleManager not assigned on {name}");
+            }
+        }
     }
-}
 
     void OnCollisionEnter(Collision collision)
     {
@@ -69,33 +58,21 @@ public class MagicPillarButton : MonoBehaviourPun
 
         if (IsMagicActivator(collision.collider.gameObject))
         {
-            if (puzzleManager == null)
-                puzzleManager = FindObjectOfType<MagicPillarPuzzleManager>();
-
-            if (puzzleManager == null)
-            {
-                Debug.LogWarning($"{name}: PuzzleManager still null!");
-                return;
-            }
-
-            if (PhotonNetwork.IsMasterClient)
+            if (puzzleManager != null)
             {
                 puzzleManager.RegisterInput(elementTag);
-                photonView.RPC(nameof(RPC_RegisterInput), RpcTarget.OthersBuffered, elementTag);
+            }
+            else
+            {
+                Debug.LogWarning($"PuzzleManager not assigned on {name}");
             }
         }
     }
 
-    bool IsMagicActivator(GameObject go)
+    private bool IsMagicActivator(GameObject go)
     {
-        string tag = go.tag;
-        return tag == "Player" || tag == "Fire" || tag == "Water" || tag == "Earth" || tag == "Wind";
-    }
-
-    [PunRPC]
-    void RPC_RegisterInput(string element)
-    {
-        if (puzzleManager != null)
-            puzzleManager.RegisterInput(element);
+        // Accept only player or any magic projectile
+        return go.CompareTag("Player") || go.CompareTag("Fire") || go.CompareTag("Water") 
+               || go.CompareTag("Wind") || go.CompareTag("Earth");
     }
 }
