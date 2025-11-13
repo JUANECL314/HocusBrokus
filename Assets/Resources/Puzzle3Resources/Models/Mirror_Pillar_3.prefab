@@ -52,7 +52,7 @@ GameObject:
   - component: {fileID: 3107708461802713921}
   m_Layer: 0
   m_Name: Mirror_Pillar_3
-  m_TagString: Untagged
+  m_TagString: MirrorPillar
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -169,7 +169,8 @@ MonoBehaviour:
   revertMoveSpeed: 5
   revertDelay: 20
   revertRotationSpeed: 0.5
-  forceMoveUpMode: 0
+  alignTarget: {fileID: 414785266073763936}
+  alignSpeed: 2
 --- !u!114 &5272161205018282411
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -599,7 +600,7 @@ MonoBehaviour:
   m_PreserveMeshAssetOnDestroy: 0
   assetGuid: 
   m_Mesh: {fileID: 0}
-  m_VersionIndex: 5898
+  m_VersionIndex: 5922
   m_IsSelectable: 1
   m_SelectedFaces: 
   m_SelectedEdges: []
