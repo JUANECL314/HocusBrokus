@@ -172,7 +172,7 @@ public class FreeFlyCameraMulti : MonoBehaviourPun
             _animator.SetFloat("Speed", inputMagnitude, 0.1f, Time.deltaTime);
     }
 
-    void FixedUpdate()
+    /*void FixedUpdate()
     {
         if (!isLocalMode && !photonView.IsMine) return;
         if (isFrozen) return;
@@ -216,9 +216,10 @@ public class FreeFlyCameraMulti : MonoBehaviourPun
             _animator.SetFloat(PARAM_SPEED, speed, 0.1f, Time.deltaTime);
             _animator.SetBool(PARAM_GROUNDED, grounded);
         }
-    }
+    }*/
 
-    /*void FixedUpdate()
+    
+    void FixedUpdate()
     {
         if (!isLocalMode && !photonView.IsMine) return;
 
@@ -241,7 +242,7 @@ public class FreeFlyCameraMulti : MonoBehaviourPun
             if (_animator) _animator.SetTrigger(PARAM_JUMP); // dispara trigger para sync
         }
         jumpPressed = false;
-    }*/
+    }
 
     bool IsGrounded()
     {
