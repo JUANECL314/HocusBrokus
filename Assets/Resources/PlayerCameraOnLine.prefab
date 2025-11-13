@@ -2997,7 +2997,6 @@ GameObject:
   - component: {fileID: 2111932759064628256}
   - component: {fileID: 6818456782437496986}
   - component: {fileID: 5668628939168333619}
-  - component: {fileID: 7288776921719376418}
   m_Layer: 0
   m_Name: OpenMouth
   m_TagString: Untagged
@@ -3103,26 +3102,10 @@ MonoBehaviour:
   Synchronization: 3
   OwnershipTransfer: 0
   observableSearch: 2
-  ObservedComponents:
-  - {fileID: 7288776921719376418}
+  ObservedComponents: []
   sceneViewId: 0
   InstantiationId: 0
   isRuntimeInstantiated: 0
---- !u!114 &7288776921719376418
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 5606446068609422026}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 11b14f2ee53021245977cdf8eab74e9e, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  amplitudeThreshold: 0.015
-  smoothTime: 0.05
-  debugInfo: 1
 --- !u!1 &6427770714196308065
 GameObject:
   m_ObjectHideFlags: 0
@@ -3248,7 +3231,6 @@ GameObject:
   - component: {fileID: 5032153860629961460}
   - component: {fileID: 4004950911127010748}
   - component: {fileID: 4660079464385026153}
-  - component: {fileID: 6784334610576334781}
   - component: {fileID: 5920458810643151176}
   m_Layer: 0
   m_Name: PlayerCameraOnLine
@@ -3426,7 +3408,7 @@ MonoBehaviour:
   m_SynchronizePosition: 1
   m_SynchronizeRotation: 1
   m_SynchronizeScale: 0
-  m_UseLocal: 1
+  m_UseLocal: 0
 --- !u!114 &6686643661842687360
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -3441,7 +3423,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   debugFreeFly: 0
   walkSpeed: 15
-  jumpForce: 5
+  jumpForce: 15
   groundMask:
     serializedVersion: 2
     m_Bits: 4294967295
@@ -3522,36 +3504,6 @@ CapsuleCollider:
   m_Height: 1.72
   m_Direction: 1
   m_Center: {x: 0, y: 0.86, z: 0}
---- !u!114 &6784334610576334781
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 7045669205887240078}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 7b86d6eb964cc6443945b007e583eb33, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  debugFreeFly: 0
-  walkSpeed: 15
-  jumpForce: 5
-  groundMask:
-    serializedVersion: 2
-    m_Bits: 4294967295
-  groundCheckDistance: 0.2
-  flySpeed: 8
-  mouseSensitivity: 1.5
-  gamepadSensitivity: 0.7
-  maxHeadTilt: 15
-  invertY: 0
-  characterModel: {fileID: 432736641235007354}
-  cameraTransform: {fileID: 2349355420028090284}
-  cameraOffset: {x: 0, y: 1.3, z: 0.3}
-  jumpHeight: 10
-  gravity: -2
-  eyeLookOffset: {x: 0, y: 0}
 --- !u!114 &5920458810643151176
 MonoBehaviour:
   m_ObjectHideFlags: 0

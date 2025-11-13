@@ -45,6 +45,7 @@ public class PlayerMagicInput : MonoBehaviourPun
     }
 
     // Input System (PlayerInput → Send Messages) binding a la acción "Cast"
+    
     public void OnCast(InputValue value)
     {
         if (!pv.IsMine) return;           // Solo el dueño procesa entrada

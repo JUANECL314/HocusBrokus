@@ -29,7 +29,7 @@ public class GearBehavior : MonoBehaviourPun
     private Coroutine destroyDoorsCo;
     private Coroutine overheatCo;
     private bool cooledDuringWindow = false;
-    [PunRPC]
+    
     void Start()
     {
         rend = GetComponent<Renderer>();
@@ -46,7 +46,7 @@ public class GearBehavior : MonoBehaviourPun
         initialPosition = transform.position;
         rend.material.color = Color.gray;
     }
-    [PunRPC]
+    
     void Update()
     {
         if (isRotating) transform.Rotate(Vector3.forward * -rotationSpeed * Time.deltaTime, Space.Self);

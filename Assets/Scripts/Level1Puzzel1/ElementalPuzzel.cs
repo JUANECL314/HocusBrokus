@@ -8,7 +8,6 @@ public class ElementalPuzzle : MonoBehaviourPun
     // --- Activador elemental ---
     private bool fireHit = false;
     private bool windHit = false;
-    private bool waterHit = false;
     private bool puzzleActivated = false;
     private bool overheated = false;  // Sobrecalentamiento
     private string FireLoopId => $"activator_fire_{GetInstanceID()}";
@@ -34,7 +33,7 @@ public class ElementalPuzzle : MonoBehaviourPun
     private bool canTriggerRandomFall = true;
     private float nextRandomFallAllowedTime = 0f; // tiempo extra
 
-    [PunRPC]
+    
     void Update()
     {
         // Pausar/Reanudar puzzles
@@ -66,32 +65,48 @@ public class ElementalPuzzle : MonoBehaviourPun
         if (puzzleActivated && canTriggerRandomFall && Time.time >= nextRandomFallAllowedTime)
             StartCoroutine(RandomFallTick());
     }
-    [PunRPC]
+ 
     void OnTriggerEnter(Collider other)
     {
-        if (other.CompareTag("Fire") && !fireHit)
+        if (!photonView.IsMine)
+        {
+            // 🔹 Si este cliente NO tiene autoridad sobre el puzzle, 
+            // manda la acción a todos.
+            if (other.CompareTag("Fire"))
+                photonView.RPC("TriggerElement", RpcTarget.All, "Fire");
+
+            if (other.CompareTag("Wind"))
+                photonView.RPC("TriggerElement", RpcTarget.All, "Wind");
+
+            return;
+        }
+
+        // 🔹 Si SÍ tiene autoridad (el host), ejecuta directamente:
+        if (other.CompareTag("Fire"))
+            TriggerElement("Fire");
+        if (other.CompareTag("Wind"))
+            TriggerElement("Wind");
+    }
+    [PunRPC]
+    void TriggerElement(string element)
+    {
+        if (element == "Fire" && !fireHit)
         {
             fireHit = true;
             SoundManager.Instance?.StartLoop(FireLoopId, SfxKey.FireIgniteLoop, transform);
         }
 
-        if (other.CompareTag("Wind"))
+        if (element == "Wind")
             windHit = true;
 
-        if (other.CompareTag("Water"))
-            waterHit = true;
-
-        // Activar engranajes con Fire + Wind (permitimos reactivar después de overheat)
+        // 🔹 Si ambos elementos están presentes, activa el puzzle
         if (fireHit && windHit && !puzzleActivated)
         {
-            // Si veniamos de overheat, simplemente rearmamos todo
             overheated = false;
-
             puzzleActivated = true;
             doorProgress = 0f;
             doorPaused = false;
 
-            // 5 s de gracia antes de la primera caida random
             nextRandomFallAllowedTime = Time.time + randomFallGrace;
             canTriggerRandomFall = true;
 
@@ -109,6 +124,9 @@ public class ElementalPuzzle : MonoBehaviourPun
         }
     }
 
+   
+
+
     [PunRPC]
     public void DoorPause(bool pause)
     {
@@ -123,7 +141,7 @@ public class ElementalPuzzle : MonoBehaviourPun
         // limpiar flags de activacion (para obligar a relanzar Fuego+Viento)
         fireHit = false;
         windHit = false;
-        waterHit = false;
+       
 
         DoorPause(true);
         puzzleActivated = false;
