@@ -11811,7 +11811,6 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 1080924505}
-  - component: {fileID: 1080924504}
   - component: {fileID: 1080924506}
   m_Layer: 0
   m_Name: SpawnPlayers
@@ -11820,21 +11819,6 @@ GameObject:
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
   m_IsActive: 1
---- !u!114 &1080924504
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1080924503}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 6d1a2a1e19c2afa43825939121a55943, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  jugadorPrefab: {fileID: 7045669205887240078, guid: 7b1a84423230bc94fb87f29f93bde1ae, type: 3}
-  _nombreEscenaLobbyMultiJugador: TownRoom
-  _nombreEscenaLobbyIndividual: Lobby
 --- !u!4 &1080924505
 Transform:
   m_ObjectHideFlags: 0
