@@ -1,4 +1,4 @@
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using Photon.Pun;
 using Photon.Realtime;
 using TMPro;
@@ -7,22 +7,47 @@ using UnityEngine;
 public class PlayerNameListUI : MonoBehaviourPunCallbacks
 {
     [Header("Referencias UI")]
-    public Transform contenedorJugadores;   // Donde se instancian los nombres
-    public GameObject prefabJugadorItem;    // Prefab con un TMP_Text dentro
+    public Transform contenedorJugadores;
+    public GameObject prefabJugadorItem;
+    public TextMeshProUGUI nombreSala;
 
     private readonly Dictionary<Player, TMP_Text> itemsUI = new();
     private PlayerName jugadorLocal;
-    public string jugadorLocalTexto = "T�";
+
+    public string jugadorLocalTexto = "Tú";
+    private string salaTitulo = "Sala";
+
+    void OnEnable()
+    {
+        PlayerName.OnJugadoresActualizados += () =>
+        {
+            if (jugadorLocal != null)
+            {
+                ActualizarListaUI();
+            }
+
+        };
+    }
+
+    void OnDisable()
+    {
+        PlayerName.OnJugadoresActualizados -= ActualizarListaUI; 
+    }
+
     void Start()
     {
-        // Solo el jugador local controla su UI
         if (!photonView.IsMine)
         {
             gameObject.SetActive(false);
             return;
         }
 
-        // Buscar al jugador local
+        if (PhotonNetwork.InRoom)
+            nombreSala.text = $"{salaTitulo}: {PhotonNetwork.CurrentRoom.Name}";
+        else
+            nombreSala.text = "Sin sala";
+
+        // Buscar jugador local
         foreach (var kvp in PlayerName.jugadoresActivos)
         {
             if (kvp.Value.photonView.IsMine)
@@ -32,29 +57,50 @@ public class PlayerNameListUI : MonoBehaviourPunCallbacks
             }
         }
 
-        // Crear los textos iniciales
-        ActualizarListaUI();
+        // Si aún no está listo, reintentar
+        if (jugadorLocal == null)
+            InvokeRepeating(nameof(RevisarJugadorLocal), 0.2f, 0.2f);
+        else
+            ActualizarListaUI();
 
-        // Actualizar cada 0.5 segundos
         InvokeRepeating(nameof(ActualizarDistancias), 0.5f, 0.5f);
+    }
+
+    void RevisarJugadorLocal()
+    {
+        foreach (var kvp in PlayerName.jugadoresActivos)
+        {
+            if (kvp.Value.photonView.IsMine)
+            {
+                jugadorLocal = kvp.Value;
+                CancelInvoke(nameof(RevisarJugadorLocal));
+                ActualizarListaUI();
+                break;
+            }
+        }
     }
 
     void ActualizarListaUI()
     {
-        // Limpiar
-        foreach (var t in itemsUI.Values)
-            Destroy(t.gameObject);
+        if (jugadorLocal == null) return;
+
+        // Limpiar anteriores
+        foreach(Transform child in contenedorJugadores)
+        {
+            Destroy(child.gameObject);
+        }
 
         itemsUI.Clear();
 
-        // Crear un TMP_Text para cada jugador activo
+
+        // Crear lista actualizada
         foreach (var kvp in PlayerName.jugadoresActivos)
         {
             var jugador = kvp.Key;
             var info = kvp.Value;
 
             GameObject item = Instantiate(prefabJugadorItem, contenedorJugadores);
-            TMP_Text texto = item.GetComponent<TMP_Text>();
+            TMP_Text texto = item.GetComponentInChildren<TMP_Text>();
 
             texto.text = info.photonView.IsMine
                 ? $"{info.playerName} ({jugadorLocalTexto})"
@@ -76,26 +122,13 @@ public class PlayerNameListUI : MonoBehaviourPunCallbacks
             if (!itemsUI.ContainsKey(jugador)) continue;
 
             TMP_Text texto = itemsUI[jugador];
-
             if (info.photonView.IsMine)
-            {
                 texto.text = $"{info.playerName} ({jugadorLocalTexto})";
-            }
             else
             {
                 float distancia = Vector3.Distance(jugadorLocal.transform.position, info.transform.position);
-                texto.text = $"{info.playerName} � {distancia:F1} m";
+                texto.text = $"{info.playerName} — {distancia:F1} m — {PhotonNetwork.GetPing()} ms";
             }
         }
-    }
-
-    public override void OnPlayerEnteredRoom(Player newPlayer)
-    {
-        ActualizarListaUI();
-    }
-
-    public override void OnPlayerLeftRoom(Player otherPlayer)
-    {
-        ActualizarListaUI();
     }
 }
