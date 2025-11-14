@@ -33698,28 +33698,8 @@ PrefabInstance:
       value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 9143167570444424153, guid: cc1758a5c1b6b5c4bb8dbe2c00e111bb, type: 3}
-      propertyPath: clips.Array.data[2].clip
-      value: 
-      objectReference: {fileID: 8300000, guid: ad2899e32310fb7448409c72729d2751, type: 3}
-    - target: {fileID: 9143167570444424153, guid: cc1758a5c1b6b5c4bb8dbe2c00e111bb, type: 3}
-      propertyPath: clips.Array.data[2].volume
-      value: 0.5
-      objectReference: {fileID: 0}
-    - target: {fileID: 9143167570444424153, guid: cc1758a5c1b6b5c4bb8dbe2c00e111bb, type: 3}
-      propertyPath: clips.Array.data[2].loopable
-      value: 1
-      objectReference: {fileID: 0}
-    - target: {fileID: 9143167570444424153, guid: cc1758a5c1b6b5c4bb8dbe2c00e111bb, type: 3}
-      propertyPath: clips.Array.data[2].pitchJitter.x
-      value: 1
-      objectReference: {fileID: 0}
-    - target: {fileID: 9143167570444424153, guid: cc1758a5c1b6b5c4bb8dbe2c00e111bb, type: 3}
-      propertyPath: clips.Array.data[2].pitchJitter.y
-      value: 1
-      objectReference: {fileID: 0}
-    - target: {fileID: 9143167570444424153, guid: cc1758a5c1b6b5c4bb8dbe2c00e111bb, type: 3}
-      propertyPath: clips.Array.data[2].maxOneShotDuration
-      value: 1.2
+      propertyPath: clips.Array.data[14].maxOneShotDuration
+      value: -1
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -34349,6 +34329,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   targetHeight: 170
   speed: 10
+  fadeInTime: 0.8
+  fadeOutTime: 15
 --- !u!114 &514301564
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -40062,8 +40044,35 @@ PrefabInstance:
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
-    m_AddedComponents: []
+    m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: e44ef2949a3198842aa861b10b6fb995, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 637933732}
   m_SourcePrefab: {fileID: 100100000, guid: e44ef2949a3198842aa861b10b6fb995, type: 3}
+--- !u!1 &637933730 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 919132149155446097, guid: e44ef2949a3198842aa861b10b6fb995, type: 3}
+  m_PrefabInstance: {fileID: 637933729}
+  m_PrefabAsset: {fileID: 0}
+--- !u!4 &637933731 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: -8679921383154817045, guid: e44ef2949a3198842aa861b10b6fb995, type: 3}
+  m_PrefabInstance: {fileID: 637933729}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &637933732
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 637933730}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 615940010a62f9b47b4f63ad3ba02d86, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  puzzleManager: {fileID: 1557415768}
+  soundOriginOverride: {fileID: 637933731}
 --- !u!1 &639621848
 GameObject:
   m_ObjectHideFlags: 0
