@@ -1,4 +1,5 @@
-﻿using UnityEngine;
+﻿using Photon.Pun;
+using UnityEngine;
 using UnityEngine.SceneManagement;
 
 public class Detect_objects : MonoBehaviour
@@ -118,11 +119,22 @@ public class Detect_objects : MonoBehaviour
             case "Armario":
                 ArmarioLobby(nombreEscena);
                 break;
+            case "Player":
+                //PortalLobby(nombreEscena);
+                break;
             default:
                 break;
         }
     }
 
+    void PortalLobby(string nombreEscena) {
+        
+
+
+
+
+
+    }
     void LibroLobby(string nombreEscena)
     {
         if (nombreEscena != escenaDeterminada || ui_oculto.Length != longitudArreglo) return;
@@ -132,8 +144,7 @@ public class Detect_objects : MonoBehaviour
 
         // ABRIR
         if (Input.GetKeyDown(teclaAbrir) &&
-            !ui_oculto[1].activeSelf && !ui_oculto[2].activeSelf &&
-            ui_oculto[0].activeSelf)
+            !ui_oculto[1].activeSelf && ui_oculto[0].activeSelf)
         {
             if (!jugador) return;
             var dbg = jugador.GetComponent<FreeFlyDebug>();
@@ -142,15 +153,16 @@ public class Detect_objects : MonoBehaviour
             Cursor.visible = true;
 
             EjecutarAccion(ui_oculto[1], true);
+            EjecutarAccion(ui_oculto[2], true);
 
-            
             // <<<<<< MUTE AL ABRIR
             menuOpen = true;
             SoundManager.Instance?.StopLoop(LoopId);
         }
         // CERRAR
         else if (Input.GetKeyDown(teclaAbrir) &&
-                 ui_oculto[1].activeSelf && !ui_oculto[2].activeSelf && ui_oculto[0].activeSelf)
+                 ui_oculto[1].activeSelf && 
+                 ui_oculto[0].activeSelf)
         {
             for (int i = 1; i < ui_oculto.Length; i++)
                 EjecutarAccion(ui_oculto[i], false);
@@ -189,7 +201,7 @@ public class Detect_objects : MonoBehaviour
             Cursor.visible = true;
 
             EjecutarAccion(ui_oculto[1], true);
-            
+
             // <<<<<< MUTE AL ABRIR
             menuOpen = true;
             SoundManager.Instance?.StopLoop(LoopId);

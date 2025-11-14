@@ -14,7 +14,7 @@ public class WaitingRoomUI : MonoBehaviourPunCallbacks
     public GameObject panel;
     public Button startGameButton;
 
-    private void Start()
+    /*private void Start()
     {
         if (!PhotonNetwork.InRoom)
         {
@@ -83,7 +83,7 @@ public class WaitingRoomUI : MonoBehaviourPunCallbacks
         
         
     }
-
+    */
     
 
 }
