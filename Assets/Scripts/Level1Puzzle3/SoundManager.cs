@@ -20,7 +20,12 @@ public enum SfxKey
     FireWindBoost,      // one-shot: soplo/ignite al sumar viento y activar
     CorrectAnswerDing,
     WrongAnswerBuzz,
-    RisingHiddenPath
+    RisingHiddenPath,
+    FireSpell,
+    WaterSpell,
+    WindSpell,
+    EarthSpell
+
 }
 
 public class SoundManager : MonoBehaviour

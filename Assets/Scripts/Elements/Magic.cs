@@ -7,7 +7,7 @@ public class Magic : MonoBehaviour
     public GameObject element;
     [SerializeField]
     private string elementPath = "Elements/";
-    private Elements elementSelected;
+    public Elements elementSelected;
     public Transform firePoint;
 
     private void Start()
@@ -37,7 +37,7 @@ public class Magic : MonoBehaviour
         }
         else
         {
-            Debug.LogError($" No se encontró el prefab Resource/{fullPath}");
+            Debug.LogError($" No se encontrï¿½ el prefab Resource/{fullPath}");
         }
 
     }

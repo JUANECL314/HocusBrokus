@@ -25376,7 +25376,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!114 &446760383
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -33698,7 +33698,55 @@ PrefabInstance:
       value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 9143167570444424153, guid: cc1758a5c1b6b5c4bb8dbe2c00e111bb, type: 3}
+      propertyPath: clips.Array.data[15].clip
+      value: 
+      objectReference: {fileID: 8300000, guid: c585c1c18cf08794faeedf34defb29af, type: 3}
+    - target: {fileID: 9143167570444424153, guid: cc1758a5c1b6b5c4bb8dbe2c00e111bb, type: 3}
+      propertyPath: clips.Array.data[16].clip
+      value: 
+      objectReference: {fileID: 8300000, guid: 777f36445eae21f4aa3ecc3f501bd510, type: 3}
+    - target: {fileID: 9143167570444424153, guid: cc1758a5c1b6b5c4bb8dbe2c00e111bb, type: 3}
+      propertyPath: clips.Array.data[17].clip
+      value: 
+      objectReference: {fileID: 8300000, guid: 35becb6873767c44fb3fad5c22b05698, type: 3}
+    - target: {fileID: 9143167570444424153, guid: cc1758a5c1b6b5c4bb8dbe2c00e111bb, type: 3}
+      propertyPath: clips.Array.data[18].clip
+      value: 
+      objectReference: {fileID: 8300000, guid: 598405f108646c5439050e9ac1f4201d, type: 3}
+    - target: {fileID: 9143167570444424153, guid: cc1758a5c1b6b5c4bb8dbe2c00e111bb, type: 3}
+      propertyPath: clips.Array.data[15].volume
+      value: 0.35
+      objectReference: {fileID: 0}
+    - target: {fileID: 9143167570444424153, guid: cc1758a5c1b6b5c4bb8dbe2c00e111bb, type: 3}
+      propertyPath: clips.Array.data[16].volume
+      value: 0.35
+      objectReference: {fileID: 0}
+    - target: {fileID: 9143167570444424153, guid: cc1758a5c1b6b5c4bb8dbe2c00e111bb, type: 3}
+      propertyPath: clips.Array.data[17].volume
+      value: 0.35
+      objectReference: {fileID: 0}
+    - target: {fileID: 9143167570444424153, guid: cc1758a5c1b6b5c4bb8dbe2c00e111bb, type: 3}
+      propertyPath: clips.Array.data[18].volume
+      value: 0.35
+      objectReference: {fileID: 0}
+    - target: {fileID: 9143167570444424153, guid: cc1758a5c1b6b5c4bb8dbe2c00e111bb, type: 3}
       propertyPath: clips.Array.data[14].maxOneShotDuration
+      value: -1
+      objectReference: {fileID: 0}
+    - target: {fileID: 9143167570444424153, guid: cc1758a5c1b6b5c4bb8dbe2c00e111bb, type: 3}
+      propertyPath: clips.Array.data[15].maxOneShotDuration
+      value: -1
+      objectReference: {fileID: 0}
+    - target: {fileID: 9143167570444424153, guid: cc1758a5c1b6b5c4bb8dbe2c00e111bb, type: 3}
+      propertyPath: clips.Array.data[16].maxOneShotDuration
+      value: -1
+      objectReference: {fileID: 0}
+    - target: {fileID: 9143167570444424153, guid: cc1758a5c1b6b5c4bb8dbe2c00e111bb, type: 3}
+      propertyPath: clips.Array.data[17].maxOneShotDuration
+      value: -1
+      objectReference: {fileID: 0}
+    - target: {fileID: 9143167570444424153, guid: cc1758a5c1b6b5c4bb8dbe2c00e111bb, type: 3}
+      propertyPath: clips.Array.data[18].maxOneShotDuration
       value: -1
       objectReference: {fileID: 0}
     m_RemovedComponents: []
