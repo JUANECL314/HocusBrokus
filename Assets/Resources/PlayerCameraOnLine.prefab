@@ -7577,7 +7577,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   magic: {fileID: 5691635643254298859}
   animator: {fileID: 0}
-  attackDelay: 0.8
+  attackDelay: 0.7
 --- !u!114 &9081232492156747955
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -7668,6 +7668,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   element: {fileID: 0}
   elementPath: Elements/
+  elementSelected: {fileID: 0}
   firePoint: {fileID: 7856172576997133910}
 --- !u!54 &971891482613735926
 Rigidbody:
