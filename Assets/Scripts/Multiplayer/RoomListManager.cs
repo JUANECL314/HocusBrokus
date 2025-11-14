@@ -18,11 +18,7 @@ public class RoomListManager : MonoBehaviourPunCallbacks
     void Start()
     {
         if (refreshButton != null) refreshButton.onClick.AddListener(RefreshList);
-        if (!PhotonNetwork.InLobby)
-        {
-            Debug.Log("No estás en el lobby, intentando unir...");
-            PhotonNetwork.JoinLobby(); // Fuerza la unión si aún no se hizo
-        }
+        
     }
 
     public void RefreshList()

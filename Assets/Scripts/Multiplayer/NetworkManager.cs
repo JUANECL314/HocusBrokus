@@ -31,7 +31,7 @@ public class NetworkManager : MonoBehaviourPunCallbacks
         Instance = this;
         DontDestroyOnLoad(gameObject);
 
-        PhotonNetwork.AutomaticallySyncScene = true;
+        PhotonNetwork.AutomaticallySyncScene = false;
         ConectarServidor();
 
     }
@@ -64,7 +64,8 @@ public class NetworkManager : MonoBehaviourPunCallbacks
     public override void OnJoinedLobby()
     {
         Debug.Log("Unido al lobby de Photon");
-        var roomListManager = FindObjectOfType<RoomListManager>();
+        PhotonNetwork.AutomaticallySyncScene = false;
+        var roomListManager = FindFirstObjectByType<RoomListManager>();
         if (roomListManager != null)
         {
             roomListManager.RefreshList();
@@ -124,29 +125,47 @@ public class NetworkManager : MonoBehaviourPunCallbacks
 
     public override void OnLeftRoom()
     {
+        if (SceneManager.GetActiveScene().name == "Lobby")
+        {
+            // Mostrar panel de espera
+            GameObject espera = GameObject.Find("Espera");
+
+            // Actualizar UI
+            espera.GetComponent<WaitingRoomUI>().AbrirEstadoPanel(false);
+        }
     }
 
     public override void OnJoinedRoom()
     {
         string nombreSala = PhotonNetwork.InRoom ? PhotonNetwork.CurrentRoom.Name : "Sin sala";
         Debug.Log("Entro a la sala: " + nombreSala);
+        if (SceneManager.GetActiveScene().name != "Lobby")
+            return;
 
-        // Buscar el UI de espera dentro de la escena actual
-        WaitingRoomUI waitingUI = FindObjectOfType<WaitingRoomUI>();
+        // Mostrar panel de espera
+        GameObject espera = GameObject.Find("Espera");
+        espera.SetActive(true);
 
-        if (waitingUI != null)
-        {
-            waitingUI.gameObject.SetActive(true);
-            waitingUI.SendMessage("ActualizarUI", SendMessageOptions.DontRequireReceiver);
-        }
+        // Ocultar menú de sala
+        GameObject.Find("MenuSala").SetActive(false);
+
+        WaitingRoomUI ui = espera.GetComponent<WaitingRoomUI>();
+        ui.ActualizarUI();
+        ui.AbrirEstadoPanel(true);
+
+
 
     }
 
-
-   public void CargarEscenario(string nombreEscena)
+    public void CargarEscenario(string nombreEscena)
     {
-        
-        if(PhotonNetwork.IsConnectedAndReady)
+        if (SceneManager.GetActiveScene().name == nombreEscena)
+        {
+            Debug.Log("Ya estás en la escena " + nombreEscena + ", no se recarga.");
+            return;
+        }
+
+        if (PhotonNetwork.IsConnectedAndReady)
         {
             PhotonNetwork.LoadLevel(nombreEscena);
         }
@@ -155,6 +174,7 @@ public class NetworkManager : MonoBehaviourPunCallbacks
             StartCoroutine(ReintentarConexion(nombreEscena));
         }
     }
+    
 
     private IEnumerator ReintentarConexion(string nombreEscena)
     {
@@ -219,12 +239,8 @@ public class NetworkManager : MonoBehaviourPunCallbacks
     {
         if (PhotonNetwork.IsMasterClient)
         {
-            photonView.RPC(nameof(IniciarPartida), RpcTarget.All);
+            PhotonNetwork.LoadLevel(salaMultijugadorNombre);
         }
     }
-    [PunRPC]
-    public void IniciarPartida()
-    {
-        PhotonNetwork.LoadLevel(salaMultijugadorNombre);
-    }
+    
 }

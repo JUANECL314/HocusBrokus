@@ -10,12 +10,13 @@ public class SpawnPointLobby : MonoBehaviourPunCallbacks
     public GameObject playerPrefab; // Prefab del jugador
     string _salaLocal = "Lobby";
     public static Transform[] SpawnPointsStatic;
+    private bool playerSpawned = false;
     void Awake()
     {
         SpawnPointsStatic = spawnPoints;
     }
 
-    private bool playerSpawned = false;
+    
 
 
     private void Start()
@@ -24,13 +25,7 @@ public class SpawnPointLobby : MonoBehaviourPunCallbacks
 
         string nombreEscena = SceneManager.GetActiveScene().name;
         // Si ya está conectado y en una sala (por ejemplo, el creador)
-        if (PhotonNetwork.InRoom && nombreEscena  != _salaLocal)
-        {
-            Debug.Log($"Sala {PhotonNetwork.CurrentRoom.Name} visible: {PhotonNetwork.CurrentRoom.IsVisible}, abierta: {PhotonNetwork.CurrentRoom.IsOpen}");
-            Debug.Log("Jugador ya en sala al iniciar escena. Spawneando...");
-            SpawnPlayer();
-        }
-        else if (!PhotonNetwork.InRoom && nombreEscena == _salaLocal)
+        if (!PhotonNetwork.InRoom && nombreEscena  == _salaLocal)
         {
             AparicionLobbyIndividual();
         }
@@ -82,8 +77,6 @@ public class SpawnPointLobby : MonoBehaviourPunCallbacks
         // Instanciar el jugador offline
         GameObject jugador = Instantiate(playerPrefab, spawnPoint, Quaternion.identity);
 
-        // Activar componentes locales
-        // jugador.GetComponent<FreeFlyCamera>().enableFlying = false;
 
         jugador.GetComponent<PlayerMagicInput>().enabled = false;
         jugador.GetComponent<Magic>().enabled = false;
@@ -92,5 +85,10 @@ public class SpawnPointLobby : MonoBehaviourPunCallbacks
         // Activar cámara y audio
         PlayerCamera pc = jugador.GetComponent<PlayerCamera>();
         if (pc != null) pc.EnableLocalCamera(); // Método que activa camera y audio en jugador local
+    }
+
+    public override void OnLeftRoom()
+    {
+        playerSpawned = false;
     }
 }
