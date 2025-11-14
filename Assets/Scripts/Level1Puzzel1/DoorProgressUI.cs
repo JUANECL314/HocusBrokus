@@ -27,6 +27,6 @@ public class DoorProgressUI : MonoBehaviourPun
         slider.normalizedValue = puzzle.Progress01;
         if (statusText != null)
             statusText.text = puzzle.IsPaused ? "PAUSADO" :
-                (puzzle.IsActivated ? $"{Mathf.RoundToInt(puzzle.Progress01 * 100f)}%" : "0%");
+                (puzzle.IsActivated ? $"{Mathf.RoundToInt(puzzle.Progress01 * 0f)}%" : "0%");
     }
 }
