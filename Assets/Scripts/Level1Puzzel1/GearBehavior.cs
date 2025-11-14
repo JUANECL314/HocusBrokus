@@ -6,9 +6,11 @@ public class GearBehavior : MonoBehaviourPun
 {
     private Renderer rend;
     private Rigidbody rb;
+
     [Header("Reactivation")]
     [SerializeField] private bool autoReactivateOnLand = true;
     public void SetAutoReactivateOnLand(bool v) => autoReactivateOnLand = v;
+
     [Header("State")]
     [SerializeField] private bool isRotating = false;
     public bool isFalling = false;
@@ -29,7 +31,7 @@ public class GearBehavior : MonoBehaviourPun
     private Coroutine destroyDoorsCo;
     private Coroutine overheatCo;
     private bool cooledDuringWindow = false;
-    
+
     void Start()
     {
         rend = GetComponent<Renderer>();
@@ -44,18 +46,22 @@ public class GearBehavior : MonoBehaviourPun
         rb.collisionDetectionMode = CollisionDetectionMode.Continuous;
         rb.constraints = RigidbodyConstraints.None;
         initialPosition = transform.position;
-        rend.material.color = Color.gray;
+        SyncColor(Color.gray);
     }
-    
+
     void Update()
     {
-        if (isRotating) transform.Rotate(Vector3.forward * -rotationSpeed * Time.deltaTime, Space.Self);
+        if (isRotating)
+            transform.Rotate(Vector3.forward * -rotationSpeed * Time.deltaTime, Space.Self);
+
         if (isFalling)
         {
             rb.isKinematic = false;
             rb.linearVelocity = new Vector3(0, -fallSpeed, 0);
         }
     }
+
+    // 🔹 Métodos RPC principales
     [PunRPC]
     public void StartRotation()
     {
@@ -72,6 +78,7 @@ public class GearBehavior : MonoBehaviourPun
         if (overheatCo != null) StopCoroutine(overheatCo);
         overheatCo = StartCoroutine(OverheatCountdown());
     }
+
     [PunRPC]
     public void StopRotation()
     {
@@ -84,28 +91,30 @@ public class GearBehavior : MonoBehaviourPun
         if (rotateFlowCo != null) { StopCoroutine(rotateFlowCo); rotateFlowCo = null; }
         if (overheatCo != null) { StopCoroutine(overheatCo); overheatCo = null; }
     }
-    [PunRPC]
+
     private IEnumerator RotateAndChangeColorFlow()
     {
-        rend.material.color = Color.gray;
+        SyncColor(Color.gray);
         yield return new WaitForSeconds(0.5f);
         if (!isRotating) yield break;
 
-        rend.material.color = new Color(1f, 0.5f, 0f);
+        SyncColor(new Color(1f, 0.5f, 0f));
         yield return new WaitForSeconds(0.5f);
         if (!isRotating) yield break;
 
-        rend.material.color = Color.red;
+        SyncColor(Color.red);
     }
+
     [PunRPC]
     public void CoolDown()
     {
-        rend.material.color = Color.gray;
+        SyncColor(Color.gray);
         SoundManager.Instance?.Play(SfxKey.GearCoolHiss, transform);
         cooledDuringWindow = true;
         if (overheatCo != null) StopCoroutine(overheatCo);
         StartCoroutine(RearmOverheatAfterDelay());
     }
+
     [PunRPC]
     public void ResetToInitialPosition(bool smooth = true)
     {
@@ -115,13 +124,13 @@ public class GearBehavior : MonoBehaviourPun
             rb.isKinematic = true;
             rb.linearVelocity = Vector3.zero;
             rb.angularVelocity = Vector3.zero;
-            rb.constraints = RigidbodyConstraints.None; // 🔹 desbloquea rotaciones
+            rb.constraints = RigidbodyConstraints.None;
         }
 
         if (!smooth) transform.position = initialPosition;
         else StartCoroutine(ReturnToInitialPosition());
     }
-    [PunRPC]
+
     private IEnumerator OverheatCountdown()
     {
         cooledDuringWindow = false;
@@ -135,7 +144,7 @@ public class GearBehavior : MonoBehaviourPun
         }
         Overheat();
     }
-    [PunRPC]
+
     private IEnumerator RearmOverheatAfterDelay()
     {
         float t = 0f;
@@ -147,6 +156,7 @@ public class GearBehavior : MonoBehaviourPun
         }
         if (isRotating) overheatCo = StartCoroutine(OverheatCountdown());
     }
+
     [PunRPC]
     private void Overheat()
     {
@@ -154,17 +164,19 @@ public class GearBehavior : MonoBehaviourPun
         var puzzle = FindObjectOfType<ElementalPuzzle>();
         if (puzzle != null) puzzle.ResetFromOverheatAndReturnAll();
     }
+
     [PunRPC]
     public void ReactivateAfterLand()
     {
         if (!isRotating && !isFalling)
         {
-            rend.material.color = Color.red;
+            SyncColor(Color.red);
             isRotating = true;
             SoundManager.Instance?.Play(SfxKey.GearStart, transform);
             SoundManager.Instance?.StartLoop(LoopId, SfxKey.GearLoop, transform);
         }
     }
+
     [PunRPC]
     public void MakeFall()
     {
@@ -175,8 +187,7 @@ public class GearBehavior : MonoBehaviourPun
         rb.isKinematic = false;
         rb.linearVelocity = Vector3.zero;
         rb.angularVelocity = Vector3.zero;
-
-        rb.constraints = RigidbodyConstraints.FreezeRotation; 
+        rb.constraints = RigidbodyConstraints.FreezeRotation;
 
         SoundManager.Instance?.StopLoop(LoopId);
         SoundManager.Instance?.Play(SfxKey.GearFall, transform);
@@ -184,11 +195,11 @@ public class GearBehavior : MonoBehaviourPun
         var puzzle = FindObjectOfType<ElementalPuzzle>();
         if (puzzle != null) puzzle.DoorPause(true);
     }
-    [PunRPC]
+
     void OnCollisionEnter(Collision collision)
     {
         if (collision.gameObject.CompareTag("Water") && isRotating)
-            CoolDown();
+            photonView.RPC("CoolDown", RpcTarget.All);
 
         if (collision.gameObject.CompareTag("Earth") && isFalling)
             StartCoroutine(ReturnToInitialPosition());
@@ -199,16 +210,16 @@ public class GearBehavior : MonoBehaviourPun
             rb.isKinematic = true;
             rb.linearVelocity = Vector3.zero;
             rb.angularVelocity = Vector3.zero;
-            rb.constraints = RigidbodyConstraints.None; // 🔹 vuelve a permitir rotar después
+            rb.constraints = RigidbodyConstraints.None;
             SoundManager.Instance?.Play(SfxKey.GearStop, transform);
         }
     }
-    [PunRPC]
-    IEnumerator ReturnToInitialPosition()
+
+    private IEnumerator ReturnToInitialPosition()
     {
         isFalling = false;
         rb.isKinematic = true;
-        rb.constraints = RigidbodyConstraints.None; // 🔹 permite rotación nuevamente
+        rb.constraints = RigidbodyConstraints.None;
 
         Vector3 start = transform.position;
         float elapsed = 0f;
@@ -222,7 +233,21 @@ public class GearBehavior : MonoBehaviourPun
         }
 
         transform.position = initialPosition;
-        if (autoReactivateOnLand) ReactivateAfterLand();
+        if (autoReactivateOnLand)
+            photonView.RPC("ReactivateAfterLand", RpcTarget.All);
+    }
+
+    // 🔹 Sincronización de color (nuevo)
+    [PunRPC]
+    public void SetGearColor(float r, float g, float b)
+    {
+        if (rend == null) rend = GetComponent<Renderer>();
+        rend.material.color = new Color(r, g, b);
+    }
+
+    public void SyncColor(Color color)
+    {
+        photonView.RPC("SetGearColor", RpcTarget.All, color.r, color.g, color.b);
     }
 
     void OnDisable() { SoundManager.Instance?.StopLoop(LoopId); }

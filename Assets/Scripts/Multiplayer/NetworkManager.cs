@@ -97,7 +97,7 @@ public class NetworkManager : MonoBehaviourPunCallbacks
             PhotonNetwork.LeaveRoom(); 
             return; 
         }
-        entroPorBoton = true;
+        entroPorBoton = false;
         RoomOptions options = new RoomOptions
         {
             MaxPlayers = maxPlayers,
@@ -123,28 +123,29 @@ public class NetworkManager : MonoBehaviourPunCallbacks
             PhotonNetwork.LeaveRoom(); // Deja la sala actual antes de crear otra
             return; // Espera al callback OnLeftRoom
         }
-        entroPorBoton = true;
+        entroPorBoton = false;
         PhotonNetwork.JoinRoom(nombreSala);
         
     }
 
     public override void OnLeftRoom()
     {
-        if (!string.IsNullOrEmpty(nombreSalaParaCrear))
-        {
-            PhotonNetwork.CreateRoom(nombreSalaParaCrear);
-            nombreSalaParaCrear = null;
-        }
     }
 
     public override void OnJoinedRoom()
     {
-        if (entroPorBoton)
+        string nombreSala = PhotonNetwork.InRoom ? PhotonNetwork.CurrentRoom.Name : "Sin sala";
+        Debug.Log("Entro a la sala: " + nombreSala);
+
+        // Buscar el UI de espera dentro de la escena actual
+        WaitingRoomUI waitingUI = FindObjectOfType<WaitingRoomUI>();
+
+        if (waitingUI != null)
         {
-            CargarEscenario(salaMultijugadorNombre);
-            entroPorBoton =false;
+            waitingUI.gameObject.SetActive(true);
+            waitingUI.SendMessage("ActualizarUI", SendMessageOptions.DontRequireReceiver);
         }
-        
+
     }
 
 
@@ -217,5 +218,19 @@ public class NetworkManager : MonoBehaviourPunCallbacks
             PhotonNetwork.LeaveRoom();
             PhotonNetwork.Disconnect();
         }
+    }
+
+
+    public void MasterIniciarPartida()
+    {
+        if (PhotonNetwork.IsMasterClient)
+        {
+            photonView.RPC(nameof(IniciarPartida), RpcTarget.All);
+        }
+    }
+    [PunRPC]
+    public void IniciarPartida()
+    {
+        PhotonNetwork.LoadLevel(salaMultijugadorNombre);
     }
 }

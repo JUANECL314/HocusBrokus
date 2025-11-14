@@ -1,17 +1,20 @@
-using System;
-using System.Collections.Generic;
 using Photon.Pun;
 using Photon.Realtime;
+using System;
+using System.Collections.Generic;
 using UnityEngine;
 
 public class PlayerName : MonoBehaviourPunCallbacks
 {
     public string playerName;
+
     public static readonly Dictionary<Player, PlayerName> jugadoresActivos = new();
     public static event Action OnJugadoresActualizados;
+
     void Start()
     {
         playerName = PhotonNetwork.NickName;
+
         photonView.RPC(nameof(SyncName), RpcTarget.AllBuffered, playerName);
 
         jugadoresActivos[photonView.Owner] = this;
@@ -26,6 +29,7 @@ public class PlayerName : MonoBehaviourPunCallbacks
             OnJugadoresActualizados?.Invoke();
         }
     }
+
     [PunRPC]
     void SyncName(string name)
     {
