@@ -90,14 +90,8 @@ public class NetworkManager : MonoBehaviourPunCallbacks
             return;
         }
 
-        if (PhotonNetwork.InRoom)
-        {
-
-            nombreSalaParaCrear = nombreSala;
-            PhotonNetwork.LeaveRoom(); 
-            return; 
-        }
-        entroPorBoton = false;
+     
+        
         RoomOptions options = new RoomOptions
         {
             MaxPlayers = maxPlayers,
