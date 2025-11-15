@@ -23,10 +23,10 @@ public class Detect_objects : MonoBehaviour
 
     // ---------- Audio (SoundManager) ----------
     private string LoopId => $"ui_prox_{GetInstanceID()}";
-    [Tooltip("Sonido one-shot al entrar al rango")]
-    public SfxKey enterKey = SfxKey.UIProximityEnter;
-    [Tooltip("Sonido loop mientras permanezca en el rango")]
-    public SfxKey loopKey = SfxKey.UIProximityLoop;
+    //[Tooltip("Sonido one-shot al entrar al rango")]
+    //public SfxKey enterKey = SfxKey.UIProximityEnter;
+    //[Tooltip("Sonido loop mientras permanezca en el rango")]
+    //public SfxKey loopKey = SfxKey.UIProximityLoop;
 
     // override 3D por objeto (maxDistance = radioDeteccion)
     private SfxAreaOverride areaOverride;
@@ -74,8 +74,8 @@ public class Detect_objects : MonoBehaviour
             if (cercaAhora && !estabaCerca)
             {
                 // Entró al rango
-                SoundManager.Instance?.Play(enterKey, centro);
-                SoundManager.Instance?.StartLoop(LoopId, loopKey, centro);
+                //SoundManager.Instance?.Play(enterKey, centro);
+                //SoundManager.Instance?.StartLoop(LoopId, loopKey, centro);
             }
             else if (!cercaAhora && estabaCerca)
             {
@@ -180,7 +180,7 @@ public class Detect_objects : MonoBehaviour
             if (jugadorCerca)
             {
                 var centro = transform.position + offset;
-                SoundManager.Instance?.StartLoop(LoopId, loopKey, centro);
+                //SoundManager.Instance?.StartLoop(LoopId, loopKey, centro);
             }
         }
     }
@@ -225,7 +225,7 @@ public class Detect_objects : MonoBehaviour
             if (jugadorCerca)
             {
                 var centro = transform.position + offset;
-                SoundManager.Instance?.StartLoop(LoopId, loopKey, centro);
+                //SoundManager.Instance?.StartLoop(LoopId, loopKey, centro);
             }
         }
     }
