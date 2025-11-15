@@ -29,6 +29,10 @@ public class SpawnPointLobby : MonoBehaviourPunCallbacks
         {
             AparicionLobbyIndividual();
         }
+        else if(PhotonNetwork.InRoom && nombreEscena != _salaLocal)
+        {
+            SpawnPlayer();
+        }
     }
 
     // Helper to get a spawn for a given actor number (wraps array length)
