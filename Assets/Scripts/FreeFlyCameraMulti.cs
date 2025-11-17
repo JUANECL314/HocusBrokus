@@ -20,7 +20,7 @@ public class FreeFlyCameraMulti : MonoBehaviourPun
     [Header("Look")]
     public float mouseSensitivity = 1.5f;
     public float gamepadSensitivity = 0.7f;
-    public float maxHeadTilt = 80f;
+    public float maxHeadTilt = 150f;
     public bool invertY = false;
 
     [Header("References")]
