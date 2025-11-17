@@ -2958,9 +2958,9 @@ RectTransform:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 5650590692862903603}
-  m_LocalRotation: {x: -0, y: 0.7071068, z: -0, w: 0.7071068}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 2, y: 2, z: 2}
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 2004321710848296006}
@@ -3151,7 +3151,6 @@ GameObject:
   - component: {fileID: 4004950911127010748}
   - component: {fileID: 4660079464385026153}
   - component: {fileID: 5920458810643151176}
-  - component: {fileID: -8343677267371708030}
   m_Layer: 0
   m_Name: PlayerOnline
   m_TagString: Player
@@ -3194,7 +3193,6 @@ MonoBehaviour:
   magic: {fileID: 5691635643254298859}
   animator: {fileID: 0}
   attackDelay: 1.1
-  attackTriggerParam: Attack
 --- !u!114 &9081232492156747955
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -3285,6 +3283,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   element: {fileID: 0}
   elementPath: Elements/
+  elementSelected: {fileID: 0}
   firePoint: {fileID: 7856172576997133910}
 --- !u!54 &971891482613735926
 Rigidbody:
@@ -3328,7 +3327,7 @@ MonoBehaviour:
   m_SynchronizePosition: 1
   m_SynchronizeRotation: 1
   m_SynchronizeScale: 0
-  m_UseLocal: 0
+  m_UseLocal: 1
 --- !u!114 &6686643661842687360
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -3437,18 +3436,6 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   playerName: 
---- !u!114 &-8343677267371708030
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 7045669205887240078}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 2e570620626317f479aec36dd4125489, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
 --- !u!1 &7431305071080156459
 GameObject:
   m_ObjectHideFlags: 0

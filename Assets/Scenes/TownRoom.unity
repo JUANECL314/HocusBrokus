@@ -157,7 +157,7 @@ RectTransform:
   m_AnchorMin: {x: 0, y: 1}
   m_AnchorMax: {x: 0, y: 1}
   m_AnchoredPosition: {x: 138.75, y: -49.600006}
-  m_SizeDelta: {x: 212.4715, y: 55.5355}
+  m_SizeDelta: {x: 212.4715, y: 0}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &15965746
 MonoBehaviour:
@@ -9390,10 +9390,10 @@ RectTransform:
   m_Children: []
   m_Father: {fileID: 15965745}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 0, y: 1}
-  m_AnchorMax: {x: 0, y: 1}
-  m_AnchoredPosition: {x: 106.23575, y: -27.76775}
-  m_SizeDelta: {x: 172.4715, y: 35.5355}
+  m_AnchorMin: {x: 0, y: 0}
+  m_AnchorMax: {x: 0, y: 0}
+  m_AnchoredPosition: {x: 0, y: 0}
+  m_SizeDelta: {x: 0, y: 35.5355}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &730710896
 MonoBehaviour:
@@ -20651,8 +20651,6 @@ MonoBehaviour:
   ui_oculto: []
   teclaAbrir: 101
   longitudArreglo: 6
-  enterKey: 12
-  loopKey: 13
 --- !u!114 &1782954107
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -20666,8 +20664,11 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   MenuUILevels: {fileID: 1930989221}
+  radioDeteccion: 5
   boton: {fileID: 48758909}
   teclaAbrir: 114
+  offset: {x: 0, y: 4, z: 0}
+  tagObjetivo: Player
 --- !u!1001 &1788262789
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -21924,7 +21925,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!114 &1866717670
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -23188,7 +23189,7 @@ RectTransform:
   m_AnchorMin: {x: 0, y: 1}
   m_AnchorMax: {x: 0, y: 1}
   m_AnchoredPosition: {x: 32.51001, y: -92.50012}
-  m_SizeDelta: {x: 322.77173, y: 30}
+  m_SizeDelta: {x: 322.77173, y: 0}
   m_Pivot: {x: 0, y: 1}
 --- !u!114 &1940082356
 MonoBehaviour:
