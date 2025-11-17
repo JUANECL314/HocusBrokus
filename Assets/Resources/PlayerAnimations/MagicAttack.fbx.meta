@@ -497,13 +497,13 @@ ModelImporter:
         length: 0
         modified: 0
     skeleton:
-    - name: Standing Idle(Clone)
+    - name: Idle(Clone)
       parentName: 
       position: {x: 0, y: 0, z: 0}
       rotation: {x: 0, y: 0, z: 0, w: 1}
       scale: {x: 1, y: 1, z: 1}
     - name: botas
-      parentName: Standing Idle(Clone)
+      parentName: Idle(Clone)
       position: {x: 0.09356199, y: 0.14612047, z: 0.11513413}
       rotation: {x: 0, y: -0, z: -0, w: 1}
       scale: {x: 3.784107, y: 3.784107, z: 3.784107}
@@ -513,37 +513,37 @@ ModelImporter:
       rotation: {x: 0, y: -0, z: -0, w: 1}
       scale: {x: 1, y: 1, z: 1}
     - name: pSphere1
-      parentName: Standing Idle(Clone)
+      parentName: Idle(Clone)
       position: {x: -0, y: 0, z: 0}
       rotation: {x: 0, y: -0, z: -0, w: 1}
       scale: {x: 1, y: 1, z: 1}
     - name: cuerpo
-      parentName: Standing Idle(Clone)
+      parentName: Idle(Clone)
       position: {x: -0, y: 0, z: 0}
       rotation: {x: 0, y: -0, z: -0, w: 1}
       scale: {x: 1, y: 1, z: 1}
     - name: botas4
-      parentName: Standing Idle(Clone)
+      parentName: Idle(Clone)
       position: {x: -0, y: 0, z: 0}
       rotation: {x: 0, y: -0, z: -0, w: 1}
       scale: {x: 1, y: 1, z: 1}
     - name: pSphere2
-      parentName: Standing Idle(Clone)
+      parentName: Idle(Clone)
       position: {x: -0, y: 0.04869389, z: -0.033574697}
       rotation: {x: 0, y: -0, z: -0, w: 1}
       scale: {x: 1, y: 1, z: 1}
     - name: Camisa
-      parentName: Standing Idle(Clone)
+      parentName: Idle(Clone)
       position: {x: -0, y: 0, z: 0}
       rotation: {x: 0, y: -0, z: -0, w: 1}
       scale: {x: 1, y: 1, z: 1}
     - name: Pantalon
-      parentName: Standing Idle(Clone)
+      parentName: Idle(Clone)
       position: {x: -0, y: 0, z: 0}
       rotation: {x: 0, y: -0, z: -0, w: 1}
       scale: {x: 1, y: 1, z: 1}
     - name: mixamorig:Hips
-      parentName: Standing Idle(Clone)
+      parentName: Idle(Clone)
       position: {x: -0.0019798987, y: 0.75287235, z: -0.0033488364}
       rotation: {x: -0.005880274, y: 0.04073372, z: 0.022112332, w: 0.99890804}
       scale: {x: 1, y: 1, z: 1}
@@ -879,7 +879,7 @@ ModelImporter:
     hasTranslationDoF: 0
     hasExtraRoot: 1
     skeletonHasParents: 1
-  lastHumanDescriptionAvatarSource: {fileID: 9000000, guid: fd2cb19a1e39f554cb791b311148dd79, type: 3}
+  lastHumanDescriptionAvatarSource: {fileID: 9000000, guid: 4fcf7cfafce856241bb4615dd89176b7, type: 3}
   autoGenerateAvatarMappingIfUnspecified: 1
   animationType: 3
   humanoidOversampling: 1
