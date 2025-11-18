@@ -2,10 +2,9 @@
 
 public class CarbonPickupSystem : MonoBehaviour
 {
-    public Transform cameraTransform;      // cámara del jugador
-    public Transform holdPoint;            // donde se sostiene el carbón
-    public float pickupDistance = 3f;      // distancia para agarrar
-    public LayerMask carbonLayer;          // layer del carbón
+    public Transform cameraTransform;
+    public Transform holdPoint;
+    public float pickupDistance = 3f;
 
     private CarbonItem heldCarbon;
 
@@ -19,7 +18,6 @@ public class CarbonPickupSystem : MonoBehaviour
                 DropCarbon();
         }
 
-        // Si estamos cargando carbón → moverlo al holdPoint
         if (heldCarbon != null)
         {
             heldCarbon.transform.position = holdPoint.position;
@@ -29,12 +27,16 @@ public class CarbonPickupSystem : MonoBehaviour
 
     void TryPickup()
     {
-        if (Physics.Raycast(cameraTransform.position, cameraTransform.forward, out RaycastHit hit, pickupDistance, carbonLayer))
+        if (Physics.Raycast(cameraTransform.position, cameraTransform.forward, out RaycastHit hit, pickupDistance))
         {
-            if (hit.collider.TryGetComponent(out CarbonItem carbon))
+            // Solo levantar objetos con el tag Carbon
+            if (hit.collider.CompareTag("Carbon"))
             {
-                heldCarbon = carbon;
-                heldCarbon.PickUp(holdPoint);
+                if (hit.collider.TryGetComponent(out CarbonItem carbon))
+                {
+                    heldCarbon = carbon;
+                    heldCarbon.PickUp(holdPoint);
+                }
             }
         }
     }

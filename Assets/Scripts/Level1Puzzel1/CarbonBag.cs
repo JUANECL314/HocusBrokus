@@ -2,31 +2,34 @@ using UnityEngine;
 
 public class CarbonBag : MonoBehaviour
 {
-    public GameObject carbonPrefab;       // Prefab del carbón
-    public Transform insideBagPoint;      // Punto dentro de la bolsa donde aparece
-    public float interactDistance = 3f;   // Distancia para poder presionar E
+    public GameObject carbonPrefab;
+    public Transform insideBagPoint;
+    public float interactDistance = 3f;
 
-    private Transform playerCamera;
+    public Transform playerCamera;   // ASIGNAR A MANO
 
-    void Start()
-    {
-        playerCamera = Camera.main.transform;
-    }
+    private GameObject currentCarbon;
 
     void Update()
     {
         if (Input.GetKeyDown(KeyCode.E))
         {
-            // Ver si el jugador está mirando la bolsa
             if (IsLookingAtBag() && IsCloseEnough())
-            {
-                SpawnCarbonInside();
-            }
+                TrySpawnCarbon();
         }
+    }
+
+    void TrySpawnCarbon()
+    {
+        if (currentCarbon != null) return;
+
+        currentCarbon = Instantiate(carbonPrefab, insideBagPoint.position, insideBagPoint.rotation, insideBagPoint);
     }
 
     bool IsLookingAtBag()
     {
+        if (playerCamera == null) return false;
+
         Ray ray = new Ray(playerCamera.position, playerCamera.forward);
         return Physics.Raycast(ray, out RaycastHit hit, interactDistance) && hit.transform == transform;
     }
@@ -36,8 +39,8 @@ public class CarbonBag : MonoBehaviour
         return Vector3.Distance(playerCamera.position, transform.position) <= interactDistance;
     }
 
-    void SpawnCarbonInside()
+    public void OnCarbonRemoved()
     {
-        Instantiate(carbonPrefab, insideBagPoint.position, insideBagPoint.rotation);
+        currentCarbon = null;
     }
 }
