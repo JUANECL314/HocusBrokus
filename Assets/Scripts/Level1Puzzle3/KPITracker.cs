@@ -170,5 +170,17 @@ public class KPITracker : MonoBehaviour
             $"\n  Participación por actor (STD más baja = más balanceado):\n{participation}" +
             $"\n  STD participación: {stddev:F2}"
         );
+
+        // ---- Empaquetar resultado y enviarlo a la máquina de inferencia ----
+        var result = new Puzzle1KPIResult
+        {
+            totalTime = elapsed,
+            coordinationPct = coordPct,
+            cooperationEvents = cooperationEvents,
+            participationByActor = new Dictionary<string, int>(actionsByActor),
+            stdDevParticipation = (float)stddev
+        };
+
+        KPIInferenceStateMachine.Instance?.OnPuzzle1Completed(result);
     }
 }
