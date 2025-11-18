@@ -218,13 +218,14 @@ public class FreeFlyCameraMulti : MonoBehaviourPun
         }
     }*/
 
-    
+
     void FixedUpdate()
     {
         if (!isLocalMode && !photonView.IsMine) return;
 
         if (debugFreeFly) return; // el free-fly ya se mueve en Update
         if (isFrozen) return;
+
         // MOVIMIENTO NORMAL con física (plano XZ)
         Vector3 wishDir = (characterModel.forward * moveInput.y) + (characterModel.right * moveInput.x);
         if (wishDir.sqrMagnitude > 1f) wishDir.Normalize();
@@ -241,8 +242,17 @@ public class FreeFlyCameraMulti : MonoBehaviourPun
 
             if (_animator) _animator.SetTrigger(PARAM_JUMP); // dispara trigger para sync
         }
+
+        // ANIMACIÓN (Speed)
+        if (_animator)
+        {
+            float speed = Mathf.Clamp01(moveInput.magnitude);
+            _animator.SetFloat(PARAM_SPEED, speed, 0.1f, Time.deltaTime);
+        }
+
         jumpPressed = false;
     }
+
 
     bool IsGrounded()
     {
