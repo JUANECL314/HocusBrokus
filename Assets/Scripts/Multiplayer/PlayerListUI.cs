@@ -36,11 +36,7 @@ public class PlayerNameListUI : MonoBehaviourPunCallbacks
 
     void Start()
     {
-        if (!photonView.IsMine)
-        {
-            gameObject.SetActive(false);
-            return;
-        }
+        
 
         if (PhotonNetwork.InRoom)
             nombreSala.text = $"{salaTitulo}: {PhotonNetwork.CurrentRoom.Name}";

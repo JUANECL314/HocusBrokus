@@ -3,8 +3,9 @@ using UnityEngine;
 [RequireComponent(typeof(Collider))]
 public class MagicPillarButton : MonoBehaviour
 {
-    [Header("Element Type")]
-    public string elementTag = "Fire"; // Example: Fire, Water, Wind, Earth
+    [Header("Element Type (must match projectile tag)")]
+    public string elementTag = "Fire"; // Fire, Water, Wind, Earth
+
     public MagicPillarPuzzleManager puzzleManager;
     public bool useTrigger = true;
 
@@ -17,7 +18,6 @@ public class MagicPillarButton : MonoBehaviour
         if (rend != null)
             defaultColor = rend.material.color;
 
-        // Auto-find puzzle manager if not assigned
         if (puzzleManager == null)
             puzzleManager = FindObjectOfType<MagicPillarPuzzleManager>();
     }
@@ -37,42 +37,14 @@ public class MagicPillarButton : MonoBehaviour
     void OnTriggerEnter(Collider other)
     {
         if (!useTrigger) return;
-
-        // Only activate for player or spell objects
-        if (IsMagicActivator(other.gameObject))
-        {
-            if (puzzleManager != null)
-            {
-                puzzleManager.RegisterInput(elementTag);
-            }
-            else
-            {
-                Debug.LogWarning($"PuzzleManager not assigned on {name}");
-            }
-        }
+        if (other.CompareTag(elementTag))     // 🔥 Only react to matching element!
+            puzzleManager.RegisterInput(elementTag);
     }
 
     void OnCollisionEnter(Collision collision)
     {
         if (useTrigger) return;
-
-        if (IsMagicActivator(collision.collider.gameObject))
-        {
-            if (puzzleManager != null)
-            {
-                puzzleManager.RegisterInput(elementTag);
-            }
-            else
-            {
-                Debug.LogWarning($"PuzzleManager not assigned on {name}");
-            }
-        }
-    }
-
-    private bool IsMagicActivator(GameObject go)
-    {
-        // Accept only player or any magic projectile
-        return go.CompareTag("Player") || go.CompareTag("Fire") || go.CompareTag("Water") 
-               || go.CompareTag("Wind") || go.CompareTag("Earth");
+        if (collision.collider.CompareTag(elementTag))   // 🔥 Only react to matching element!
+            puzzleManager.RegisterInput(elementTag);
     }
 }

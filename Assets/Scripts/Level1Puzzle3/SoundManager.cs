@@ -11,15 +11,21 @@ public enum SfxKey
     TargetFastPing,     
     TargetIlluminate,
  // NUEVOS para escena de engranajes
-    GearStart,         // one-shot: arranque mecánico
+    GearStart,         // one-shot: arranque mecï¿½nico
     GearLoop,          // loop: engranajes girando
     GearStop,          // one-shot: se detienen
-    GearFall,          // one-shot: caída/metalazo
-    GearCoolHiss,      // one-shot: agua que enfría (hiss)
+    GearFall,          // one-shot: caï¿½da/metalazo
+    GearCoolHiss,      // one-shot: agua que enfrï¿½a (hiss)
     FireIgniteLoop,    // loop: fuego en el activador
-    FireWindBoost,    // one-shot: soplo/ignite al sumar viento y activar
-    UIProximityEnter, 
-    UIProximityLoop
+    FireWindBoost,      // one-shot: soplo/ignite al sumar viento y activar
+    CorrectAnswerDing,
+    WrongAnswerBuzz,
+    RisingHiddenPath,
+    FireSpell,
+    WaterSpell,
+    WindSpell,
+    EarthSpell
+
 }
 
 public class SoundManager : MonoBehaviour
@@ -29,9 +35,9 @@ public class SoundManager : MonoBehaviour
     [Header("Mixer")]
     public AudioMixer mixer;                    // Asigna GameAudioMixer
     public AudioMixerGroup sfxGroup;            // Asigna el Group SFX
-    [Tooltip("Nombre exacto del parámetro expuesto en Master")]
+    [Tooltip("Nombre exacto del parï¿½metro expuesto en Master")]
     public string masterVolParam = "MasterVol";
-    [Tooltip("Nombre exacto del parámetro expuesto en SFX")]
+    [Tooltip("Nombre exacto del parï¿½metro expuesto en SFX")]
     public string sfxVolParam = "SFXVol";
 
     [Header("Snapshots (opcional)")]
@@ -51,7 +57,7 @@ public class SoundManager : MonoBehaviour
         [Range(0f, 1f)] public float spatialBlend = 1f;
 
         [Header("One-shot shaping")]
-        [Tooltip("Si > 0, el one-shot se cortará tras este tiempo (segundos). Útil si tu clip es largo.")]
+        [Tooltip("Si > 0, el one-shot se cortarï¿½ tras este tiempo (segundos). ï¿½til si tu clip es largo.")]
         public float maxOneShotDuration = -1f;
 
         [Tooltip("Rango aleatorio de pitch (min..max). Usa (1,1) para desactivar.")]
@@ -80,7 +86,7 @@ public class SoundManager : MonoBehaviour
         for (int i = 0; i < initialPool; i++)
             _pool.Add(CreateSource());
 
-        // Cargar volúmenes previos
+        // Cargar volï¿½menes previos
         if (mixer != null)
         {
             if (PlayerPrefs.HasKey(masterVolParam)) mixer.SetFloat(masterVolParam, PlayerPrefs.GetFloat(masterVolParam));
@@ -113,7 +119,7 @@ public class SoundManager : MonoBehaviour
         return extra;
     }
 
-    // --- EXISTENTE: por posición (se mantiene) ---
+    // --- EXISTENTE: por posiciï¿½n (se mantiene) ---
     public void Play(SfxKey key, Vector3? worldPos = null, float pitch = 1f)
     {
         PlayInternal(key, worldPos, pitch, null);
@@ -132,13 +138,48 @@ public class SoundManager : MonoBehaviour
         PlayInternal(key, from.position, pitch, area);
     }
 
+    public AudioSource PlayAndGetSource(SfxKey key, Transform from = null, float pitch = 1f)
+    {
+        if (!_map.TryGetValue(key, out var e))
+        {
+            Debug.LogWarning($"[SoundManager] No clip entry for key '{key}'.");
+            return null;
+        }
+        if (e.clip == null)
+        {
+            Debug.LogWarning($"[SoundManager] Key '{key}' has no AudioClip assigned.");
+            return null;
+        }
+
+        var src = GetFreeSource();
+        src.clip = e.clip;
+        src.volume = e.volume;
+        src.loop = false;
+
+        // Apply pitch rules
+        ApplyPitch(src, e, pitch);
+
+        // Get area overrides if available
+        SfxAreaOverride area = (from != null) ? from.GetComponent<SfxAreaOverride>() : null;
+        Apply3D(src, e, area);
+
+        // Positioning
+        if (from != null) src.transform.position = from.position;
+        else src.transform.localPosition = Vector3.zero;
+
+        src.Play();
+        return src;
+    }
+
+
+
     public void StartLoop(string loopId, SfxKey key, Transform from)
     {
         var area = from != null ? from.GetComponent<SfxAreaOverride>() : null;
         StartLoopInternal(loopId, key, from ? from.position : (Vector3?)null, area);
     }
 
-    // --- Núcleo común ---
+    // --- Nï¿½cleo comï¿½n ---
     void ApplyPitch(AudioSource src, SfxEntry e, float pitch)
     {
         src.pitch = (e.pitchJitter.x != 1f || e.pitchJitter.y != 1f)

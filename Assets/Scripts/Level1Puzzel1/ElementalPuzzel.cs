@@ -104,7 +104,7 @@ public class ElementalPuzzle : MonoBehaviourPun
         {
             overheated = false;
             puzzleActivated = true;
-            doorProgress = 0f;
+            doorProgress = 100f;
             doorPaused = false;
 
             nextRandomFallAllowedTime = Time.time + randomFallGrace;
