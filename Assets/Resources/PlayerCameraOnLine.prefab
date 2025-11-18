@@ -2814,7 +2814,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   magic: {fileID: 5691635643254298859}
-  animator: {fileID: 0}
+  animator: {fileID: 8458955599137080990}
   attackDelay: 0.7
 --- !u!114 &9081232492156747955
 MonoBehaviour:
@@ -2836,6 +2836,7 @@ MonoBehaviour:
   observableSearch: 2
   ObservedComponents:
   - {fileID: -6334809897886953100}
+  - {fileID: 2938196127156726448}
   sceneViewId: 0
   InstantiationId: 0
   isRuntimeInstantiated: 0
@@ -3972,11 +3973,51 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: -3321919801592875672, guid: 4fcf7cfafce856241bb4615dd89176b7, type: 3}
       insertIndex: -1
       addedObject: {fileID: 1650929827837628554}
-    m_AddedComponents: []
+    m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: 4fcf7cfafce856241bb4615dd89176b7, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 2938196127156726448}
   m_SourcePrefab: {fileID: 100100000, guid: 4fcf7cfafce856241bb4615dd89176b7, type: 3}
 --- !u!4 &2559192033086659812 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: -8679921383154817045, guid: 4fcf7cfafce856241bb4615dd89176b7, type: 3}
+  m_PrefabInstance: {fileID: 2598201936412850959}
+  m_PrefabAsset: {fileID: 0}
+--- !u!1 &2940783713401931358 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 919132149155446097, guid: 4fcf7cfafce856241bb4615dd89176b7, type: 3}
+  m_PrefabInstance: {fileID: 2598201936412850959}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &2938196127156726448
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2940783713401931358}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 9b8c4a61274f60b4ea5fb4299cfdbf14, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  ShowLayerWeightsInspector: 1
+  ShowParameterInspector: 1
+  m_SynchronizeParameters:
+  - Type: 1
+    SynchronizeType: 1
+    Name: Speed
+  - Type: 9
+    SynchronizeType: 1
+    Name: Jump
+  - Type: 9
+    SynchronizeType: 1
+    Name: Attack
+  m_SynchronizeLayers:
+  - SynchronizeType: 0
+    LayerIndex: 0
+--- !u!95 &8458955599137080990 stripped
+Animator:
+  m_CorrespondingSourceObject: {fileID: 5866666021909216657, guid: 4fcf7cfafce856241bb4615dd89176b7, type: 3}
   m_PrefabInstance: {fileID: 2598201936412850959}
   m_PrefabAsset: {fileID: 0}
 --- !u!4 &8496183012372172391 stripped
