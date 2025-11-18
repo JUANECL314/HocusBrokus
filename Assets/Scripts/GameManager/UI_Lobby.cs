@@ -4,44 +4,27 @@ using UnityEngine.UI;
 
 public class UI_Lobby : MonoBehaviour
 {
-
-    public GameObject createScene;
-    public GameObject joinScene;
- 
-    public TMP_InputField nameRoom;
-    public Button createButton;
-    public Button joinButton;
-    public Button createRoomButton;
-
-    bool flag = true;
+    public TMP_InputField createInput;
+    public TMP_InputField unirInput;
+    public Button crear;
+    public Button unir;
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
     {
-        if (createButton != null) createButton.onClick.AddListener(CreateRoomButtonPanel);
-        if (joinButton != null) joinButton.onClick.AddListener(JoinRoomButtonPanel);
-        if (createRoomButton != null) createRoomButton.onClick.AddListener(CreateRoomAction);
-        
+        if (crear!=null) crear.onClick.AddListener(CreateRoom);
+        if (unir != null) unir.onClick.AddListener(JoinRoom);
     }
 
-    public void CreateRoomButtonPanel()
+    public void CreateRoom()
     {
-        createScene.SetActive(flag);
-        joinScene.SetActive(!flag);
- 
+        if (string.IsNullOrEmpty(createInput.text)) return;
+        NetworkManager.Instance.CrearSala(createInput.text);
     }
 
-    public void JoinRoomButtonPanel()
+    public void JoinRoom()
     {
-        createScene.SetActive(!flag);
-        joinScene.SetActive(flag);
-
-    }
-
-    public void CreateRoomAction()
-    {
-        NetworkManager.Instance.CrearSala(nameRoom.text);
-        createScene.SetActive(!flag);
-        joinScene.SetActive(!flag);
-
+        if (string.IsNullOrEmpty(unirInput.text)) return;
+        Debug.Log(unirInput.text);
+        NetworkManager.Instance.UnirSala(unirInput.text);
     }
 }

@@ -11,10 +11,17 @@ public class WaitingRoomUI : MonoBehaviourPunCallbacks
     public TMP_Text playerCountText;
     public Transform playerListContainer;
     public GameObject playerListItemPrefab;     // Prefab con un TMP_Text
+    public GameObject panel;
     public Button startGameButton;
 
-    private void Start()
+    /*private void Start()
     {
+        if (!PhotonNetwork.InRoom)
+        {
+            Debug.LogWarning("WaitingRoomUI: No estás en una sala todavía.");
+            return;
+        }
+
         ActualizarUI();
 
         // El botón solo debe mostrarse si eres MasterClient
@@ -29,7 +36,7 @@ public class WaitingRoomUI : MonoBehaviourPunCallbacks
 
     // ----------------------- Actualización visual -----------------------
 
-    void ActualizarUI()
+    public void ActualizarUI()
     {
         if (roomNameText != null)
             roomNameText.text = $"Sala: {PhotonNetwork.CurrentRoom.Name}";
@@ -69,4 +76,14 @@ public class WaitingRoomUI : MonoBehaviourPunCallbacks
 
         ActualizarUI();
     }
+
+    public void AbrirEstadoPanel(bool estado)
+    {
+        panel.SetActive(estado);
+        
+        
+    }
+    */
+    
+
 }

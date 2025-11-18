@@ -15,7 +15,7 @@ public class PhotonAutoConnect : MonoBehaviourPunCallbacks
 
     string sceneToLoad = "";
     private bool enLobby = false;
-    
+
     void Start()
     {
         Debug.Log("Conectando a Photon...");

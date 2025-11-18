@@ -24,7 +24,7 @@ public class ElementActual : MonoBehaviourPun
         uiElement.SetActive(true);
         // If the script Magic.cs exist, upload the element image.
         if (magicScript != null) 
-            UploadElementImage(magicScript.elementActual);
+            UploadElementImage(magicScript.elementoActual);
     }
 
     void UploadElementImage(string nameElement)

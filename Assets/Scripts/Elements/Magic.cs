@@ -7,9 +7,9 @@ public class Magic : MonoBehaviour
     public GameObject element;
     [SerializeField]
     private string elementPath = "Elements/";
-    private Elements elementSelected;
+    public Elements elementSelected;
     public Transform firePoint;
-    public string elementActual { get; private set; }
+    public string elementoActual  { get; private set; }
     private void Start()
     {
         if (element == null)
@@ -29,7 +29,7 @@ public class Magic : MonoBehaviour
 
         string prefabName = playerElementType.ToString();
         string fullPath = elementPath + prefabName;
-        elementActual = prefabName;
+        elementoActual = prefabName;
         GameObject loaded = Resources.Load<GameObject>(fullPath);
         if (loaded != null) {
             element = loaded;
@@ -37,7 +37,7 @@ public class Magic : MonoBehaviour
         }
         else
         {
-            Debug.LogError($" No se encontró el prefab Resource/{fullPath}");
+            Debug.LogError($" No se encontrï¿½ el prefab Resource/{fullPath}");
         }
 
     }

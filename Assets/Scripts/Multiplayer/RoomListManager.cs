@@ -9,7 +9,6 @@ public class RoomListManager : MonoBehaviourPunCallbacks
 {
     [Header("Referencias UI")]
     public GameObject roomItemPrefab;
-    
     public Transform content; // Donde se instancian las salas
     public Button refreshButton;
 
