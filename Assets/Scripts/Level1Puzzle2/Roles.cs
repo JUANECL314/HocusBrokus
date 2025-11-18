@@ -8,6 +8,10 @@ public class MazeRunnerRole : IRole
         return message;
     }
     
+    public void Execute()
+    {
+
+    }
 }
 
 public class MazeViewerRole : IRole
