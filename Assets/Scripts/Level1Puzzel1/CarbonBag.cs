@@ -4,82 +4,33 @@ public class CarbonBag : MonoBehaviour
 {
     public GameObject carbonPrefab;
     public Transform insideBagPoint;
-    public float interactDistance = 3f;
 
-    private Transform playerCamera;
     private GameObject currentCarbon;
 
     void Update()
     {
-        if (playerCamera == null)
-        {
-            FindPlayerCamera();
-            if (playerCamera == null)
-            {
-                Debug.Log("❌ No encontré la cámara");
-                return;
-            }
-            else
-            {
-                Debug.Log("✅ Cámara encontrada: " + playerCamera.name);
-            }
-        }
-
         if (Input.GetKeyDown(KeyCode.E))
         {
-            Debug.Log("➡️ Presionaste E");
-
-            if (IsLookingAtBag())
-                Debug.Log("👀 Sí está mirando la bolsa");
-            else
-                Debug.Log("❌ NO está mirando la bolsa");
-
-            if (IsCloseEnough())
-                Debug.Log("👣 Sí está lo suficientemente cerca");
-            else
-                Debug.Log("❌ Está muy lejos");
-
-            if (IsLookingAtBag() && IsCloseEnough())
-                TrySpawnCarbon();
+            SpawnOrReplaceCarbon();
         }
     }
 
-    void FindPlayerCamera()
+    void SpawnOrReplaceCarbon()
     {
-        GameObject camObj = GameObject.FindGameObjectWithTag("MainCamera");
-        if (camObj != null)
-            playerCamera = camObj.transform;
-    }
-
-    void TrySpawnCarbon()
-    {
+        // Si ya existe un carbón, destruirlo
         if (currentCarbon != null)
         {
-            Debug.Log("⚠️ Ya hay carbón dentro");
-            return;
+            Destroy(currentCarbon);
         }
 
-        Debug.Log("🟢 ¡Generando Carbon!");
-        currentCarbon = Instantiate(carbonPrefab, insideBagPoint.position, insideBagPoint.rotation, insideBagPoint);
-    }
+        // Generar un nuevo carbón
+        currentCarbon = Instantiate(
+            carbonPrefab,
+            insideBagPoint.position,
+            insideBagPoint.rotation,
+            insideBagPoint
+        );
 
-    bool IsLookingAtBag()
-    {
-        Ray ray = new Ray(playerCamera.position, playerCamera.forward);
-        if (Physics.Raycast(ray, out RaycastHit hit, interactDistance))
-        {
-            Debug.Log("🔵 Raycast hit: " + hit.transform.name);
-            return hit.transform == transform;
-        }
-
-        Debug.Log("🔴 Raycast NO golpeó nada");
-        return false;
-    }
-
-    bool IsCloseEnough()
-    {
-        float dist = Vector3.Distance(playerCamera.position, transform.position);
-        Debug.Log("📏 Distancia: " + dist);
-        return dist <= interactDistance;
+        Debug.Log("🔥 Nuevo carbón generado");
     }
 }
