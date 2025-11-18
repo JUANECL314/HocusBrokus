@@ -2,21 +2,32 @@ using UnityEngine;
 
 public class GridLayout : MonoBehaviour
 {
+    public static GridLayout instance;
     public GameObject tilePrefab;
-    public int rows = 5;
-    public int columns = 5;
+    public int rows;
+    public int columns;
     public float spacing = 0f;
-    public int sizeX = 4;
-    public int sizeZ = 4;
+    public int sizeX;
+    public int sizeZ;
+    public int[,] grid;
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
     {
-        GenerateGrid();
+        if (instance == null)
+        {
+            instance = this;
+        }
+        else if (instance != this)
+        {
+            Destroy(gameObject);
+        }
+        grid = GenerateGrid();
     }
 
 
-    void GenerateGrid()
+    public int[,] GenerateGrid()
     {
+        
         
         // Tamaño del prefab
         Vector3 tileSize = tilePrefab.GetComponent<Renderer>().bounds.size;
@@ -44,6 +55,8 @@ public class GridLayout : MonoBehaviour
                 tile.transform.localPosition = localPosition;
             }
         }
+        int[,] matriz = new int[rows, columns];
+        return matriz;
     }
 
 }
