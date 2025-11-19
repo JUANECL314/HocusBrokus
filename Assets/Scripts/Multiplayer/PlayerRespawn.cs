@@ -46,4 +46,10 @@ public class PlayerRespawn : MonoBehaviourPun
         transform.position = spawn.position;
         transform.rotation = spawn.rotation;
     }
+
+    public void ForceRespawn()
+    {
+        TeleportToSpawn();
+    }
+
 }

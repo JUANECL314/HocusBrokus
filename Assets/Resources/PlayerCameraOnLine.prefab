@@ -2775,6 +2775,7 @@ GameObject:
   - component: {fileID: 6784334610576334781}
   - component: {fileID: 2731776004080780194}
   - component: {fileID: -3164476102984643106}
+  - component: {fileID: 8450864101092532438}
   m_Layer: 0
   m_Name: PlayerCameraOnLine
   m_TagString: Player
@@ -3097,6 +3098,27 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   playerName: 
+--- !u!114 &8450864101092532438
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7045669205887240078}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c46187ebeabae894ca42e00fd69fc36f, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  spinSpeed: 300
+  spinDurationScale: 1
+  shakeIntensity: 0.1
+  shakeFrequency: 25
+  playerSpinSpeed: 500
+  spinDrag: 0.97
+  fovIncrease: 25
+  fovSmooth: 7
+  respawn: {fileID: 0}
 --- !u!1 &7767863635850516013
 GameObject:
   m_ObjectHideFlags: 0
