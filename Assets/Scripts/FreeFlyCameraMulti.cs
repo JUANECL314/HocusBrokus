@@ -24,11 +24,11 @@ public class FreeFlyCameraMulti : MonoBehaviourPun
     public bool invertY = false;
 
     [Header("References")]
-    public Transform characterModel;  // yaw (cuerpo)
-    public Transform cameraTransform; // pitch (cámara)
+    public Transform characterModel;  // yaw (body)
+    public Transform cameraTransform; // pitch (camera)
     public Vector3 cameraOffset = Vector3.zero;
 
-    // Animator (sincronizado por PhotonAnimatorView)
+    // Animator (synchronized by PhotonAnimatorView)
     private Animator _animator;
     private const string PARAM_SPEED = "Speed";
     private const string PARAM_GROUNDED = "Grounded";
@@ -58,6 +58,9 @@ public class FreeFlyCameraMulti : MonoBehaviourPun
     // 👁 Optional getter for external access (e.g. iris)
     public Vector2 EyeLookOffset => eyeLookOffset;
 
+    // convenience
+    public bool IsLocalOwner => isLocalMode || photonView.IsMine;
+
     void Awake()
     {
         rb = GetComponent<Rigidbody>();
@@ -65,12 +68,13 @@ public class FreeFlyCameraMulti : MonoBehaviourPun
             cameraTransform = GetComponentInChildren<Camera>(true)?.transform;
         if (!characterModel)
             characterModel = transform;
-        // animator vive en el modelo del personaje
+        // animator lives in the character model
         _animator = characterModel ? characterModel.GetComponentInChildren<Animator>(true) : null;
     }
 
     void Start()
     {
+        // Rigidbody setup
         rb.freezeRotation = true;
         rb.useGravity = true;
         rb.collisionDetectionMode = CollisionDetectionMode.ContinuousDynamic;
@@ -84,7 +88,7 @@ public class FreeFlyCameraMulti : MonoBehaviourPun
             invertY = SettingsManager.I.InvertY;
             SettingsManager.I.OnChanged += ApplySettings;
         }
-         // Cámara solo del dueño
+        // Camera only active for the owner (or in local mode)
         if (isLocalMode || photonView.IsMine) ActivateCamera();
         else DeactivateCamera();
         if (cameraTransform == null)
@@ -100,8 +104,6 @@ public class FreeFlyCameraMulti : MonoBehaviourPun
         yaw = characterModel.eulerAngles.y;
         pitch = cameraTransform.localEulerAngles.x;
 
-
-
         rb.constraints = RigidbodyConstraints.FreezeRotationX | RigidbodyConstraints.FreezeRotationZ;
 
         LockCursor(true);
@@ -112,9 +114,7 @@ public class FreeFlyCameraMulti : MonoBehaviourPun
     void Update()
     {
         if (!isLocalMode && !photonView.IsMine) return;
-
         if (isFrozen) return;
-        // Toggle de modo debug (F1)
 
         if (Keyboard.current != null && Keyboard.current.f1Key.wasPressedThisFrame)
             debugFreeFly = !debugFreeFly;
@@ -128,10 +128,10 @@ public class FreeFlyCameraMulti : MonoBehaviourPun
         float lookX = lookInput.x * sens;
         float lookY = lookInput.y * sens * (invertY ? 1f : -1f);
 
-        // Apply camera pitch (up/down)
+        // camera pitch
         pitch = Mathf.Clamp(pitch + lookY, -maxHeadTilt, maxHeadTilt);
 
-        // Accumulate yaw freely for 360° rotation
+        // yaw
         yaw += lookX;
 
         // Apply rotation to the body
@@ -144,20 +144,17 @@ public class FreeFlyCameraMulti : MonoBehaviourPun
             cameraTransform.localPosition = cameraOffset;
         }
 
-        // --- Eye Offset Calculation (local to the body) ---
+        // Eye offset calculation (local to body)
         float maxLookAngle = 25f;   // how far eyes/head can look relative to body
         float deadzone = 15f;       // circular radius for eyes-only movement
         float reCenterSpeed = 5f;   // how fast eyes recenters
 
-        // Calculate yaw difference between camera and body (handles 360° wrap)
         float localYawDelta = Mathf.DeltaAngle(transform.eulerAngles.y, cameraTransform.eulerAngles.y);
         float clampedYaw = Mathf.Clamp(localYawDelta, -maxLookAngle, maxLookAngle);
 
-        // Smoothly recenters when player rotates
         if (Mathf.Abs(clampedYaw) > deadzone)
             clampedYaw = Mathf.Lerp(clampedYaw, 0f, Time.deltaTime * reCenterSpeed);
 
-        // Store this for the iris/eye system
         eyeLookOffset = new Vector2(clampedYaw / maxLookAngle, lookY / maxHeadTilt);
 
         // Movement input
@@ -172,78 +169,33 @@ public class FreeFlyCameraMulti : MonoBehaviourPun
             _animator.SetFloat("Speed", inputMagnitude, 0.1f, Time.deltaTime);
     }
 
-    /*void FixedUpdate()
-    {
-        if (!isLocalMode && !photonView.IsMine) return;
-        if (isFrozen) return;
-
-        if (debugFreeFly)
-        {
-            rb.useGravity = false;
-            rb.linearVelocity = Vector3.zero;
-
-            float upDown = 0f;
-            var kb = Keyboard.current;
-            if (kb != null)
-            {
-                if (kb.eKey.isPressed) upDown += 1f;
-                if (kb.qKey.isPressed) upDown -= 1f;
-            }
-
-            Vector3 desired =(
-                characterModel.forward * moveInput.y +
-                characterModel.right * moveInput.x +
-                Vector3.up * upDown
-            ).normalized;
-
-            if (desired.sqrMagnitude < 0.001f) desired = Vector3.zero;
-            if (desired.sqrMagnitude > 1f) desired.Normalize();
-
-            rb.useGravity = false;
-            rb.linearVelocity = Vector3.zero;
-            transform.position += desired * flySpeed * Time.deltaTime;
-        }
-        else
-        {
-            if (!rb.useGravity) rb.useGravity = true;
-        }
-
-        // === ANIMACIÓN (solo dueño escribe; PhotonAnimatorView replica) ===
-        if (_animator)
-        {
-            float speed = Mathf.Clamp01(moveInput.magnitude); // 0..1 desde Input System
-            bool grounded = IsGrounded();
-            _animator.SetFloat(PARAM_SPEED, speed, 0.1f, Time.deltaTime);
-            _animator.SetBool(PARAM_GROUNDED, grounded);
-        }
-    }*/
-
-
     void FixedUpdate()
     {
         if (!isLocalMode && !photonView.IsMine) return;
 
-        if (debugFreeFly) return; // el free-fly ya se mueve en Update
+        if (debugFreeFly) return; // free-fly handled in Update when enabled
         if (isFrozen) return;
 
-        // MOVIMIENTO NORMAL con física (plano XZ)
+        // MOVEMENT (XZ plane)
         Vector3 wishDir = (characterModel.forward * moveInput.y) + (characterModel.right * moveInput.x);
         if (wishDir.sqrMagnitude > 1f) wishDir.Normalize();
 
-        Vector3 vel = rb.linearVelocity;
+        // Note: your original code used rb.velocity - keep the same variable usage here.
+        // If Unity version uses Rigidbody.velocity, that will still work with AddForce below.
+        Vector3 vel = rb.velocity;
         Vector3 targetXZ = wishDir * walkSpeed;
-        rb.linearVelocity = new Vector3(targetXZ.x, vel.y, targetXZ.z);
+        rb.velocity = new Vector3(targetXZ.x, vel.y, targetXZ.z);
 
-        // Salto (consumimos bandera)
+        // Jump
         if (jumpPressed && IsGrounded())
         {
-            rb.linearVelocity = new Vector3(rb.linearVelocity.x, 0f, rb.linearVelocity.z);
+            rb.velocity = new Vector3(rb.velocity.x, 0f, rb.velocity.z);
             rb.AddForce(Vector3.up * jumpForce, ForceMode.VelocityChange);
 
-            if (_animator) _animator.SetTrigger(PARAM_JUMP); // dispara trigger para sync
+            if (_animator) _animator.SetTrigger(PARAM_JUMP);
         }
 
-        // ANIMACIÓN (Speed)
+        // Animation speed
         if (_animator)
         {
             float speed = Mathf.Clamp01(moveInput.magnitude);
@@ -252,7 +204,6 @@ public class FreeFlyCameraMulti : MonoBehaviourPun
 
         jumpPressed = false;
     }
-
 
     bool IsGrounded()
     {
@@ -280,7 +231,6 @@ public class FreeFlyCameraMulti : MonoBehaviourPun
             LockCursor(Cursor.lockState != CursorLockMode.Locked);
     }
 
-    // ===== Settings binding =====
     void ApplySettings()
     {
         if (!SettingsManager.I) return;
@@ -309,7 +259,7 @@ public class FreeFlyCameraMulti : MonoBehaviourPun
 
         if (frozen)
         {
-            rb.linearVelocity = Vector3.zero;
+            rb.velocity = Vector3.zero;
             rb.angularVelocity = Vector3.zero;
 
             Cursor.lockState = CursorLockMode.None;
@@ -317,8 +267,35 @@ public class FreeFlyCameraMulti : MonoBehaviourPun
         }
         else
         {
-            Cursor.lockState = CursorLockMode.Locked;
-            Cursor.visible = false;
+            LockCursor(true);
         }
+    }
+
+    // =========================
+    // Multiplayer push API
+    // =========================
+
+    /// <summary>
+    /// Apply an instantaneous force/impulse on the local (owner) client.
+    /// Use this for local testing (singleplayer).
+    /// </summary>
+    public void ApplyForceLocal(Vector3 force)
+    {
+        if (!IsLocalOwner) return;
+        if (rb == null) return;
+        rb.AddForce(force, ForceMode.VelocityChange);
+    }
+
+    /// <summary>
+    /// Photon RPC: called on the owner client to apply a push/impulse.
+    /// Call from master/client: playerPhotonView.RPC("RPC_ApplyForce", playerPhotonView.Owner, forceVector);
+    /// </summary>
+    [PunRPC]
+    public void RPC_ApplyForce(Vector3 force)
+    {
+        // This RPC will be executed on the target client's instance of this PhotonView.
+        // Apply the impulse locally (instantaneous velocity change).
+        if (rb == null) return;
+        rb.AddForce(force, ForceMode.VelocityChange);
     }
 }
