@@ -5,7 +5,7 @@ public class MazeStateMachine : MonoBehaviourPun
 {
     public static MazeStateMachine Instance;
 
-    public MazeEnumState currentState = MazeEnumState.Init;
+    public MazeEnumState currentState = MazeEnumState.Create;
 
     private GridLayoutBase grid;
     private bool starting = false;
@@ -20,6 +20,7 @@ public class MazeStateMachine : MonoBehaviourPun
     {
         StartCoroutine(FindLocalPlayer());
         grid = GridLayoutBase.instance;
+        StateMachineStatus();
     }
 
     void Update()
@@ -34,13 +35,13 @@ public class MazeStateMachine : MonoBehaviourPun
             StartMaze();
         }
 
-        StateMachineStatus();
+        
     }
 
     void StartMaze()
     {
         
-        ChangeState(MazeEnumState.GenerateGrid);
+        ChangeState(MazeEnumState.Create);
 
     }
 
@@ -50,19 +51,14 @@ public class MazeStateMachine : MonoBehaviourPun
         
         switch (currentState)
         {
-            case MazeEnumState.GenerateGrid:
+            case MazeEnumState.Create:
+                Debug.Log("Creando el laberinto");
                 grid.GenerateGrid();
-                ChangeState(MazeEnumState.GenerateMaze);
-                break;
-
-            case MazeEnumState.GenerateMaze:
                 grid.GenerateMaze();
-                ChangeState(MazeEnumState.IncludeObstacles);
+                Debug.Log("Laberinto terminado");
                 break;
+            case MazeEnumState.Complete:
 
-            case MazeEnumState.IncludeObstacles:    
-                
-                ChangeState(MazeEnumState.Done);
                 break;
         }
         
