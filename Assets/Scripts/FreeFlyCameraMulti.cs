@@ -183,14 +183,14 @@ public class FreeFlyCameraMulti : MonoBehaviourPun
 
         // Note: your original code used rb.velocity - keep the same variable usage here.
         // If Unity version uses Rigidbody.velocity, that will still work with AddForce below.
-        Vector3 vel = rb.velocity;
+        Vector3 vel = rb.linearVelocity;
         Vector3 targetXZ = wishDir * walkSpeed;
-        rb.velocity = new Vector3(targetXZ.x, vel.y, targetXZ.z);
+        rb.linearVelocity = new Vector3(targetXZ.x, vel.y, targetXZ.z);
 
         // Jump
         if (jumpPressed && IsGrounded())
         {
-            rb.velocity = new Vector3(rb.velocity.x, 0f, rb.velocity.z);
+            rb.linearVelocity = new Vector3(rb.linearVelocity.x, 0f, rb.linearVelocity.z);
             rb.AddForce(Vector3.up * jumpForce, ForceMode.VelocityChange);
 
             if (_animator) _animator.SetTrigger(PARAM_JUMP);
@@ -289,7 +289,7 @@ public class FreeFlyCameraMulti : MonoBehaviourPun
 
         if (frozen)
         {
-            rb.velocity = Vector3.zero;
+            rb.linearVelocity = Vector3.zero;
             rb.angularVelocity = Vector3.zero;
 
             Cursor.lockState = CursorLockMode.None;
