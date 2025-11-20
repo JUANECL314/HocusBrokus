@@ -15,6 +15,9 @@ public class VortexObstacle : MonoBehaviourPun
     private void Start()
     {
         if (debugLogs) Debug.Log("[VortexObstacle] Initialized.");
+        SoundManager.Instance.StartLoop("vortexAlive_" + photonView.ViewID, 
+                                    SfxKey.AliveVortex, 
+                                    transform);
     }
 
     private void OnTriggerEnter(Collider other)
@@ -57,6 +60,11 @@ public class VortexObstacle : MonoBehaviourPun
     void RPC_DeactivateVortex()
     {
         if (debugLogs) Debug.Log("[VortexObstacle] RPC_DeactivateVortex → Vortex disabled.");
+        // 🔊 STOP LOOP
+        SoundManager.Instance.StopLoop("vortexAlive_" + photonView.ViewID);
+
+        // 🔊 PLAY DISSIPATE SFX
+        SoundManager.Instance.Play(SfxKey.DissipatingVortex, transform);
         gameObject.SetActive(false);
     }
 }

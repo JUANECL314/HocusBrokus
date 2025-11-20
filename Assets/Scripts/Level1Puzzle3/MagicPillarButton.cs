@@ -1,4 +1,5 @@
 using UnityEngine;
+using Photon.Pun;
 
 [RequireComponent(typeof(Collider))]
 public class MagicPillarButton : MonoBehaviour
@@ -37,14 +38,14 @@ public class MagicPillarButton : MonoBehaviour
     void OnTriggerEnter(Collider other)
     {
         if (!useTrigger) return;
-        if (other.CompareTag(elementTag))     // 🔥 Only react to matching element!
-            puzzleManager.RegisterInput(elementTag);
+        if (other.CompareTag(elementTag))
+        {
+            puzzleManager.photonView.RPC(
+                "RPC_RegisterInput",
+                RpcTarget.MasterClient,
+                elementTag
+            );
+        }
     }
 
-    void OnCollisionEnter(Collision collision)
-    {
-        if (useTrigger) return;
-        if (collision.collider.CompareTag(elementTag))   // 🔥 Only react to matching element!
-            puzzleManager.RegisterInput(elementTag);
-    }
 }

@@ -76,6 +76,9 @@ public class PlayerMagicInput : MonoBehaviourPun
     private IEnumerator PerformAttackAfterDelay()
     {
         isAttacking = true;
+        
+        SoundManager.Instance.Play(SfxKey.MagicCast, transform);
+
 
         yield return new WaitForSeconds(attackDelay);
 
