@@ -1,26 +1,28 @@
-using System.Collections.Generic;
-using System.Drawing;
-using UnityEditor.Callbacks;
+Ôªøusing System.Collections.Generic;
 using UnityEngine;
 
 public class GridLayoutBase : MonoBehaviour
 {
     public static GridLayoutBase instance;
+
     [Header("Prefabs")]
     public GameObject tilePrefab;
     public GameObject wallPrefab;
     public GameObject floorPrefab;
-   
+    public GameObject goalPrefab; // ‚Üê Prefab para el nodo final
+
     [Header("Grid Dimensions")]
     public int rows;
     public int columns;
-    private float spacing = 0f;
+    public int tileSize = 4;
 
-    [Header("Tile dimension")]
-    public int tileSize = 4;   
     public List<List<GameObject>> tiles = new List<List<GameObject>>();
-    public int[,] grid;
     public bool[,] visited;
+
+    // Para detectar el nodo final
+    private int longestDistance = 0;
+    public Vector2Int goalNode;
+    public Vector2Int startNode = new Vector2Int(0, 1);
 
     private static readonly List<Vector2Int> directions = new List<Vector2Int>
     {
@@ -34,14 +36,14 @@ public class GridLayoutBase : MonoBehaviour
     {
         instance = this;
     }
+
     void Start()
     {
-
         tiles = new List<List<GameObject>>();
         GenerateGrid();
         GenerateMaze();
-
-
+        Carve(startNode.y, startNode.x, 0);
+        MarkGoalNode();
     }
 
     public void ReplaceTile(int y, int x, GameObject prefab)
@@ -57,16 +59,11 @@ public class GridLayoutBase : MonoBehaviour
         tiles[y][x] = newTile;
         Destroy(old);
     }
-    // GeneraciÛn de la base del grid para el laberinto
+
     public void GenerateGrid()
     {
         tiles.Clear();
-
-        grid = new int[rows, columns];
-
-        
-
-
+        visited = new bool[rows, columns];
 
         for (int y = 0; y < rows; y++)
         {
@@ -74,42 +71,40 @@ public class GridLayoutBase : MonoBehaviour
 
             for (int x = 0; x < columns; x++)
             {
-                Debug.Log(transform.position.x + (x * tileSize));
-                Debug.Log(transform.position.z + (y * tileSize));
                 Vector3 pos = new Vector3(
-                    (x * tileSize),
+                    transform.position.x + (x * tileSize),
                     0,
-                    (y * tileSize));
+                    transform.position.z + (y * tileSize));
 
-                // Instanciar como hijo del GameObject que tiene el script
                 GameObject tile = Instantiate(tilePrefab, pos, Quaternion.identity);
                 tile.transform.parent = transform;
                 tiles[y].Add(tile);
             }
         }
-
-
     }
-    // GeneraciÛn de laberinto 
 
     public void GenerateMaze()
     {
         visited = new bool[rows, columns];
 
         for (int y = 0; y < rows; y++)
-        {
             for (int x = 0; x < columns; x++)
-            {
                 ReplaceTile(y, x, wallPrefab);
-            }
-        }
-
-
     }
 
-    private void Carve(int y, int x)
+    // ---- DFS ----
+    private void Carve(int y, int x, int distance)
     {
         visited[y, x] = true;
+
+        // Determinar nodo m√°s lejano
+        if (distance > longestDistance)
+        {
+            longestDistance = distance;
+            goalNode = new Vector2Int(x, y);
+        }
+
+        // Mezclar direcciones
         List<Vector2Int> direccion = new List<Vector2Int>(directions);
         Shuffle(direccion);
 
@@ -118,13 +113,14 @@ public class GridLayoutBase : MonoBehaviour
             int ny = y + dir.y;
             int nx = x + dir.x;
 
-            if (Inside(ny,nx) && !visited[ny, nx]){
+            if (Inside(ny, nx) && !visited[ny, nx])
+            {
                 ReplaceTile(y, x, floorPrefab);
                 ReplaceTile(ny, nx, floorPrefab);
-                Carve(ny, nx);
+
+                Carve(ny, nx, distance + 1);
             }
         }
-
     }
 
     public static void Shuffle<T>(List<T> list)
@@ -141,19 +137,15 @@ public class GridLayoutBase : MonoBehaviour
         return y >= 0 && y < rows && x >= 0 && x < columns;
     }
 
-    public void IncludeObstacles()
+    // ---- MARCAR NODO FINAL (GOAL) ----
+    private void MarkGoalNode()
     {
-        for (int y = 0; y < rows; y++)
-        {
-            for (int x = 0; x < columns; x++)
-            {
-                // Ejemplo simple: marcar corners
-                if ((y + x) % 10 == 0 && tiles[y][x].CompareTag("Ground"))
-                {
-                    // AquÌ puedes instanciar cofres, trampas, props, etc.
-                    // Instantiate(someObject, tiles[y][x].transform.position, Quaternion.identity);
-                }
-            }
-        }
+        Debug.Log("Nodo final del laberinto (goal): " + goalNode);
+
+        if (goalPrefab == null) return;
+
+        Vector3 pos = tiles[goalNode.y][goalNode.x].transform.position;
+
+        Instantiate(goalPrefab, pos, Quaternion.identity, transform);
     }
 }
