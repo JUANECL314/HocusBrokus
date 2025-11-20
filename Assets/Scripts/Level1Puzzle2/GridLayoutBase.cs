@@ -10,12 +10,14 @@ public class GridLayoutBase : MonoBehaviour
     public GameObject tilePrefab;
     public GameObject wallPrefab;
     public GameObject floorPrefab;
+   
     [Header("Grid Dimensions")]
     public int rows;
     public int columns;
     private float spacing = 0f;
 
-
+    [Header("Tile dimension")]
+    public int tileSize = 4;   
     public List<List<GameObject>> tiles = new List<List<GameObject>>();
     public int[,] grid;
     public bool[,] visited;
@@ -36,7 +38,8 @@ public class GridLayoutBase : MonoBehaviour
     {
 
         tiles = new List<List<GameObject>>();
-
+        GenerateGrid();
+        GenerateMaze();
 
 
     }
@@ -61,7 +64,7 @@ public class GridLayoutBase : MonoBehaviour
 
         grid = new int[rows, columns];
 
-        Vector3 size = tilePrefab.GetComponent<Renderer>().bounds.size;
+        
 
 
 
@@ -71,10 +74,12 @@ public class GridLayoutBase : MonoBehaviour
 
             for (int x = 0; x < columns; x++)
             {
+                Debug.Log(transform.position.x + (x * tileSize));
+                Debug.Log(transform.position.z + (y * tileSize));
                 Vector3 pos = new Vector3(
-                    transform.position.x + (x * size.x),
-                    transform.position.y,
-                    transform.position.z + (y * size.z));
+                    (x * tileSize),
+                    0,
+                    (y * tileSize));
 
                 // Instanciar como hijo del GameObject que tiene el script
                 GameObject tile = Instantiate(tilePrefab, pos, Quaternion.identity);
