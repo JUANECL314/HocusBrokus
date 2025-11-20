@@ -42,8 +42,8 @@ public class GridLayoutBase : MonoBehaviour
         tiles = new List<List<GameObject>>();
         GenerateGrid();
         GenerateMaze();
-        Carve(startNode.y, startNode.x, 0);
-        MarkGoalNode();
+        //Carve(startNode.y, startNode.x, 0);
+        //MarkGoalNode();
     }
 
     public void ReplaceTile(int y, int x, GameObject prefab)
@@ -73,7 +73,7 @@ public class GridLayoutBase : MonoBehaviour
             {
                 Vector3 pos = new Vector3(
                     transform.position.x + (x * tileSize),
-                    0,
+                    transform.position.y,
                     transform.position.z + (y * tileSize));
 
                 GameObject tile = Instantiate(tilePrefab, pos, Quaternion.identity);

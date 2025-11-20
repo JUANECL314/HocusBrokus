@@ -4938,7 +4938,7 @@ Transform:
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
   m_LocalPosition: {x: 19.46, y: 0.5, z: 69.48}
-  m_LocalScale: {x: 6.5, y: 1, z: 9}
+  m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 0}
@@ -4958,8 +4958,12 @@ MonoBehaviour:
   tilePrefab: {fileID: 9126079771820050963, guid: a3c60b05cf1ee95498d4697e5ee2b79d, type: 3}
   wallPrefab: {fileID: 8008480386584869731, guid: 2a202f8fda0df1c4f8649df038bffdc8, type: 3}
   floorPrefab: {fileID: 9126079771820050963, guid: a3c60b05cf1ee95498d4697e5ee2b79d, type: 3}
+  goalPrefab: {fileID: 9126079771820050963, guid: a3c60b05cf1ee95498d4697e5ee2b79d, type: 3}
   rows: 21
   columns: 16
+  tileSize: 4
+  goalNode: {x: 20, y: 15}
+  startNode: {x: 0, y: 1}
 --- !u!1 &1339452654
 GameObject:
   m_ObjectHideFlags: 0
