@@ -106,19 +106,19 @@ public class PlayerMagicInput : MonoBehaviourPun
         switch (magic.elementSelected.elementType)
         {
             case Elements.ElementType.Fire:
-                //SoundManager.Instance.Play(SfxKey.FireSpell, transform);
+                SoundManager.Instance.Play(SfxKey.FireSpell, transform);
                 break;
 
             case Elements.ElementType.Water:
-                //SoundManager.Instance.Play(SfxKey.WaterSpell, transform);
+                SoundManager.Instance.Play(SfxKey.WaterSpell, transform);
                 break;
 
             case Elements.ElementType.Wind:
-                //SoundManager.Instance.Play(SfxKey.WindSpell, transform);
+                SoundManager.Instance.Play(SfxKey.WindSpell, transform);
                 break;
 
             case Elements.ElementType.Earth:
-                //SoundManager.Instance.Play(SfxKey.EarthSpell, transform);
+                SoundManager.Instance.Play(SfxKey.EarthSpell, transform);
                 break;
 
             default:

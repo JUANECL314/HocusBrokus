@@ -24,7 +24,8 @@ public enum SfxKey
     FireSpell,
     WaterSpell,
     WindSpell,
-    EarthSpell
+    EarthSpell,
+    RockBreaking
 
 }
 
