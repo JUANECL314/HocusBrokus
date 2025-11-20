@@ -80,7 +80,8 @@ MonoBehaviour:
   - TriggerElement
   - SetGearColor
   - IniciarPartida
-  - RPC_StartBurning
+  - StartShaking
+  - RPC_ApplyForce
   - RPC_ApplyHit
   - RPC_Deactivate
   - RPC_DeactivateVortex
@@ -89,6 +90,7 @@ MonoBehaviour:
   - RPC_PlayCorrect
   - RPC_PlayWrong
   - RPC_ResetVisuals
+  - RPC_StartBurning
   DisableAutoOpenWizard: 1
   ShowSettings: 1
   DevRegionSetOnce: 1
