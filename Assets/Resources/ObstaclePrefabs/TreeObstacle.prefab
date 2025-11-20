@@ -12,6 +12,7 @@ GameObject:
   - component: {fileID: 7067929245142788750}
   - component: {fileID: 7594759054042804257}
   - component: {fileID: 1590954585993325167}
+  - component: {fileID: 577709316454868727}
   m_Layer: 0
   m_Name: TreeObstacle
   m_TagString: Untagged
@@ -93,6 +94,22 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   fireVFX: {fileID: 7089859499764261698}
   burnDuration: 3.5
+--- !u!114 &577709316454868727
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6949008428644976847}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 627855c7f81362d41938ffe0b1475957, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  m_SynchronizePosition: 1
+  m_SynchronizeRotation: 1
+  m_SynchronizeScale: 0
+  m_UseLocal: 1
 --- !u!1001 &156573462426781071
 PrefabInstance:
   m_ObjectHideFlags: 0

@@ -4,40 +4,21 @@ using Photon.Pun;
 public class DestructibleRock : MonoBehaviourPun
 {
     [Header("Rock Parts")]
-    public GameObject firstBreakPart;       // large initial piece
-    public GameObject[] remainingParts;     // other 3 parts or any number of parts
+    public GameObject firstBreakPart;
+    public GameObject[] remainingParts;
 
     [Header("Settings")]
-    public int hitsNeeded = 2;              // 1st hit removes big piece, 2nd hit clears rest
+    public int hitsNeeded = 2;
     public float destroyDelay = 0.5f;
 
     private int hitCount = 0;
 
-    void Start()
-    {
-        Debug.Log("[DestructibleRock] Initialized rock obstacle.");
-
-        if (firstBreakPart == null)
-            Debug.LogWarning("[DestructibleRock] First break part NOT assigned!");
-
-        if (remainingParts == null || remainingParts.Length == 0)
-            Debug.LogWarning("[DestructibleRock] Remaining parts NOT assigned!");
-    }
-
     private void OnTriggerEnter(Collider other)
     {
-        Debug.Log("[DestructibleRock] Trigger hit by: " + other.name);
-
-        if (!PhotonNetwork.IsMasterClient)
-        {
-            Debug.Log("[DestructibleRock] Not master client. Ignoring.");
-            return;
-        }
-
         if (other.CompareTag("Earth"))
         {
-            Debug.Log("[DestructibleRock] Earth hit detected, applying damage...");
-            photonView.RPC("RPC_ApplyHit", RpcTarget.All);
+            // 🌎 Any player can damage it
+            photonView.RPC("RPC_ApplyHit", RpcTarget.AllBuffered);
         }
     }
 
@@ -46,43 +27,26 @@ public class DestructibleRock : MonoBehaviourPun
     {
         hitCount++;
 
-        Debug.Log("[DestructibleRock] Hit received. Count = " + hitCount);
-
-        // 🔊 Reproducir SFX RockBreaking
-        Debug.Log("[DestructibleRock] Playing RockBreaking SFX...");
+        // 🔊 SFX
         SoundManager.Instance.Play(SfxKey.RockBreaking, transform);
 
-        // 1st hit → remove the first big rock part
-        if (hitCount == 1)
-        {
-            if (firstBreakPart != null)
-            {
-                firstBreakPart.SetActive(false);
-                Debug.Log("[DestructibleRock] First rock part disabled.");
-            }
-        }
+        // 🔨 First big hit
+        if (hitCount == 1 && firstBreakPart != null)
+            firstBreakPart.SetActive(false);
 
-        // 2nd hit → remove all remaining parts
+        // 🪨 Final destruction
         if (hitCount >= hitsNeeded)
         {
-            Debug.Log("[DestructibleRock] Rock fully destroyed!");
-
             foreach (GameObject part in remainingParts)
-            {
-                if (part != null)
-                    part.SetActive(false);
-            }
+                if (part != null) part.SetActive(false);
 
-            if (PhotonNetwork.IsMasterClient)
-            {
-                Invoke(nameof(RemoveRock), destroyDelay);
-            }
+            // 🧼 Small delay for VFX → then disappear for everyone
+            Invoke(nameof(DeactivateRock), destroyDelay);
         }
     }
 
-    void RemoveRock()
+    void DeactivateRock()
     {
-        Debug.Log("[DestructibleRock] Removing rock from scene.");
-        PhotonNetwork.Destroy(gameObject);
+        gameObject.SetActive(false);
     }
 }

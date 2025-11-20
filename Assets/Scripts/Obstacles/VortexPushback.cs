@@ -26,11 +26,8 @@ public class VortexObstacle : MonoBehaviourPun
         // -------------------------------------
         if (other.CompareTag("Wind"))
         {
-            if (PhotonNetwork.IsMasterClient)
-            {
-                if (debugLogs) Debug.Log("[VortexObstacle] Wind detected → Deactivating vortex...");
-                photonView.RPC("RPC_DeactivateVortex", RpcTarget.All);
-            }
+            Debug.Log("[VortexObstacle] Wind detected → Deactivating vortex...");
+            photonView.RPC("RPC_DeactivateVortex", RpcTarget.AllBuffered);
             return;
         }
 
