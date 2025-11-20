@@ -25,7 +25,14 @@ public enum SfxKey
     WaterSpell,
     WindSpell,
     EarthSpell,
-    RockBreaking
+    RockBreaking,
+    Walk,
+    Jump,
+    MagicCast,
+    DissipatingVortex,
+    FireHissing,
+    BurningTree,
+    AliveVortex
 
 }
 

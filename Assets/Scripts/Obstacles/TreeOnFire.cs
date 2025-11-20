@@ -35,10 +35,12 @@ public class TreeOnFire : MonoBehaviourPun
         if (isBurning) return;
         isBurning = true;
 
+        // 🔊 SOUND
+        SoundManager.Instance.Play(SfxKey.BurningTree, transform);
+
         if (fireVFX != null)
             fireVFX.SetActive(true);
 
-        // 🔥 Deactivate after burn duration (everyone runs this locally)
         Invoke(nameof(DeactivateTree), burnDuration);
     }
 

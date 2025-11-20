@@ -18,6 +18,11 @@ public class FieryGround : MonoBehaviourPun
     void RPC_Deactivate()
     {
         Debug.Log("[FieryGround] Deactivated by RPC.");
+
+        // 🔊 PLAY HISSING SOUND
+        SoundManager.Instance.Play(SfxKey.FireHissing, transform);
+
         gameObject.SetActive(false);
     }
+
 }

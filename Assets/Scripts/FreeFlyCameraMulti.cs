@@ -167,6 +167,7 @@ public class FreeFlyCameraMulti : MonoBehaviourPun
         float inputMagnitude = Mathf.Clamp01(moveInput.magnitude);
         if (_animator)
             _animator.SetFloat("Speed", inputMagnitude, 0.1f, Time.deltaTime);
+        HandleWalkSFX();
     }
 
     void FixedUpdate()
@@ -193,6 +194,7 @@ public class FreeFlyCameraMulti : MonoBehaviourPun
             rb.AddForce(Vector3.up * jumpForce, ForceMode.VelocityChange);
 
             if (_animator) _animator.SetTrigger(PARAM_JUMP);
+            SoundManager.Instance.Play(SfxKey.Jump, transform);
         }
 
         // Animation speed
@@ -216,6 +218,34 @@ public class FreeFlyCameraMulti : MonoBehaviourPun
 
         return Physics.SphereCast(origin, radius, Vector3.down, out _, castDistance, groundMask, QueryTriggerInteraction.Ignore);
     }
+
+    private bool isWalkingSfxPlaying = false;
+
+    void HandleWalkSFX()
+    {
+        if (_animator == null) return;
+
+        bool isMoving = _animator.GetFloat("Speed") > 0.1f;
+        bool grounded = IsGrounded();
+
+        if (isMoving && grounded)
+        {
+            if (!isWalkingSfxPlaying)
+            {
+                isWalkingSfxPlaying = true;
+                SoundManager.Instance.StartLoop("playerWalk_" + photonView.ViewID, SfxKey.Walk, transform);
+            }
+        }
+        else
+        {
+            if (isWalkingSfxPlaying)
+            {
+                isWalkingSfxPlaying = false;
+                SoundManager.Instance.StopLoop("playerWalk_" + photonView.ViewID);
+            }
+        }
+    }
+
 
     public void OnMove(InputValue value) => moveInput = value.Get<Vector2>();
     public void OnLook(InputValue value) => lookInput = value.Get<Vector2>();

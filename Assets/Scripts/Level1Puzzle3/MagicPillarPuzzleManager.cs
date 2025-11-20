@@ -9,22 +9,145 @@ public class MagicPillarPuzzleManager : MonoBehaviourPun
         { "Fire", "Fire", "Water", "Wind", "Earth", "Fire", "Wind", "Water" };
 
     [Header("Mirror Alignment Targets")]
-    public Transform[] mirrorTargets; // assign scene targets in inspector
+    public Transform[] mirrorTargets;
     public List<MirrorController> mirrorsToAlign = new List<MirrorController>();
 
     [Header("Laser Beams")]
-    public LaserBeam halfwayLaser; // assign the laser that activates at halfway
-    public LaserBeam fullLaser;    // assign the laser that activates at full code
+    public LaserBeam halfwayLaser;
+    public LaserBeam fullLaser;
 
     private List<string> currentInput = new List<string>();
     public float resetDelay = 2f;
 
-    // Called by MirrorController when spawned
+    // -------------------------------------------------------------
+    //  Public: Buttons call THIS via RPC (MasterClient only)
+    // -------------------------------------------------------------
+    [PunRPC]
+    void RPC_RegisterInput(string element)
+    {
+        if (!PhotonNetwork.IsMasterClient)
+            return; // Safety: only Master runs puzzle logic
+
+        RegisterInputInternal(element);
+    }
+
+    // -------------------------------------------------------------
+    //  INTERNAL SEQUENCE PROCESSING (MasterClient only)
+    // -------------------------------------------------------------
+    private void RegisterInputInternal(string element)
+    {
+        Debug.Log($"[MASTER] RegisterInput: {element}");
+
+        if (currentInput.Count >= correctSequence.Count)
+            return;
+
+        // Wrong input BEFORE adding
+        if (element != correctSequence[currentInput.Count])
+        {
+            Debug.Log("[MASTER] ❌ Wrong element → resetting!");
+
+            // Play SFX globally
+            photonView.RPC("RPC_PlayWrong", RpcTarget.All);
+
+            ResetSequenceInternal();
+            return;
+        }
+
+        // Play correct ding globally
+        photonView.RPC("RPC_PlayCorrect", RpcTarget.All);
+
+        currentInput.Add(element);
+
+        // Halfway
+        if (currentInput.Count == correctSequence.Count / 2)
+        {
+            photonView.RPC("RPC_EnableHalfway", RpcTarget.All);
+        }
+
+        // Puzzle complete
+        if (currentInput.Count == correctSequence.Count)
+        {
+            Debug.Log("[MASTER] ✅ Correct sequence entered!");
+            photonView.RPC(nameof(RPC_OnPuzzleSolved), RpcTarget.AllBuffered);
+        }
+    }
+
+    // -------------------------------------------------------------
+    //  RESET (Master triggers, all clients receive)
+    // -------------------------------------------------------------
+    void ResetSequenceInternal()
+    {
+        StopAllCoroutines();
+        StartCoroutine(ResetAfterDelay());
+    }
+
+    private System.Collections.IEnumerator ResetAfterDelay()
+    {
+        yield return new WaitForSeconds(resetDelay);
+
+        currentInput.Clear();
+        photonView.RPC("RPC_ResetVisuals", RpcTarget.All);
+
+        Debug.Log("[MASTER] 🔄 Sequence reset.");
+    }
+
+    // -------------------------------------------------------------
+    //  RPCs for syncing visuals + sounds across network
+    // -------------------------------------------------------------
+    [PunRPC]
+    void RPC_PlayWrong()
+    {
+        SoundManager.Instance.Play(SfxKey.WrongAnswerBuzz, transform);
+    }
+
+    [PunRPC]
+    void RPC_PlayCorrect()
+    {
+        SoundManager.Instance.Play(SfxKey.CorrectAnswerDing, transform);
+    }
+
+    [PunRPC]
+    void RPC_EnableHalfway()
+    {
+        halfwayLaser?.SetLaserActive(true);
+        SoundManager.Instance.Play(SfxKey.TargetFastPing, transform);
+        Debug.Log("🔹 Halfway laser activated!");
+    }
+
+    [PunRPC]
+    void RPC_ResetVisuals()
+    {
+        halfwayLaser?.SetLaserActive(false);
+        fullLaser?.SetLaserActive(false);
+    }
+
+    // -------------------------------------------------------------
+    //  PUZZLE SOLVED
+    // -------------------------------------------------------------
+    [PunRPC]
+    void RPC_OnPuzzleSolved()
+    {
+        Debug.Log("✨ Puzzle solved! Aligning mirrors...");
+        fullLaser?.SetLaserActive(true);
+
+        SoundManager.Instance.Play(SfxKey.TargetIlluminate, transform);
+
+        foreach (var mirror in mirrorsToAlign)
+        {
+            if (mirror != null)
+                mirror.AlignToTarget();
+        }
+    }
+
+    // -------------------------------------------------------------
+    //  Utility
+    // -------------------------------------------------------------
     public void RegisterMirror(MirrorController mirror)
     {
         mirrorsToAlign.Add(mirror);
 
         int index = mirrorsToAlign.Count - 1;
+
         if (mirrorTargets != null && index < mirrorTargets.Length)
         {
             mirror.alignTarget = mirrorTargets[index];
@@ -32,71 +155,13 @@ public class MagicPillarPuzzleManager : MonoBehaviourPun
         }
     }
 
-    public void RegisterInput(string element)
+    public int GetCurrentInputCount() => currentInput.Count;
+
+    public bool WouldInputBeCorrect(string element)
     {
-        Debug.Log($"RegisterInput called on MagicPillarPuzzleManager, element: {element}");
-        currentInput.Add(element);
+        if (currentInput.Count >= correctSequence.Count)
+            return false;
 
-        // Halfway check
-        if (currentInput.Count == correctSequence.Count / 2)
-        {
-            halfwayLaser?.SetLaserActive(true);
-            Debug.Log("🔹 Halfway laser activated!");
-        }
-
-        if (!IsPrefixMatch())
-        {
-            Debug.Log("❌ Incorrect sequence, resetting...");
-            ResetSequence();
-            return;
-        }
-
-        if (currentInput.Count == correctSequence.Count)
-        {
-            Debug.Log("✅ Correct sequence entered!");
-            photonView.RPC(nameof(RPC_OnPuzzleSolved), RpcTarget.AllBuffered);
-        }
-    }
-
-    bool IsPrefixMatch()
-    {
-        for (int i = 0; i < currentInput.Count; i++)
-        {
-            if (i >= correctSequence.Count || currentInput[i] != correctSequence[i])
-                return false;
-        }
-        return true;
-    }
-
-    void ResetSequence()
-    {
-        StopAllCoroutines();
-        StartCoroutine(ResetAfterDelay());
-
-        // Deactivate lasers immediately on reset
-        halfwayLaser?.SetLaserActive(false);
-        fullLaser?.SetLaserActive(false);
-    }
-
-    private System.Collections.IEnumerator ResetAfterDelay()
-    {
-        yield return new WaitForSeconds(resetDelay);
-        currentInput.Clear();
-        Debug.Log("🔄 Sequence reset.");
-    }
-
-    [PunRPC]
-    void RPC_OnPuzzleSolved()
-    {
-        Debug.Log("✨ Puzzle solved! Aligning mirrors...");
-
-        // Activate full laser
-        fullLaser?.SetLaserActive(true);
-
-        foreach (var mirror in mirrorsToAlign)
-        {
-            if (mirror != null)
-                mirror.AlignToTarget();
-        }
+        return element == correctSequence[currentInput.Count];
     }
 }
