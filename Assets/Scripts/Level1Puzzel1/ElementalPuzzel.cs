@@ -1,6 +1,6 @@
-﻿using System.Collections;
+﻿using UnityEngine;
+using System.Collections;
 using System.Collections.Generic;
-using UnityEngine;
 using Photon.Pun;
 
 public class ElementalPuzzle : MonoBehaviourPun
@@ -33,7 +33,6 @@ public class ElementalPuzzle : MonoBehaviourPun
     private bool canTriggerRandomFall = true;
     private float nextRandomFallAllowedTime = 0f; // tiempo extra
 
-    
     void Update()
     {
         // Pausar/Reanudar puzzles
@@ -53,24 +52,34 @@ public class ElementalPuzzle : MonoBehaviourPun
         // Avanza progreso solo si está activo, no en pausa y todos los engranajes estables
         if (puzzleActivated && !doorPaused && AllGearsStable())
         {
-            doorProgress += Time.deltaTime;
+            float dt = Time.deltaTime;
+            doorProgress += dt;
+
+            // KPI: tiempo estable acumulado
+            KPIPuzzle2Tracker.I?.AccumulateStableTime(dt);
+
             if (doorProgress >= doorOpenTime)
             {
                 OpenDoor();
                 puzzleActivated = false;
             }
         }
+        else if (puzzleActivated && doorPaused)
+        {
+            // KPI: tiempo en pausa (caos)
+            KPIPuzzle2Tracker.I?.AccumulatePausedTime(Time.deltaTime);
+        }
 
         // Caidas aleatorias con gracia + cooldown
         if (puzzleActivated && canTriggerRandomFall && Time.time >= nextRandomFallAllowedTime)
             StartCoroutine(RandomFallTick());
     }
- 
+
     void OnTriggerEnter(Collider other)
     {
         if (!photonView.IsMine)
         {
-            // 🔹 Si este cliente NO tiene autoridad sobre el puzzle, 
+            // Si este cliente NO tiene autoridad sobre el puzzle,
             // manda la acción a todos.
             if (other.CompareTag("Fire"))
                 photonView.RPC("TriggerElement", RpcTarget.All, "Fire");
@@ -81,12 +90,13 @@ public class ElementalPuzzle : MonoBehaviourPun
             return;
         }
 
-        // 🔹 Si SÍ tiene autoridad (el host), ejecuta directamente:
+        // Si SÍ tiene autoridad (el host), ejecuta directamente:
         if (other.CompareTag("Fire"))
             TriggerElement("Fire");
         if (other.CompareTag("Wind"))
             TriggerElement("Wind");
     }
+
     [PunRPC]
     void TriggerElement(string element)
     {
@@ -94,17 +104,25 @@ public class ElementalPuzzle : MonoBehaviourPun
         {
             fireHit = true;
             SoundManager.Instance?.StartLoop(FireLoopId, SfxKey.FireIgniteLoop, transform);
+
+            // KPI: primer impacto Fire
+            KPIPuzzle2Tracker.I?.RegisterElementHit("Fire");
         }
 
-        if (element == "Wind")
+        if (element == "Wind" && !windHit)
+        {
             windHit = true;
 
-        // 🔹 Si ambos elementos están presentes, activa el puzzle
+            // KPI: primer impacto Wind
+            KPIPuzzle2Tracker.I?.RegisterElementHit("Wind");
+        }
+
+        // Si ambos elementos están presentes, activa el puzzle
         if (fireHit && windHit && !puzzleActivated)
         {
             overheated = false;
             puzzleActivated = true;
-            doorProgress = 100f;
+            doorProgress = 0f;      // progreso desde 0
             doorPaused = false;
 
             nextRandomFallAllowedTime = Time.time + randomFallGrace;
@@ -120,17 +138,23 @@ public class ElementalPuzzle : MonoBehaviourPun
                 if (gb != null) gb.SetAutoReactivateOnLand(true);
             }
 
+            // KPI: combinación Fire+Wind que activa el puzzle
+            KPIPuzzle2Tracker.I?.RegisterPuzzleActivated();
+
             ScheduleActivateGears();
         }
     }
-
-   
-
 
     [PunRPC]
     public void DoorPause(bool pause)
     {
         doorPaused = pause;
+
+        if (pause)
+        {
+            // KPI: evento de pausa
+            KPIPuzzle2Tracker.I?.RegisterDoorPause();
+        }
     }
 
     [PunRPC]
@@ -138,10 +162,12 @@ public class ElementalPuzzle : MonoBehaviourPun
     {
         overheated = true;
 
+        // KPI: overheat global
+        KPIPuzzle2Tracker.I?.RegisterOverheatReset();
+
         // limpiar flags de activacion (para obligar a relanzar Fuego+Viento)
         fireHit = false;
         windHit = false;
-       
 
         DoorPause(true);
         puzzleActivated = false;
@@ -196,6 +222,7 @@ public class ElementalPuzzle : MonoBehaviourPun
             _isActivating = false;
         }
     }
+
     [PunRPC]
     void ScheduleActivateGears()
     {
@@ -203,6 +230,7 @@ public class ElementalPuzzle : MonoBehaviourPun
         _activateScheduled = true;
         StartCoroutine(_ActivateNextFrame());
     }
+
     [PunRPC]
     IEnumerator _ActivateNextFrame()
     {
@@ -210,9 +238,13 @@ public class ElementalPuzzle : MonoBehaviourPun
         _activateScheduled = false;
         ActivateGears();
     }
+
     [PunRPC]
     void OpenDoor()
     {
+        // KPI: puerta abierta (puzzle resuelto)
+        KPIPuzzle2Tracker.I?.RegisterDoorOpened();
+
         // Inicia la rotación de las puertas en lugar de destruirlas
         StartCoroutine(RotateDoors());
 
@@ -273,6 +305,10 @@ public class ElementalPuzzle : MonoBehaviourPun
         if (candidates.Count > 0)
         {
             var pick = candidates[Random.Range(0, candidates.Count)];
+
+            // KPI: caída aleatoria de engrane
+            KPIPuzzle2Tracker.I?.RegisterRandomFall();
+
             pick.MakeFall();
         }
 

@@ -127,7 +127,7 @@ public class EndorsementScreenController : MonoBehaviour
 
         long now = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
 
-        // 1) Endorsements (como antes)
+        // 1) Endorsements
         var endorseList = new List<EndorsementPayload>();
         foreach (var card in _cards)
             if (card.HasSelection(out var type))
@@ -140,7 +140,7 @@ public class EndorsementScreenController : MonoBehaviour
                     unixTime = now
                 });
 
-        // 2) Compatibilidad (“Volvería a jugar”) – independientes
+        // 2) Compatibilidad
         var compatList = new List<CompatibilityVotePayload>();
         foreach (var card in _cards)
             if (card.PlayAgainSelected)
@@ -154,9 +154,15 @@ public class EndorsementScreenController : MonoBehaviour
                 });
 
         // Si no hay nada, cerrar
-        if (endorseList.Count == 0 && compatList.Count == 0) { CloseScreen(); return; }
+        if (endorseList.Count == 0 && compatList.Count == 0)
+        {
+            // AUN ASÍ podrías querer mandar inferencia, si ya terminó la partida
+            TrySendInference();
+            CloseScreen();
+            return;
+        }
 
-        // Asegurar uploader
+        // Asegurar uploader de endorsements
         if (EndorsementUploader.Instance == null)
         {
             var go = new GameObject("EndorsementUploader");
@@ -169,8 +175,23 @@ public class EndorsementScreenController : MonoBehaviour
         if (compatList.Count > 0)
             EndorsementUploader.Instance.EnqueueAndSendCompatibility(compatList);
 
+        // Mandar también la inferencia
+        TrySendInference();
+
         CloseScreen();
     }
+
+    private void TrySendInference()
+    {
+        if (InferenceUploader.Instance == null)
+        {
+            var go = new GameObject("InferenceUploader");
+            go.AddComponent<InferenceUploader>();
+        }
+
+        InferenceUploader.Instance.SendInference(_matchId);
+    }
+
 
 
     private void LogPlayAgainVotes()

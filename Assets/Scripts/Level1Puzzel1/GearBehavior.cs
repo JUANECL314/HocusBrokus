@@ -6,9 +6,11 @@ public class GearBehavior : MonoBehaviourPun
 {
     private Renderer rend;
     private Rigidbody rb;
+
     [Header("Reactivation")]
     [SerializeField] private bool autoReactivateOnLand = true;
     public void SetAutoReactivateOnLand(bool v) => autoReactivateOnLand = v;
+
     [Header("State")]
     [SerializeField] private bool isRotating = false;
     public bool isFalling = false;
@@ -29,7 +31,7 @@ public class GearBehavior : MonoBehaviourPun
     private Coroutine destroyDoorsCo;
     private Coroutine overheatCo;
     private bool cooledDuringWindow = false;
-    
+
     void Start()
     {
         rend = GetComponent<Renderer>();
@@ -46,16 +48,19 @@ public class GearBehavior : MonoBehaviourPun
         initialPosition = transform.position;
         rend.material.color = Color.gray;
     }
-    
+
     void Update()
     {
-        if (isRotating) transform.Rotate(Vector3.forward * -rotationSpeed * Time.deltaTime, Space.Self);
+        if (isRotating)
+            transform.Rotate(Vector3.forward * -rotationSpeed * Time.deltaTime, Space.Self);
+
         if (isFalling)
         {
             rb.isKinematic = false;
             rb.linearVelocity = new Vector3(0, -fallSpeed, 0);
         }
     }
+
     [PunRPC]
     public void StartRotation()
     {
@@ -72,6 +77,7 @@ public class GearBehavior : MonoBehaviourPun
         if (overheatCo != null) StopCoroutine(overheatCo);
         overheatCo = StartCoroutine(OverheatCountdown());
     }
+
     [PunRPC]
     public void StopRotation()
     {
@@ -84,6 +90,7 @@ public class GearBehavior : MonoBehaviourPun
         if (rotateFlowCo != null) { StopCoroutine(rotateFlowCo); rotateFlowCo = null; }
         if (overheatCo != null) { StopCoroutine(overheatCo); overheatCo = null; }
     }
+
     [PunRPC]
     private IEnumerator RotateAndChangeColorFlow()
     {
@@ -97,15 +104,21 @@ public class GearBehavior : MonoBehaviourPun
 
         rend.material.color = Color.red;
     }
+
     [PunRPC]
     public void CoolDown()
     {
         rend.material.color = Color.gray;
         SoundManager.Instance?.Play(SfxKey.GearCoolHiss, transform);
         cooledDuringWindow = true;
+
+        // KPI: Agua enfría engranes
+        KPIPuzzle2Tracker.I?.RegisterWaterCooldown();
+
         if (overheatCo != null) StopCoroutine(overheatCo);
         StartCoroutine(RearmOverheatAfterDelay());
     }
+
     [PunRPC]
     public void ResetToInitialPosition(bool smooth = true)
     {
@@ -115,12 +128,13 @@ public class GearBehavior : MonoBehaviourPun
             rb.isKinematic = true;
             rb.linearVelocity = Vector3.zero;
             rb.angularVelocity = Vector3.zero;
-            rb.constraints = RigidbodyConstraints.None; // 🔹 desbloquea rotaciones
+            rb.constraints = RigidbodyConstraints.None; // desbloquea rotaciones
         }
 
         if (!smooth) transform.position = initialPosition;
         else StartCoroutine(ReturnToInitialPosition());
     }
+
     [PunRPC]
     private IEnumerator OverheatCountdown()
     {
@@ -135,6 +149,7 @@ public class GearBehavior : MonoBehaviourPun
         }
         Overheat();
     }
+
     [PunRPC]
     private IEnumerator RearmOverheatAfterDelay()
     {
@@ -147,6 +162,7 @@ public class GearBehavior : MonoBehaviourPun
         }
         if (isRotating) overheatCo = StartCoroutine(OverheatCountdown());
     }
+
     [PunRPC]
     private void Overheat()
     {
@@ -154,6 +170,7 @@ public class GearBehavior : MonoBehaviourPun
         var puzzle = FindObjectOfType<ElementalPuzzle>();
         if (puzzle != null) puzzle.ResetFromOverheatAndReturnAll();
     }
+
     [PunRPC]
     public void ReactivateAfterLand()
     {
@@ -165,6 +182,7 @@ public class GearBehavior : MonoBehaviourPun
             SoundManager.Instance?.StartLoop(LoopId, SfxKey.GearLoop, transform);
         }
     }
+
     [PunRPC]
     public void MakeFall()
     {
@@ -176,7 +194,7 @@ public class GearBehavior : MonoBehaviourPun
         rb.linearVelocity = Vector3.zero;
         rb.angularVelocity = Vector3.zero;
 
-        rb.constraints = RigidbodyConstraints.FreezeRotation; 
+        rb.constraints = RigidbodyConstraints.FreezeRotation;
 
         SoundManager.Instance?.StopLoop(LoopId);
         SoundManager.Instance?.Play(SfxKey.GearFall, transform);
@@ -184,14 +202,23 @@ public class GearBehavior : MonoBehaviourPun
         var puzzle = FindObjectOfType<ElementalPuzzle>();
         if (puzzle != null) puzzle.DoorPause(true);
     }
+
     [PunRPC]
     void OnCollisionEnter(Collision collision)
     {
+        // Agua enfría engrane en rotación
         if (collision.gameObject.CompareTag("Water") && isRotating)
+        {
             CoolDown();
+        }
 
+        // Tierra regresa engrane que está cayendo
         if (collision.gameObject.CompareTag("Earth") && isFalling)
+        {
+            // KPI: Tierra resetea engrane
+            KPIPuzzle2Tracker.I?.RegisterEarthReset();
             StartCoroutine(ReturnToInitialPosition());
+        }
 
         if (collision.gameObject.CompareTag("Ground") && isFalling)
         {
@@ -199,16 +226,17 @@ public class GearBehavior : MonoBehaviourPun
             rb.isKinematic = true;
             rb.linearVelocity = Vector3.zero;
             rb.angularVelocity = Vector3.zero;
-            rb.constraints = RigidbodyConstraints.None; // 🔹 vuelve a permitir rotar después
+            rb.constraints = RigidbodyConstraints.None; // vuelve a permitir rotar después
             SoundManager.Instance?.Play(SfxKey.GearStop, transform);
         }
     }
+
     [PunRPC]
     IEnumerator ReturnToInitialPosition()
     {
         isFalling = false;
         rb.isKinematic = true;
-        rb.constraints = RigidbodyConstraints.None; // 🔹 permite rotación nuevamente
+        rb.constraints = RigidbodyConstraints.None; // permite rotación nuevamente
 
         Vector3 start = transform.position;
         float elapsed = 0f;
