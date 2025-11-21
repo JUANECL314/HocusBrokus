@@ -13,7 +13,7 @@ public class ButtonActivation : MonoBehaviourPun, ISubject
     public bool isEnabled = true;
 
     private bool isPressed = false;
-
+    public KeyCode teclaAbrir = KeyCode.R;
     public Transform localPlayer;
     public GameObject panelUI;
 
@@ -66,10 +66,10 @@ public class ButtonActivation : MonoBehaviourPun, ISubject
                 panelUI.SetActive(false);
         }
 
-        if (dist <= interactionDistance && Input.GetKeyDown(KeyCode.R))
+        if (dist <= interactionDistance && Input.GetKeyDown(teclaAbrir))
         {
             isPressed = true;
-        } else if (Input.GetKeyUp(KeyCode.R) && (dist <= interactionDistance || dist > interactionDistance))
+        } else if (Input.GetKeyUp(teclaAbrir) && (dist <= interactionDistance || dist > interactionDistance))
         {
             isPressed = false;
             
@@ -92,8 +92,6 @@ public class ButtonActivation : MonoBehaviourPun, ISubject
     {
         SetEnabled(state);
     }
-
-   
     public void SetEnabled(bool e)
     {
         isEnabled = e;
@@ -121,14 +119,8 @@ public class ButtonActivation : MonoBehaviourPun, ISubject
             {
                 pipeMaterial.DisableKeyword("_EMISSION");
                 pipeMaterial.SetColor("_EmissionColor", Color.black);
-            }
-           
-
-            
-            
+            } 
         }
-
-    }
-    
+    }    
 }
 

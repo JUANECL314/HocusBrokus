@@ -5,12 +5,14 @@ public class MazeStateMachine : MonoBehaviourPun
 {
     public static MazeStateMachine Instance;
 
-    public MazeEnumState currentState = MazeEnumState.Create;
+    public MazeEnumState currentState = MazeEnumState.Init;
 
     private GridLayoutBase grid;
     private bool starting = false;
     public float interactionDistance = 2f;
     public Transform localPlayer;
+    public GameObject panelUI;
+    public KeyCode teclaAbrir = KeyCode.R;
     void Awake()
     {
         Instance = this;
@@ -20,7 +22,7 @@ public class MazeStateMachine : MonoBehaviourPun
     {
         StartCoroutine(FindLocalPlayer());
         grid = GridLayoutBase.instance;
-        StateMachineStatus();
+        StateMachineStatus(currentState);
     }
 
     void Update()
@@ -28,33 +30,38 @@ public class MazeStateMachine : MonoBehaviourPun
         if (!PhotonNetwork.IsMasterClient || localPlayer == null) return;
 
         float dist = Vector3.Distance(localPlayer.position, transform.position);
-
-        if (dist <= interactionDistance && Input.GetKeyDown(KeyCode.R) && !starting)
+        if (dist <= interactionDistance && !starting)
+        {   
+            
+            if (!panelUI.activeSelf)
+                panelUI.SetActive(true);
+        }
+        else
+        {
+            if (panelUI.activeSelf)
+                panelUI.SetActive(false);
+        }
+        if (dist <= interactionDistance && Input.GetKeyDown(teclaAbrir) && !starting)
         {
             starting = true;
-            StartMaze();
+            
+            StateMachineStatus(MazeEnumState.Create);
         }
 
         
     }
 
-    void StartMaze()
+   
+
+    void StateMachineStatus(MazeEnumState next)
     {
-        
-        ChangeState(MazeEnumState.Create);
-
-    }
-
-
-    void StateMachineStatus()
-    {
-        
+        currentState = next;
         switch (currentState)
         {
             case MazeEnumState.Create:
                 Debug.Log("Creando el laberinto");
                 grid.GenerateGrid();
-                grid.GenerateMaze();
+                
                 Debug.Log("Laberinto terminado");
                 break;
             case MazeEnumState.Complete:
@@ -62,12 +69,6 @@ public class MazeStateMachine : MonoBehaviourPun
                 break;
         }
         
-    }
-
-
-    public void ChangeState(MazeEnumState state)
-    {
-        currentState = state;
     }
 
     IEnumerator FindLocalPlayer()

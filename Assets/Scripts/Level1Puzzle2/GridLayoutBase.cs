@@ -44,7 +44,7 @@ public class GridLayoutBase : MonoBehaviour
     void Start()
     {
         tiles = new List<List<GameObject>>();
-        GenerateGrid();
+        
         
     }
 
