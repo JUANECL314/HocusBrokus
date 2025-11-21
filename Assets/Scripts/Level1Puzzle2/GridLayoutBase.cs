@@ -6,10 +6,11 @@ public class GridLayoutBase : MonoBehaviour
     public static GridLayoutBase instance;
 
     [Header("Prefabs")]
-    public GameObject tilePrefab;
+    
     public GameObject wallPrefab;
     public GameObject floorPrefab;
-    public GameObject goalPrefab; // ← Prefab para el nodo final
+    public GameObject goalPrefab; 
+    
 
     [Header("Grid Dimensions")]
     public int rows;
@@ -42,8 +43,8 @@ public class GridLayoutBase : MonoBehaviour
         tiles = new List<List<GameObject>>();
         GenerateGrid();
         GenerateMaze();
-        //Carve(startNode.y, startNode.x, 0);
-        //MarkGoalNode();
+        Carve(startNode.y, startNode.x, 0);
+        MarkGoalNode();
     }
 
     public void ReplaceTile(int y, int x, GameObject prefab)
@@ -59,7 +60,7 @@ public class GridLayoutBase : MonoBehaviour
         tiles[y][x] = newTile;
         Destroy(old);
     }
-
+    [ContextMenu("Generate Grid")]
     public void GenerateGrid()
     {
         tiles.Clear();
@@ -73,10 +74,10 @@ public class GridLayoutBase : MonoBehaviour
             {
                 Vector3 pos = new Vector3(
                     transform.position.x + (x * tileSize),
-                    transform.position.y,
+                    0,
                     transform.position.z + (y * tileSize));
 
-                GameObject tile = Instantiate(tilePrefab, pos, Quaternion.identity);
+                GameObject tile = Instantiate(wallPrefab, pos, Quaternion.identity);
                 tile.transform.parent = transform;
                 tiles[y].Add(tile);
             }
@@ -87,9 +88,6 @@ public class GridLayoutBase : MonoBehaviour
     {
         visited = new bool[rows, columns];
 
-        for (int y = 0; y < rows; y++)
-            for (int x = 0; x < columns; x++)
-                ReplaceTile(y, x, wallPrefab);
     }
 
     // ---- DFS ----

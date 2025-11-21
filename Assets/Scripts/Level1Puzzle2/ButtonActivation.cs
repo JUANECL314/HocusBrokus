@@ -21,15 +21,20 @@ public class ButtonActivation : MonoBehaviourPun, ISubject
 
     public void RemoveObserver(IObserver obs) => observers.Remove(obs);
     private Renderer rend;
+    public GameObject[] pipes;
     void Start()
     {
         StartCoroutine(FindLocalPlayer());
         rend = GetComponent<Renderer>();
 
-        
-        if (rend != null && isEnabled) rend.material.color = Color.red;
-    }
 
+        if (rend != null && isEnabled) rend.material.color = Color.red;
+        foreach (GameObject pipe in pipes)
+        {
+
+            pipe.GetComponent<Renderer>().material.color = Color.gray;
+        }
+    }
     IEnumerator FindLocalPlayer()
     {
         while (PhotonNetwork.LocalPlayer.TagObject == null)
@@ -74,11 +79,14 @@ public class ButtonActivation : MonoBehaviourPun, ISubject
     {
         SetEnabled(state);
     }
+
+   
     public void SetEnabled(bool e)
     {
         isEnabled = e;
         rend.material.color = isEnabled ? Color.red : Color.gray;
-      
+
+        
     }
     [PunRPC]
     void RPC_SetPressed(bool state)
@@ -88,6 +96,12 @@ public class ButtonActivation : MonoBehaviourPun, ISubject
     public void SetPressed(bool e)
     {
         rend.material.color = e ? Color.green : Color.red;
+        foreach (GameObject pipe in pipes)
+        {
+            pipe.GetComponent<Renderer>().material.color = e ? Color.green : Color.gray;
+        }
+
     }
+    
 }
 

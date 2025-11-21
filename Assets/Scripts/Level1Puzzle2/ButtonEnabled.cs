@@ -35,11 +35,12 @@ public class ButtonEnabler : MonoBehaviour, IObserver
         {
             Debug.Log("[ButtonEnabler] Activando targetButton");
             targetButton.SetEnabled(true);
-
+            
             
             if (targetButton.photonView != null && targetButton.photonView.IsMine)
             {
                 targetButton.photonView.RPC("RPC_SetEnabledAll", RpcTarget.All, true);
+                activatorButton.SetPressed(true);
             }
         }
     }
