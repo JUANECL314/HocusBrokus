@@ -1,4 +1,5 @@
 using Photon.Pun;
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using Unity.VisualScripting;
@@ -14,6 +15,7 @@ public class ButtonActivation : MonoBehaviourPun, ISubject
     private bool isPressed = false;
 
     public Transform localPlayer;
+    public GameObject panelUI;
 
     private List<IObserver> observers = new List<IObserver>();
 
@@ -24,6 +26,7 @@ public class ButtonActivation : MonoBehaviourPun, ISubject
     public GameObject[] pipes;
     void Start()
     {
+        panelUI.SetActive(false);
         StartCoroutine(FindLocalPlayer());
         rend = GetComponent<Renderer>();
 
@@ -51,8 +54,18 @@ public class ButtonActivation : MonoBehaviourPun, ISubject
         if (!isEnabled || localPlayer == null) return;
 
         float dist = Vector3.Distance(localPlayer.position, transform.position);
-        
-        
+
+        if (dist <= interactionDistance)
+        {
+            if (!panelUI.activeSelf)
+                panelUI.SetActive(true);
+        }
+        else
+        {
+            if (panelUI.activeSelf)
+                panelUI.SetActive(false);
+        }
+
         if (dist <= interactionDistance && Input.GetKeyDown(KeyCode.R))
         {
             isPressed = true;
@@ -84,10 +97,9 @@ public class ButtonActivation : MonoBehaviourPun, ISubject
     public void SetEnabled(bool e)
     {
         isEnabled = e;
-        rend.material.color = isEnabled ? Color.red : Color.gray;
-
-        
+        rend.material.color = isEnabled ? Color.red : Color.gray;        
     }
+
     [PunRPC]
     void RPC_SetPressed(bool state)
     {
@@ -98,7 +110,22 @@ public class ButtonActivation : MonoBehaviourPun, ISubject
         rend.material.color = e ? Color.green : Color.red;
         foreach (GameObject pipe in pipes)
         {
-            pipe.GetComponent<Renderer>().material.color = e ? Color.green : Color.gray;
+            Renderer renderer = pipe.GetComponent<Renderer>();
+            Material pipeMaterial = renderer.material;
+            if (e)
+            {
+                pipeMaterial.EnableKeyword("_EMISSION");
+                pipeMaterial.SetColor("_EmissionColor", Color.green * 1.4f);
+            }
+            else
+            {
+                pipeMaterial.DisableKeyword("_EMISSION");
+                pipeMaterial.SetColor("_EmissionColor", Color.black);
+            }
+           
+
+            
+            
         }
 
     }
