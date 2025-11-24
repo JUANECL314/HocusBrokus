@@ -499,7 +499,7 @@ Canvas:
   m_AdditionalShaderChannelsFlag: 25
   m_UpdateRectTransformForStandalone: 0
   m_SortingLayerID: 0
-  m_SortingOrder: 5
+  m_SortingOrder: 0
   m_TargetDisplay: 0
 --- !u!114 &6351899397026972881
 MonoBehaviour:
@@ -3118,6 +3118,17 @@ MonoBehaviour:
   characterModel: {fileID: 432736641235007354}
   cameraTransform: {fileID: 2349355420028090284}
   cameraOffset: {x: 0, y: 1.3, z: 0.3}
+  useSceneJumpConfig: 1
+  defaultJumpForce: 20
+  sceneJumpConfigs:
+  - sceneName: TownRoom
+    jumpForce: 5
+  - sceneName: CavePuzzle1
+    jumpForce: 5
+  - sceneName: CavePuzzle2
+    jumpForce: 5
+  - sceneName: CavePuzzle3
+    jumpForce: 20
   jumpHeight: 20
   gravity: -2
   eyeLookOffset: {x: 0, y: 0}
