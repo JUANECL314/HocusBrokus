@@ -1,4 +1,4 @@
-using UnityEngine;
+Ôªøusing UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.InputSystem;
 using UnityEngine.EventSystems;
@@ -7,18 +7,25 @@ using Photon.Pun;
 public class SettingsMenuControllerPhoton : MonoBehaviour
 {
     [Header("UI (asignar en Inspector)")]
-    [SerializeField] GameObject panelRoot;
-    [SerializeField] Slider mouseSens;
-    [SerializeField] Slider gamepadSens;
+    [SerializeField] private GameObject panelRoot;
+    [SerializeField] private Slider mouseSens;
+    [SerializeField] private Slider gamepadSens;
 
-    // PlayerInput del OWNER (en tu jugador con PhotonView.IsMine)
+    [Header("Multiplayer UI (ra√≠z de la UI que se debe ocultar)")]
+    [SerializeField] private GameObject multiplayerUIRoot;
+
+    // Player del owner
     private PlayerInput ownerInput;
-    private bool searchedOwner = false;
+    private FreeFlyCameraMulti ownerController;
 
     void Start()
     {
-        if (!panelRoot) Debug.LogError("[SettingsMenuPhoton] panelRoot no asignado");
-        if (panelRoot) panelRoot.SetActive(false);
+        if (!panelRoot)
+            Debug.LogError("[SettingsMenuPhoton] panelRoot no asignado");
+
+        if (panelRoot)
+            panelRoot.SetActive(false);
+
         RefreshUIFromSettings();
     }
 
@@ -28,21 +35,34 @@ public class SettingsMenuControllerPhoton : MonoBehaviour
             TogglePanel();
     }
 
-    void FindOwnerPlayerInputOnce()
+    /// <summary>
+    /// Busca el PhotonView.IsMine y le saca PlayerInput y FreeFlyCameraMulti.
+    /// Es seguro llamarlo muchas veces: s√≥lo hace algo si a√∫n no tiene refs.
+    /// </summary>
+    void FindOwnerComponents()
     {
-        if (searchedOwner) return;
-        searchedOwner = true;
+        // Si ya tenemos al menos uno, no hace falta volver a buscar
+        if (ownerInput != null && ownerController != null)
+            return;
 
-        // Busca el Player del OWNER (PhotonView.IsMine)
         foreach (var pv in FindObjectsOfType<PhotonView>())
         {
-            if (pv.IsMine)
-            {
+            if (!pv.IsMine) continue;
+
+            if (ownerInput == null)
                 ownerInput = pv.GetComponent<PlayerInput>();
-                break;
+
+            if (ownerController == null)
+            {
+                ownerController = pv.GetComponent<FreeFlyCameraMulti>();
+                if (!ownerController)
+                    ownerController = pv.GetComponentInChildren<FreeFlyCameraMulti>();
             }
+
+            // si ya tenemos ambos, salimos
+            if (ownerInput != null && ownerController != null)
+                break;
         }
-        // Si no hay owner a˙n (lobby/men˙), queda null ó est· bien.
     }
 
     public void TogglePanel()
@@ -52,12 +72,26 @@ public class SettingsMenuControllerPhoton : MonoBehaviour
         EnsureEventSystem();
 
         bool show = !panelRoot.activeSelf;
+
+        // Mostrar/ocultar panel Settings
         panelRoot.SetActive(show);
+
+        // Ocultar/mostrar UI de multiplayer inverso
+        if (multiplayerUIRoot)
+            multiplayerUIRoot.SetActive(!show);
 
         if (show)
         {
-            FindOwnerPlayerInputOnce();
-            if (ownerInput) ownerInput.enabled = false;
+            // Intentar encontrar al owner (si a√∫n no existe, simplemente quedar√° en null)
+            FindOwnerComponents();
+
+            // Congelar player (si ya est√° cargado)
+            if (ownerController)
+                ownerController.SetFrozen(true);
+
+            // Desactivar input del player
+            if (ownerInput)
+                ownerInput.enabled = false;
 
             Cursor.lockState = CursorLockMode.None;
             Cursor.visible = true;
@@ -67,7 +101,13 @@ public class SettingsMenuControllerPhoton : MonoBehaviour
         else
         {
             PushUIToSettings();
-            if (ownerInput) ownerInput.enabled = true;
+
+            // Descongelar player (si ya estaba cargado)
+            if (ownerController)
+                ownerController.SetFrozen(false);
+
+            if (ownerInput)
+                ownerInput.enabled = true;
         }
     }
 
@@ -79,6 +119,7 @@ public class SettingsMenuControllerPhoton : MonoBehaviour
             ms = SettingsManager.I.MouseSensitivity;
             gs = SettingsManager.I.GamepadSensitivity;
         }
+
         if (mouseSens) mouseSens.value = ms;
         if (gamepadSens) gamepadSens.value = gs;
     }
@@ -90,10 +131,21 @@ public class SettingsMenuControllerPhoton : MonoBehaviour
         if (gamepadSens) SettingsManager.I.SetGamepadSensitivity(gamepadSens.value);
     }
 
-    // Hooks de UI
-    public void OnMouseSensChanged(float v) { if (SettingsManager.I) SettingsManager.I.SetMouseSensitivity(v); }
-    public void OnGamepadSensChanged(float v) { if (SettingsManager.I) SettingsManager.I.SetGamepadSensitivity(v); }
-    public void OnCloseClicked() { TogglePanel(); }
+    // Hooks UI
+    public void OnMouseSensChanged(float v)
+    {
+        if (SettingsManager.I) SettingsManager.I.SetMouseSensitivity(v);
+    }
+
+    public void OnGamepadSensChanged(float v)
+    {
+        if (SettingsManager.I) SettingsManager.I.SetGamepadSensitivity(v);
+    }
+
+    public void OnCloseClicked()
+    {
+        TogglePanel();
+    }
 
     static void EnsureEventSystem()
     {

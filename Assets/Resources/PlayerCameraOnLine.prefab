@@ -469,8 +469,8 @@ RectTransform:
   m_LocalScale: {x: 0, y: 0, z: 0}
   m_ConstrainProportionsScale: 0
   m_Children:
-  - {fileID: 6364431972700825002}
   - {fileID: 5455536153689783544}
+  - {fileID: 6364431972700825002}
   m_Father: {fileID: 432736641235007354}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
@@ -499,7 +499,7 @@ Canvas:
   m_AdditionalShaderChannelsFlag: 25
   m_UpdateRectTransformForStandalone: 0
   m_SortingLayerID: 0
-  m_SortingOrder: 0
+  m_SortingOrder: 1
   m_TargetDisplay: 0
 --- !u!114 &6351899397026972881
 MonoBehaviour:
@@ -556,6 +556,7 @@ MonoBehaviour:
   panelRoot: {fileID: 679534594997719774}
   mouseSens: {fileID: 3522528756059366805}
   gamepadSens: {fileID: 93419434262324196}
+  multiplayerUIRoot: {fileID: 4124351588296538829}
 --- !u!114 &6278920237529175602
 MonoBehaviour:
   m_ObjectHideFlags: 0
