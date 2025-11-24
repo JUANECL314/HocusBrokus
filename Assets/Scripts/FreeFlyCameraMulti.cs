@@ -339,11 +339,26 @@ public class FreeFlyCameraMulti : MonoBehaviourPun
     {
         isFrozen = frozen;
 
-        if (frozen)
+        moveInput = Vector2.zero;
+
+        // forzar anim a idle
+        if (_animator)
+        {
+            // Speed = 0 → estado Idle en tu blend tree
+            _animator.SetFloat(PARAM_SPEED, 0f);
+
+            // si fuera bool usa SetBool en lugar de ResetTrigger)
+            _animator.ResetTrigger(PARAM_JUMP);
+        }
+
+        if (rb != null && frozen)
         {
             rb.linearVelocity = Vector3.zero;
             rb.angularVelocity = Vector3.zero;
+        }
 
+        if (frozen)
+        {
             Cursor.lockState = CursorLockMode.None;
             Cursor.visible = true;
         }
@@ -352,6 +367,8 @@ public class FreeFlyCameraMulti : MonoBehaviourPun
             LockCursor(true);
         }
     }
+
+
 
     public void ApplyForceLocal(Vector3 force)
     {
