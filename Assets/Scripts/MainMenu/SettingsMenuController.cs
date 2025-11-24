@@ -2,31 +2,52 @@
 using UnityEngine.UI;
 using UnityEngine.InputSystem;
 using UnityEngine.EventSystems;
-using Photon.Pun;   // ⬅️ NUEVO
+using UnityEngine.SceneManagement;   // ⬅️ NUEVO
+using Photon.Pun;
 
 public class SettingsMenuController : MonoBehaviour
 {
     [Header("UI (asignar en Inspector)")]
-    [SerializeField] GameObject panelRoot;
-    [SerializeField] Slider mouseSens;
-    [SerializeField] Slider gamepadSens;
+    [SerializeField] private GameObject panelRoot;
+    [SerializeField] private Slider mouseSens;
+    [SerializeField] private Slider gamepadSens;
 
-    // PlayerInput local (solo para in-game; en Main Menu no habrá ninguno)
+    [Header("Escenas Lobby")]
+    [SerializeField] private string[] allowedScenesWithPhoton;
+
     private PlayerInput localPlayerInput;
     private bool triedFindPlayer = false;
 
     void Start()
     {
-        if (PhotonNetwork.IsConnected)
+        string currentScene = SceneManager.GetActiveScene().name;
+        bool isAllowedScene = false;
+
+        if (allowedScenesWithPhoton != null)
+        {
+            for (int i = 0; i < allowedScenesWithPhoton.Length; i++)
+            {
+                if (!string.IsNullOrEmpty(allowedScenesWithPhoton[i]) &&
+                    allowedScenesWithPhoton[i] == currentScene)
+                {
+                    isAllowedScene = true;
+                    break;
+                }
+            }
+        }
+
+        // ⬅️ Si Photon está conectado Y NO es una escena permitida → apagar este menú
+        if (PhotonNetwork.IsConnected && !isAllowedScene)
         {
             if (panelRoot) panelRoot.SetActive(false);
-            enabled = false;   
+            enabled = false;
             return;
         }
 
+        // Escena offline normal, o escena especial permitida con Photon
         if (!panelRoot) Debug.LogError("[SettingsMenu] panelRoot no asignado");
         if (panelRoot) panelRoot.SetActive(false);
-        RefreshUIFromSettings(); // funciona en Main Menu aunque no haya Player
+        RefreshUIFromSettings();
     }
 
     void Update()
@@ -66,9 +87,9 @@ public class SettingsMenuController : MonoBehaviour
         }
         else
         {
-            PushUIToSettings(); // por si no movieron sliders tras abrir
+            PushUIToSettings();
             if (localPlayerInput) localPlayerInput.enabled = true;
-            // Si quieres relockear el cursor aquí, hazlo según tu flujo.
+            // Aquí puedes relockear el cursor si quieres.
         }
     }
 
