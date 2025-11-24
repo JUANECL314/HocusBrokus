@@ -81,4 +81,21 @@ public class MazeStateMachine : MonoBehaviourPun
         localPlayer = PhotonNetwork.LocalPlayer.TagObject as Transform;
         
     }
+    [PunRPC]
+    void RPC_SendMaze(int[,] data)
+    {
+        StartCoroutine(ApplyMazeWhenReady(data));
+    }
+
+    IEnumerator ApplyMazeWhenReady(int[,] data)
+    {
+        // Esperar a que grid exista
+        while (GridLayoutBase.instance == null)
+            yield return null;
+
+        grid = GridLayoutBase.instance;
+        grid.ApplyMazeData(data);
+    }
+
+
 }

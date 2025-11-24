@@ -28,6 +28,7 @@ public class GridLayoutBase : MonoBehaviour
     public Vector2Int goalNode = new Vector2Int(14,20);
     public Vector2Int startNode = new Vector2Int(1,0);
 
+    public int[,] mazeData;
     private static readonly List<Vector2Int> directions = new List<Vector2Int>
     {
         new Vector2Int(0, 1),
@@ -39,6 +40,7 @@ public class GridLayoutBase : MonoBehaviour
     void Awake()
     {
         instance = this;
+        mazeData = new int[rows, columns];
     }
 
     void Start()
@@ -51,7 +53,10 @@ public class GridLayoutBase : MonoBehaviour
     public void ReplaceTile(int y, int x, GameObject prefab)
     {
         GameObject old = tiles[y][x];
-
+        int type = 0;
+        if (prefab == floorPrefab) type = 1;
+        else if (prefab == goalPrefab) type = 2;
+        mazeData[y, x] = type;
         float altura= (prefab.tag == "Floor" || prefab.tag == "Goal") ? 1f : prefab.transform.position.y;
         Vector3 pos = new Vector3(
             old.transform.position.x,
@@ -73,19 +78,12 @@ public class GridLayoutBase : MonoBehaviour
     [ContextMenu("Generate Grid")]
     public void GenerateGrid()
     {
-
-        tiles = new List<List<GameObject>>();
-        
-
-        
+        tiles = new List<List<GameObject>>(); 
         List<GameObject> toDelete = new List<GameObject>();
         foreach (Transform child in transform)
         {
             toDelete.Add(child.gameObject);
-        }
-            
-
-        
+        } 
         foreach (GameObject obj in toDelete)
         {
             
@@ -217,4 +215,24 @@ public class GridLayoutBase : MonoBehaviour
         GameObject goalObj = Instantiate(goalPrefab, pos, Quaternion.identity, transform);
         goalObj.tag = "Goal";
     }
+    public void ApplyMazeData(int[,] data)
+    {
+        mazeData = data;
+
+        for (int y = 0; y < rows; y++)
+        {
+            for (int x = 0; x < columns; x++)
+            {
+                int type = mazeData[y, x];
+
+                if (type == 0)
+                    ReplaceTile(y, x, wallPrefab);
+                else if (type == 1)
+                    ReplaceTile(y, x, floorPrefab);
+                else if (type == 2)
+                    ReplaceTile(y, x, goalPrefab);
+            }
+        }
+    }
+
 }
