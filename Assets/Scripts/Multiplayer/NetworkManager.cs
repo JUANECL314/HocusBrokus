@@ -1,7 +1,7 @@
-using Photon.Pun;
+ï»¿using Photon.Pun;
 using Photon.Realtime;
-using Photon.Voice.PUN;
 using System.Collections;
+using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
 using UnityEngine.SceneManagement;
@@ -17,12 +17,15 @@ public class NetworkManager : MonoBehaviourPunCallbacks
 
     private bool entroPorBoton = false; // Bandera de control para el ingreso de escenas
     public int maxPlayers = 4;
-    private string nombreSalaParaCrear = null; 
-    
+    private string nombreSalaParaCrear = null;
+
+    // âœ… CACHE GLOBAL DE SALAS
+    public static readonly Dictionary<string, RoomInfo> RoomCache = new();
+
     void Awake()
     {
         // Evitar duplicados
-        if ( Instance != null && Instance != this)
+        if (Instance != null && Instance != this)
         {
             Destroy(gameObject);
             return;
@@ -33,27 +36,23 @@ public class NetworkManager : MonoBehaviourPunCallbacks
 
         PhotonNetwork.AutomaticallySyncScene = true;
         ConectarServidor();
-
     }
-    // --------------------------- Conexión a Photon ----------------------
-     
+
+    // --------------------------- ConexiÃ³n a Photon ----------------------
+
     public void ConectarServidor()
     {
         if (PhotonNetwork.IsConnected)
         {
-            Debug.Log("Conexión a photon exitoso.");
+            Debug.Log("ConexiÃ³n a photon exitoso.");
             return;
         }
 
-        Debug.Log("Realizando conexión a photon...");
-        // Se asegura que no este en offline
-        //PhotonNetwork.OfflineMode = false;
-        PhotonNetwork.PhotonServerSettings.AppSettings.FixedRegion = "us"; 
-        
+        Debug.Log("Realizando conexiÃ³n a photon...");
+        PhotonNetwork.PhotonServerSettings.AppSettings.FixedRegion = "us";
 
         PhotonNetwork.ConnectUsingSettings();
     }
-
 
     public override void OnConnectedToMaster()
     {
@@ -64,6 +63,9 @@ public class NetworkManager : MonoBehaviourPunCallbacks
     public override void OnJoinedLobby()
     {
         Debug.Log("Unido al lobby de Photon");
+
+        // Cuando entras al lobby, Photon empezarÃ¡ a enviar OnRoomListUpdate
+        // y nosotros actualizaremos RoomCache ahÃ­.
         var roomListManager = FindObjectOfType<RoomListManager>();
         if (roomListManager != null)
         {
@@ -74,10 +76,38 @@ public class NetworkManager : MonoBehaviourPunCallbacks
     public override void OnDisconnected(DisconnectCause cause)
     {
         Debug.LogWarning("Desconectado de Photon: " + cause);
+        RoomCache.Clear(); // Limpia cache si te desconectas
     }
+
+    // âœ… AQUI ACTUALIZAMOS EL CACHE GLOBAL DE SALAS
+    public override void OnRoomListUpdate(List<RoomInfo> roomList)
+    {
+        Debug.Log($"[NetworkManager] OnRoomListUpdate con {roomList.Count} entradas");
+
+        foreach (RoomInfo room in roomList)
+        {
+            if (room.RemovedFromList)
+            {
+                if (RoomCache.ContainsKey(room.Name))
+                    RoomCache.Remove(room.Name);
+            }
+            else
+            {
+                RoomCache[room.Name] = room;
+            }
+        }
+
+        // Avisar a la UI si estÃ¡ presente
+        var roomListManager = FindObjectOfType<RoomListManager>();
+        if (roomListManager != null)
+        {
+            roomListManager.RefreshList();
+        }
+    }
+
     // --------------------- Lobby individual ------------------------
     public void EntrarLobbyIndividual()
-    {     
+    {
         Debug.Log($"Cargando escena del lobby: {salaIndividualNombre}");
         CargarEscenarioLocal(salaIndividualNombre);
     }
@@ -85,47 +115,44 @@ public class NetworkManager : MonoBehaviourPunCallbacks
     // ----------------------- Crear/Unir salas multijugador -----------
     public void CrearSala(string nombreSala)
     {
-        if (!PhotonNetwork.IsConnected) {
-            Debug.LogWarning("No conectado a photon. Es necesario la conexión");
+        if (!PhotonNetwork.IsConnected)
+        {
+            Debug.LogWarning("No conectado a photon. Es necesario la conexiÃ³n");
             return;
         }
 
         if (PhotonNetwork.InRoom)
         {
-
             nombreSalaParaCrear = nombreSala;
-            PhotonNetwork.LeaveRoom(); 
-            return; 
+            PhotonNetwork.LeaveRoom();
+            return;
         }
         entroPorBoton = true;
         RoomOptions options = new RoomOptions
         {
             MaxPlayers = maxPlayers,
-            IsVisible = true,    
+            IsVisible = true,
             IsOpen = true
         };
 
-        
         PhotonNetwork.CreateRoom(nombreSala, options);
-        
     }
 
     public void UnirSala(string nombreSala)
     {
         if (!PhotonNetwork.IsConnected)
         {
-            Debug.LogWarning("No conectado a photon. Es necesario la conexión");
+            Debug.LogWarning("No conectado a photon. Es necesario la conexiÃ³n");
             return;
         }
         if (PhotonNetwork.InRoom)
         {
             nombreSalaParaCrear = nombreSala;
-            PhotonNetwork.LeaveRoom(); // Deja la sala actual antes de crear otra
-            return; // Espera al callback OnLeftRoom
+            PhotonNetwork.LeaveRoom();
+            return;
         }
         entroPorBoton = true;
         PhotonNetwork.JoinRoom(nombreSala);
-        
     }
 
     public override void OnLeftRoom()
@@ -142,16 +169,13 @@ public class NetworkManager : MonoBehaviourPunCallbacks
         if (entroPorBoton)
         {
             CargarEscenario(salaMultijugadorNombre);
-            entroPorBoton =false;
+            entroPorBoton = false;
         }
-        
     }
 
-
-   public void CargarEscenario(string nombreEscena)
+    public void CargarEscenario(string nombreEscena)
     {
-        
-        if(PhotonNetwork.IsConnectedAndReady)
+        if (PhotonNetwork.IsConnectedAndReady)
         {
             PhotonNetwork.LoadLevel(nombreEscena);
         }
@@ -178,6 +202,7 @@ public class NetworkManager : MonoBehaviourPunCallbacks
         }
         CargarEscenario(nombreEscena);
     }
+
     public void CargarEscenarioLocal(string nombreEscena)
     {
         SceneManager.LoadScene(nombreEscena);
@@ -188,12 +213,7 @@ public class NetworkManager : MonoBehaviourPunCallbacks
     public override void OnMasterClientSwitched(Player newMasterClient)
     {
         Debug.Log($"El MasterClient se ha desconectado. Nuevo Master: {newMasterClient.NickName}");
-
-        // Puedes elegir entre las dos opciones según el comportamiento que desees:
-        // OPCIÓN 1: todos regresan al lobby manualmente (más segura)
         StartCoroutine(RegresarAlLobby());
-
-        
     }
 
     private IEnumerator RegresarAlLobby()
@@ -202,7 +222,6 @@ public class NetworkManager : MonoBehaviourPunCallbacks
 
         PhotonNetwork.LeaveRoom();
 
-        // Espera hasta salir de la sala
         while (PhotonNetwork.InRoom)
             yield return null;
 
@@ -213,7 +232,7 @@ public class NetworkManager : MonoBehaviourPunCallbacks
     {
         if (PhotonNetwork.IsConnected)
         {
-            Debug.Log("Jugador cerró el juego, saliendo de la sala y desconectando de Photon...");
+            Debug.Log("Jugador cerrÃ³ el juego, saliendo de la sala y desconectando de Photon...");
             PhotonNetwork.LeaveRoom();
             PhotonNetwork.Disconnect();
         }
