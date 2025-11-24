@@ -1,7 +1,8 @@
-using UnityEngine;
+Ôªøusing UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.InputSystem;
 using UnityEngine.EventSystems;
+using Photon.Pun;   // ‚¨ÖÔ∏è NUEVO
 
 public class SettingsMenuController : MonoBehaviour
 {
@@ -10,12 +11,19 @@ public class SettingsMenuController : MonoBehaviour
     [SerializeField] Slider mouseSens;
     [SerializeField] Slider gamepadSens;
 
-    // PlayerInput local (solo para in-game; en Main Menu no habr· ninguno)
+    // PlayerInput local (solo para in-game; en Main Menu no habr√° ninguno)
     private PlayerInput localPlayerInput;
     private bool triedFindPlayer = false;
 
     void Start()
     {
+        if (PhotonNetwork.IsConnected)
+        {
+            if (panelRoot) panelRoot.SetActive(false);
+            enabled = false;   
+            return;
+        }
+
         if (!panelRoot) Debug.LogError("[SettingsMenu] panelRoot no asignado");
         if (panelRoot) panelRoot.SetActive(false);
         RefreshUIFromSettings(); // funciona en Main Menu aunque no haya Player
@@ -32,9 +40,9 @@ public class SettingsMenuController : MonoBehaviour
         if (triedFindPlayer) return;
         triedFindPlayer = true;
 
-        // Busca un PlayerInput en la escena (el tuyo / ˙nico)
+        // Busca un PlayerInput en la escena (el tuyo / √∫nico)
         localPlayerInput = FindObjectOfType<PlayerInput>();
-        // Si no hay ninguno (Main Menu), se queda null y no se deshabilita nada ó est· bien.
+        // Si no hay ninguno (Main Menu), se queda null y no se deshabilita nada ‚Äî est√° bien.
     }
 
     public void TogglePanel()
@@ -60,7 +68,7 @@ public class SettingsMenuController : MonoBehaviour
         {
             PushUIToSettings(); // por si no movieron sliders tras abrir
             if (localPlayerInput) localPlayerInput.enabled = true;
-            // Si quieres relockear el cursor aquÌ, hazlo seg˙n tu flujo.
+            // Si quieres relockear el cursor aqu√≠, hazlo seg√∫n tu flujo.
         }
     }
 

@@ -11,57 +11,105 @@ public class SettingsMenuControllerPhoton : MonoBehaviour
     [SerializeField] private Slider mouseSens;
     [SerializeField] private Slider gamepadSens;
 
-    [Header("Multiplayer UI (raíz de la UI que se debe ocultar)")]
-    [SerializeField] private GameObject multiplayerUIRoot;
+    [Header("Multiplayer UI (objetos que se deben ocultar)")]
+    [SerializeField] private GameObject[] multiplayerUIRoots; // UI_Multiplayer, Mira, etc.
 
-    // Player del owner
+    // Referencias del jugador local (dueño)
     private PlayerInput ownerInput;
     private FreeFlyCameraMulti ownerController;
+    private PhotonView ownerView;
+
+    // Es true si este controlador le pertenece al jugador local
+    private bool IsLocalController
+    {
+        get
+        {
+            // En offline, no hay Photon, así que siempre es local
+            if (!PhotonNetwork.IsConnected) return true;
+            if (ownerView == null) return false;
+            return ownerView.IsMine;
+        }
+    }
+
+    void Awake()
+    {
+        // Buscamos el PhotonView más cercano hacia arriba en la jerarquía
+        ownerView = GetComponentInParent<PhotonView>();
+    }
 
     void Start()
     {
         if (!panelRoot)
-            Debug.LogError("[SettingsMenuPhoton] panelRoot no asignado");
+            Debug.LogError("[SettingsMenuPhoton] panelRoot no asignado", this);
 
         if (panelRoot)
             panelRoot.SetActive(false);
 
+        // 🔒 SI ES UN PLAYER REMOTO => APAGAR SU UI COMPLETA
+        if (!IsLocalController)
+        {
+            // Apagar cualquier HUD/mira que tenga asignado
+            if (multiplayerUIRoots != null)
+            {
+                foreach (var go in multiplayerUIRoots)
+                {
+                    if (go) go.SetActive(false);
+                }
+            }
+
+            // Deshabilitar este Canvas y su GraphicRaycaster para que NO capturen clics
+            var canvas = GetComponent<Canvas>();
+            if (canvas) canvas.enabled = false;
+
+            var raycaster = GetComponent<GraphicRaycaster>();
+            if (raycaster) raycaster.enabled = false;
+
+            // No necesitamos que este script siga activo en el remoto
+            return;
+        }
+
+        // LOCAL: funciona normal
         RefreshUIFromSettings();
     }
 
     void Update()
     {
+        // Solo el controlador del jugador local escucha F10
+        if (!IsLocalController) return;
+
         if (Keyboard.current != null && Keyboard.current.f10Key.wasPressedThisFrame)
             TogglePanel();
     }
 
     /// <summary>
-    /// Busca el PhotonView.IsMine y le saca PlayerInput y FreeFlyCameraMulti.
-    /// Es seguro llamarlo muchas veces: sólo hace algo si aún no tiene refs.
+    /// Saca PlayerInput y FreeFlyCameraMulti del mismo prefab del dueño local.
     /// </summary>
     void FindOwnerComponents()
     {
-        // Si ya tenemos al menos uno, no hace falta volver a buscar
+        if (!IsLocalController) return;
+
+        // Si ya tenemos ambas referencias, nada que hacer
         if (ownerInput != null && ownerController != null)
             return;
 
-        foreach (var pv in FindObjectsOfType<PhotonView>())
+        if (ownerView == null)
         {
-            if (!pv.IsMine) continue;
+            // Si por alguna razón no encontramos PhotonView (offline?) salimos sin crashear
+            return;
+        }
 
+        if (ownerInput == null)
+        {
+            ownerInput = ownerView.GetComponent<PlayerInput>();
             if (ownerInput == null)
-                ownerInput = pv.GetComponent<PlayerInput>();
+                ownerInput = ownerView.GetComponentInChildren<PlayerInput>();
+        }
 
+        if (ownerController == null)
+        {
+            ownerController = ownerView.GetComponent<FreeFlyCameraMulti>();
             if (ownerController == null)
-            {
-                ownerController = pv.GetComponent<FreeFlyCameraMulti>();
-                if (!ownerController)
-                    ownerController = pv.GetComponentInChildren<FreeFlyCameraMulti>();
-            }
-
-            // si ya tenemos ambos, salimos
-            if (ownerInput != null && ownerController != null)
-                break;
+                ownerController = ownerView.GetComponentInChildren<FreeFlyCameraMulti>();
         }
     }
 
@@ -73,23 +121,28 @@ public class SettingsMenuControllerPhoton : MonoBehaviour
 
         bool show = !panelRoot.activeSelf;
 
-        // Mostrar/ocultar panel Settings
+        // Mostrar/ocultar panel Settings (solo en este player local)
         panelRoot.SetActive(show);
 
-        // Ocultar/mostrar UI de multiplayer inverso
-        if (multiplayerUIRoot)
-            multiplayerUIRoot.SetActive(!show);
+        // Ocultar/mostrar TODA la UI de multiplayer inversamente
+        if (multiplayerUIRoots != null)
+        {
+            foreach (var go in multiplayerUIRoots)
+            {
+                if (go) go.SetActive(!show);
+            }
+        }
 
         if (show)
         {
-            // Intentar encontrar al owner (si aún no existe, simplemente quedará en null)
+            // Buscar components del dueño local
             FindOwnerComponents();
 
-            // Congelar player (si ya está cargado)
+            // Congelar al player
             if (ownerController)
                 ownerController.SetFrozen(true);
 
-            // Desactivar input del player
+            // Desactivar inputs del player
             if (ownerInput)
                 ownerInput.enabled = false;
 
@@ -102,7 +155,7 @@ public class SettingsMenuControllerPhoton : MonoBehaviour
         {
             PushUIToSettings();
 
-            // Descongelar player (si ya estaba cargado)
+            // Descongelar al player
             if (ownerController)
                 ownerController.SetFrozen(false);
 

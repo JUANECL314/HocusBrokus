@@ -556,7 +556,9 @@ MonoBehaviour:
   panelRoot: {fileID: 679534594997719774}
   mouseSens: {fileID: 3522528756059366805}
   gamepadSens: {fileID: 93419434262324196}
-  multiplayerUIRoot: {fileID: 4124351588296538829}
+  multiplayerUIRoots:
+  - {fileID: 4124351588296538829}
+  - {fileID: 1169953528013686218}
 --- !u!114 &6278920237529175602
 MonoBehaviour:
   m_ObjectHideFlags: 0
