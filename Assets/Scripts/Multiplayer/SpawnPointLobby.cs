@@ -74,7 +74,8 @@ public class SpawnPointLobby : MonoBehaviourPunCallbacks
         Transform spawn = spawnPoints[index];
 
         Debug.Log($"Spawneando jugador {PhotonNetwork.LocalPlayer.NickName} en {spawn.name}");
-        PhotonNetwork.Instantiate(playerPrefab.name, spawn.position, spawn.rotation);
+        GameObject playerInstance = PhotonNetwork.Instantiate(playerPrefab.name, spawn.position, spawn.rotation);
+        PhotonNetwork.LocalPlayer.TagObject = playerInstance.transform;
 
         playerSpawned = true;
     }

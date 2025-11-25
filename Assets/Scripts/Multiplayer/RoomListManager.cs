@@ -1,6 +1,6 @@
+using System.Collections.Generic;
 using Photon.Pun;
 using Photon.Realtime;
-using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
@@ -12,58 +12,61 @@ public class RoomListManager : MonoBehaviourPunCallbacks
     public Transform content; // Donde se instancian las salas
     public Button refreshButton;
 
-    private Dictionary<string, RoomInfo> roomCache = new Dictionary<string, RoomInfo>();
-
     void Start()
     {
-        if (refreshButton != null) refreshButton.onClick.AddListener(RefreshList);
+        if (refreshButton != null)
+            refreshButton.onClick.AddListener(RefreshList);
+
         if (!PhotonNetwork.InLobby)
         {
             Debug.Log("No estás en el lobby, intentando unir...");
-            PhotonNetwork.JoinLobby(); // Fuerza la unión si aún no se hizo
+            PhotonNetwork.JoinLobby();
+        }
+        else
+        {
+            // Ya estás en el lobby, pinta lo que haya en el cache
+            RefreshList();
         }
     }
 
     public void RefreshList()
     {
-        Debug.Log("Actualizar salas");
-        Debug.Log($"Salas detectadas: {roomCache.Count}");
+        if (NetworkManager.Instance == null)
+        {
+            Debug.LogWarning("RoomListManager: NetworkManager.Instance es null. No se puede leer RoomCache.");
+            return;
+        }
+
+        var cache = NetworkManager.RoomCache;
+        Debug.Log($"[RoomListManager] Actualizar salas. Cache={cache.Count}");
+
         foreach (Transform child in content)
             Destroy(child.gameObject);
 
-        foreach (RoomInfo info in roomCache.Values)
+        foreach (RoomInfo info in cache.Values)
         {
             if (info.RemovedFromList) continue;
+
             GameObject item = Instantiate(roomItemPrefab, content);
             item.transform.Find("RoomName").GetComponent<TMP_Text>().text = info.Name;
             item.transform.Find("PlayerCount").GetComponent<TMP_Text>().text = $"{info.PlayerCount}/{info.MaxPlayers}";
             Button joinButton = item.transform.Find("JoinButton").GetComponent<Button>();
 
+            string roomName = info.Name; // capturar en variable local
             joinButton.onClick.AddListener(() =>
             {
-                PhotonNetwork.JoinRoom(info.Name);
+                Debug.Log($"[RoomListManager] Unirse a sala: {roomName}");
+                PhotonNetwork.JoinRoom(roomName);
             });
         }
-        Debug.Log("Actualización completada.");
+
+        Debug.Log("[RoomListManager] Actualización completada.");
     }
 
+    // Si quieres que se refresque automáticamente en esta escena también:
     public override void OnRoomListUpdate(List<RoomInfo> roomList)
     {
-        Debug.Log("Se encontró salas nuevas o actualizadas");
-        foreach (RoomInfo room in roomList)
-        {
-            if (room.RemovedFromList)
-            {
-                if (roomCache.ContainsKey(room.Name))
-                    roomCache.Remove(room.Name);
-            }
-            else
-            {
-                roomCache[room.Name] = room;
-            }
-        }
+        // El NetworkManager ya actualizó RoomCache; aquí solo repintamos UI
         RefreshList();
     }
-
-    
 }
