@@ -9661,7 +9661,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 7867868798340692327, guid: a137619eb3cad3d41adf1de9a11a453e, type: 3}
       propertyPath: m_LocalPosition.z
-      value: -1.2
+      value: -7.28
       objectReference: {fileID: 0}
     - target: {fileID: 7867868798340692327, guid: a137619eb3cad3d41adf1de9a11a453e, type: 3}
       propertyPath: m_LocalRotation.w
@@ -13971,6 +13971,83 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 896105939}
   m_CullTransparentMesh: 1
+--- !u!1001 &934214191
+PrefabInstance:
+  m_ObjectHideFlags: 0
+  serializedVersion: 2
+  m_Modification:
+    serializedVersion: 3
+    m_TransformParent: {fileID: 0}
+    m_Modifications:
+    - target: {fileID: 3027795545411446498, guid: a137619eb3cad3d41adf1de9a11a453e, type: 3}
+      propertyPath: sceneViewId
+      value: 46
+      objectReference: {fileID: 0}
+    - target: {fileID: 4500111760204217837, guid: a137619eb3cad3d41adf1de9a11a453e, type: 3}
+      propertyPath: m_Name
+      value: RockObstacle (2)
+      objectReference: {fileID: 0}
+    - target: {fileID: 6061781344413990689, guid: a137619eb3cad3d41adf1de9a11a453e, type: 3}
+      propertyPath: sceneViewId
+      value: 45
+      objectReference: {fileID: 0}
+    - target: {fileID: 6357977058408229714, guid: a137619eb3cad3d41adf1de9a11a453e, type: 3}
+      propertyPath: sceneViewId
+      value: 47
+      objectReference: {fileID: 0}
+    - target: {fileID: 7002245851211043831, guid: a137619eb3cad3d41adf1de9a11a453e, type: 3}
+      propertyPath: sceneViewId
+      value: 49
+      objectReference: {fileID: 0}
+    - target: {fileID: 7867868798340692327, guid: a137619eb3cad3d41adf1de9a11a453e, type: 3}
+      propertyPath: m_LocalPosition.x
+      value: -45.027943
+      objectReference: {fileID: 0}
+    - target: {fileID: 7867868798340692327, guid: a137619eb3cad3d41adf1de9a11a453e, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: 41.6
+      objectReference: {fileID: 0}
+    - target: {fileID: 7867868798340692327, guid: a137619eb3cad3d41adf1de9a11a453e, type: 3}
+      propertyPath: m_LocalPosition.z
+      value: 4.84
+      objectReference: {fileID: 0}
+    - target: {fileID: 7867868798340692327, guid: a137619eb3cad3d41adf1de9a11a453e, type: 3}
+      propertyPath: m_LocalRotation.w
+      value: 0.99989647
+      objectReference: {fileID: 0}
+    - target: {fileID: 7867868798340692327, guid: a137619eb3cad3d41adf1de9a11a453e, type: 3}
+      propertyPath: m_LocalRotation.x
+      value: -0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7867868798340692327, guid: a137619eb3cad3d41adf1de9a11a453e, type: 3}
+      propertyPath: m_LocalRotation.y
+      value: -0.014390234
+      objectReference: {fileID: 0}
+    - target: {fileID: 7867868798340692327, guid: a137619eb3cad3d41adf1de9a11a453e, type: 3}
+      propertyPath: m_LocalRotation.z
+      value: -0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7867868798340692327, guid: a137619eb3cad3d41adf1de9a11a453e, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7867868798340692327, guid: a137619eb3cad3d41adf1de9a11a453e, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.y
+      value: -1.649
+      objectReference: {fileID: 0}
+    - target: {fileID: 7867868798340692327, guid: a137619eb3cad3d41adf1de9a11a453e, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 8991739272211430079, guid: a137619eb3cad3d41adf1de9a11a453e, type: 3}
+      propertyPath: sceneViewId
+      value: 48
+      objectReference: {fileID: 0}
+    m_RemovedComponents: []
+    m_RemovedGameObjects: []
+    m_AddedGameObjects: []
+    m_AddedComponents: []
+  m_SourcePrefab: {fileID: 100100000, guid: a137619eb3cad3d41adf1de9a11a453e, type: 3}
 --- !u!1001 &954339808
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -24134,8 +24211,11 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   MenuUILevels: {fileID: 1930989221}
+  radioDeteccion: 5
   boton: {fileID: 48758909}
   teclaAbrir: 114
+  offset: {x: 0, y: 4, z: 0}
+  tagObjetivo: Player
 --- !u!1 &1786269313
 GameObject:
   m_ObjectHideFlags: 0
@@ -29229,6 +29309,7 @@ SceneRoots:
   - {fileID: 1786269314}
   - {fileID: 1122445990}
   - {fileID: 658442047}
+  - {fileID: 934214191}
   - {fileID: 467753879}
   - {fileID: 1574956935}
   - {fileID: 401890325}

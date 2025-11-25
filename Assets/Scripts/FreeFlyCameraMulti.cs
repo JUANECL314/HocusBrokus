@@ -1,5 +1,6 @@
 ﻿using UnityEngine;
 using UnityEngine.InputSystem;
+using UnityEngine.SceneManagement; // ⬅️ NUEVO
 using Photon.Pun;
 
 [RequireComponent(typeof(Rigidbody))]
@@ -10,6 +11,7 @@ public class FreeFlyCameraMulti : MonoBehaviourPun
 
     [Header("Movement (Normal)")]
     public float walkSpeed = 5f;
+    [Tooltip("Jump force actually used at runtime (puede ser override por escena).")]
     public float jumpForce = 20f;
     public LayerMask groundMask = ~0;
     public float groundCheckDistance = 0.2f;
@@ -27,6 +29,21 @@ public class FreeFlyCameraMulti : MonoBehaviourPun
     public Transform characterModel;  // yaw (body)
     public Transform cameraTransform; // pitch (camera)
     public Vector3 cameraOffset = Vector3.zero;
+
+    // === NUEVO: configuración de salto por escena ===
+    [System.Serializable]
+    public class SceneJumpConfig
+    {
+        public string sceneName;   // nombre exacto de la escena
+        public float jumpForce;    // fuerza de salto para esa escena
+    }
+
+    [Header("Jump per Scene")]
+    [Tooltip("Si está activo, buscará la fuerza de salto según el nombre de la escena actual.")]
+    public bool useSceneJumpConfig = true;
+    [Tooltip("Valor por defecto si la escena no está en la lista.")]
+    public float defaultJumpForce = 20f;
+    public SceneJumpConfig[] sceneJumpConfigs;
 
     // Animator (synchronized by PhotonAnimatorView)
     private Animator _animator;
@@ -109,6 +126,43 @@ public class FreeFlyCameraMulti : MonoBehaviourPun
         LockCursor(true);
         if (cameraTransform)
             cameraTransform.localPosition = cameraOffset;
+
+        // === NUEVO: aplicar fuerza de salto según la escena ===
+        ApplySceneJumpForce();
+    }
+
+    /// <summary>
+    /// Ajusta jumpForce según la escena actual usando la lista sceneJumpConfigs.
+    /// </summary>
+    void ApplySceneJumpForce()
+    {
+        if (!useSceneJumpConfig)
+        {
+            // si no quieres usarlo, respeta el valor actual
+            return;
+        }
+
+        string currentScene = SceneManager.GetActiveScene().name;
+
+        // valor por defecto primero
+        jumpForce = defaultJumpForce;
+
+        if (sceneJumpConfigs == null || sceneJumpConfigs.Length == 0)
+            return;
+
+        foreach (var cfg in sceneJumpConfigs)
+        {
+            if (!string.IsNullOrEmpty(cfg.sceneName) && cfg.sceneName == currentScene)
+            {
+                jumpForce = cfg.jumpForce;
+                // Debug opcional para validar
+                Debug.Log($"[FreeFlyCameraMulti] Escena '{currentScene}' usando jumpForce = {jumpForce}");
+                return;
+            }
+        }
+
+        // Debug opcional para cuando no encuentra la escena
+        Debug.Log($"[FreeFlyCameraMulti] Escena '{currentScene}' no encontrada en sceneJumpConfigs, usando defaultJumpForce = {defaultJumpForce}");
     }
 
     void Update()
@@ -181,8 +235,6 @@ public class FreeFlyCameraMulti : MonoBehaviourPun
         Vector3 wishDir = (characterModel.forward * moveInput.y) + (characterModel.right * moveInput.x);
         if (wishDir.sqrMagnitude > 1f) wishDir.Normalize();
 
-        // Note: your original code used rb.velocity - keep the same variable usage here.
-        // If Unity version uses Rigidbody.velocity, that will still work with AddForce below.
         Vector3 vel = rb.linearVelocity;
         Vector3 targetXZ = wishDir * walkSpeed;
         rb.linearVelocity = new Vector3(targetXZ.x, vel.y, targetXZ.z);
@@ -287,11 +339,26 @@ public class FreeFlyCameraMulti : MonoBehaviourPun
     {
         isFrozen = frozen;
 
-        if (frozen)
+        moveInput = Vector2.zero;
+
+        // forzar anim a idle
+        if (_animator)
+        {
+            // Speed = 0 → estado Idle en tu blend tree
+            _animator.SetFloat(PARAM_SPEED, 0f);
+
+            // si fuera bool usa SetBool en lugar de ResetTrigger)
+            _animator.ResetTrigger(PARAM_JUMP);
+        }
+
+        if (rb != null && frozen)
         {
             rb.linearVelocity = Vector3.zero;
             rb.angularVelocity = Vector3.zero;
+        }
 
+        if (frozen)
+        {
             Cursor.lockState = CursorLockMode.None;
             Cursor.visible = true;
         }
@@ -301,14 +368,8 @@ public class FreeFlyCameraMulti : MonoBehaviourPun
         }
     }
 
-    // =========================
-    // Multiplayer push API
-    // =========================
 
-    /// <summary>
-    /// Apply an instantaneous force/impulse on the local (owner) client.
-    /// Use this for local testing (singleplayer).
-    /// </summary>
+
     public void ApplyForceLocal(Vector3 force)
     {
         if (!IsLocalOwner) return;
@@ -316,15 +377,9 @@ public class FreeFlyCameraMulti : MonoBehaviourPun
         rb.AddForce(force, ForceMode.VelocityChange);
     }
 
-    /// <summary>
-    /// Photon RPC: called on the owner client to apply a push/impulse.
-    /// Call from master/client: playerPhotonView.RPC("RPC_ApplyForce", playerPhotonView.Owner, forceVector);
-    /// </summary>
     [PunRPC]
     public void RPC_ApplyForce(Vector3 force)
     {
-        // This RPC will be executed on the target client's instance of this PhotonView.
-        // Apply the impulse locally (instantaneous velocity change).
         if (rb == null) return;
         rb.AddForce(force, ForceMode.VelocityChange);
     }
