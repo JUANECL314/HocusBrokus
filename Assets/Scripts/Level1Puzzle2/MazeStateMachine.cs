@@ -1,6 +1,6 @@
 using Photon.Pun;
-using UnityEngine;
 using System.Collections;
+using UnityEngine;
 public class MazeStateMachine : MonoBehaviourPun
 {
     public static MazeStateMachine Instance;
@@ -13,6 +13,7 @@ public class MazeStateMachine : MonoBehaviourPun
     public Transform localPlayer;
     public GameObject panelUI;
     public KeyCode teclaAbrir = KeyCode.R;
+    public int secondsTimeOut = 15;
     void Awake()
     {
         Instance = this;
@@ -41,16 +42,33 @@ public class MazeStateMachine : MonoBehaviourPun
             if (panelUI.activeSelf)
                 panelUI.SetActive(false);
         }
-        if (dist <= interactionDistance && Input.GetKeyDown(teclaAbrir) && !starting)
+        if (dist <= interactionDistance && Input.GetKeyDown(teclaAbrir) && !starting && currentState == MazeEnumState.Init)
         {
             starting = true;
             
             StateMachineStatus(MazeEnumState.Create);
+            StartCoroutine(TimeOut());
         }
-
+        
+        
         
     }
+    IEnumerator TimeOut()
+    {
+        // Esperar un tiempo determinado - 1 seg
+        yield return new WaitForSeconds(1f);
+        
+        secondsTimeOut -= 1;
+        if (secondsTimeOut == 0)
+        {
+            starting = false;
+            secondsTimeOut = 15;
+            StateMachineStatus(MazeEnumState.Destroy);
+            yield break;
+        }
+        StartCoroutine(TimeOut());
 
+    }
    
 
     void StateMachineStatus(MazeEnumState next)
@@ -61,8 +79,14 @@ public class MazeStateMachine : MonoBehaviourPun
             case MazeEnumState.Create:
                 Debug.Log("Creando el laberinto");
                 grid.GenerateGrid();
-                
                 Debug.Log("Laberinto terminado");
+                break;
+
+            case MazeEnumState.Destroy:
+                Debug.Log("Destruyendo el laberinto");
+                grid.DestroyMaze();
+                Debug.Log("Laberinto destruido");
+                currentState = MazeEnumState.Init;
                 break;
             case MazeEnumState.Complete:
 

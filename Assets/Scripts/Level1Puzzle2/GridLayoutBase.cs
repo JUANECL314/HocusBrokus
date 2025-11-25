@@ -53,9 +53,8 @@ public class GridLayoutBase : MonoBehaviourPun
 
     void Start()
     {
-        tiles = new List<List<GameObject>>();
-        
-        
+        DestroyMaze();
+
     }
 
     public void ReplaceTile(int y, int x, GameObject prefab)
@@ -64,6 +63,8 @@ public class GridLayoutBase : MonoBehaviourPun
         int type = 0;
         if (prefab == floorPrefab) type = 1;
         else if (prefab == goalPrefab) type = 2;
+        if (mazeData == null)
+            mazeData = new int[rows, columns];
         mazeData[y, x] = type;
         float altura= (prefab.tag == "Floor" || prefab.tag == "Goal") ? 1f : prefab.transform.position.y;
         Vector3 pos = new Vector3(
@@ -84,23 +85,28 @@ public class GridLayoutBase : MonoBehaviourPun
             DestroyImmediate(old);
 
     }
-    [ContextMenu("Generate Grid")]
-    public void GenerateGrid()
+    public void DestroyMaze()
     {
-        tiles = new List<List<GameObject>>(); 
+        tiles = new List<List<GameObject>>();
         List<GameObject> toDelete = new List<GameObject>();
         foreach (Transform child in transform)
         {
             toDelete.Add(child.gameObject);
-        } 
+        }
         foreach (GameObject obj in toDelete)
         {
-            
-           if(UnityEngine.Application.isPlaying)
+
+            if (UnityEngine.Application.isPlaying)
                 Destroy(obj);
-           else
+            else
                 DestroyImmediate(obj);
         }
+        tiles.Clear();
+    }
+    [ContextMenu("Generate Grid")]
+    public void GenerateGrid()
+    {
+        DestroyMaze();
         visited = new bool[rows, columns];
 
         for (int y = 0; y < rows; y++)
@@ -128,8 +134,7 @@ public class GridLayoutBase : MonoBehaviourPun
         
         // Validaciones
         if (rows < 3 || columns < 3)
-        {
-            
+        {    
             return;
         }
 
@@ -163,9 +168,7 @@ public class GridLayoutBase : MonoBehaviourPun
     private void SpawnObstacles()
     {
         if (obstacles == null || obstacles.Length == 0) return;
-
         List<Vector2Int> floorTiles = new List<Vector2Int>();
-
         // Obtener todas las celdas walkable
         for (int y = 0; y < rows; y++)
         {
@@ -181,10 +184,7 @@ public class GridLayoutBase : MonoBehaviourPun
                 }
             }
         }
-
         int placed = 0;
-
-        
         foreach (var tile in floorTiles)
         {
             if (UnityEngine.Random.value <= obstacleProbability)
@@ -193,8 +193,6 @@ public class GridLayoutBase : MonoBehaviourPun
                 placed++;
             }
         }
-
-        
         while (placed < minObstacles && floorTiles.Count > 0)
         {
             int i = UnityEngine.Random.Range(0, floorTiles.Count);
@@ -208,14 +206,22 @@ public class GridLayoutBase : MonoBehaviourPun
     private void PlaceObstacle(int y, int x)
     {
         GameObject tile = tiles[y][x];
-        if (tile == null) return;
+        if (tile == null || tile.name == "Wall(Clone)") return;
 
         // Seleccionar obstáculo aleatorio
         GameObject prefab = obstacles[UnityEngine.Random.Range(0, obstacles.Length)];
 
         Vector3 pos = new Vector3(tile.transform.position.x, tile.transform.position.y + 0.2f, tile.transform.position.z);
-
-        GameObject obs= PhotonNetwork.Instantiate("ObstaclePrefabs/" + prefab.name, pos, Quaternion.identity);
+        GameObject obs;
+        if (PhotonNetwork.IsConnected)
+        {
+            obs = PhotonNetwork.Instantiate("ObstaclePrefabs/" + prefab.name, pos, Quaternion.identity);
+        } 
+        else
+        {
+            obs = Instantiate(prefab, pos, Quaternion.identity);
+        }
+            
 
         obs.transform.parent = transform;
         string name = prefab.name;
