@@ -10,6 +10,7 @@ public class SettingsMenuController : MonoBehaviour
     [SerializeField] Slider mouseSens;
     [SerializeField] Slider gamepadSens;
 
+
     // PlayerInput local (solo para in-game; en Main Menu no habrá ninguno)
     private PlayerInput localPlayerInput;
     private bool triedFindPlayer = false;

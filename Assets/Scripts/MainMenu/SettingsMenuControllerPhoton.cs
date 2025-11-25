@@ -11,6 +11,9 @@ public class SettingsMenuControllerPhoton : MonoBehaviour
     [SerializeField] Slider mouseSens;
     [SerializeField] Slider gamepadSens;
 
+    [SerializeField] GameObject keyboardPanel;
+    [SerializeField] GameObject gamepadPanel;
+
     // PlayerInput del OWNER (en tu jugador con PhotonView.IsMine)
     private PlayerInput ownerInput;
     private bool searchedOwner = false;
@@ -19,13 +22,32 @@ public class SettingsMenuControllerPhoton : MonoBehaviour
     {
         if (!panelRoot) Debug.LogError("[SettingsMenuPhoton] panelRoot no asignado");
         if (panelRoot) panelRoot.SetActive(false);
+
+        // Aseguramos que inicien apagados
+        if (keyboardPanel) keyboardPanel.SetActive(false);
+        if (gamepadPanel) gamepadPanel.SetActive(false);
+
         RefreshUIFromSettings();
     }
 
     void Update()
     {
-        if (Keyboard.current != null && Keyboard.current.f10Key.wasPressedThisFrame)
-            TogglePanel();
+        if (Keyboard.current != null)
+        {
+            // Abrir/cerrar panel principal
+            if (Keyboard.current.f10Key.wasPressedThisFrame)
+                TogglePanel();
+
+            // --- NUEVO: Activar/desactivar submenús ---
+            if (panelRoot != null && panelRoot.activeSelf) // Solo si el menú está abierto
+            {
+                if (Keyboard.current.eKey.wasPressedThisFrame)
+                    ToggleKeyboardPanel();
+
+                if (Keyboard.current.qKey.wasPressedThisFrame)
+                    ToggleGamepadPanel();
+            }
+        }
     }
 
     void FindOwnerPlayerInputOnce()
@@ -33,7 +55,6 @@ public class SettingsMenuControllerPhoton : MonoBehaviour
         if (searchedOwner) return;
         searchedOwner = true;
 
-        // Busca el Player del OWNER (PhotonView.IsMine)
         foreach (var pv in FindObjectsOfType<PhotonView>())
         {
             if (pv.IsMine)
@@ -42,8 +63,49 @@ public class SettingsMenuControllerPhoton : MonoBehaviour
                 break;
             }
         }
-        // Si no hay owner aún (lobby/menú), queda null — está bien.
     }
+
+    // ==========================
+    //  SUBMENÚS (MODIFICADO)
+    // ==========================
+
+    public void ToggleKeyboardPanel()
+    {
+        if (!keyboardPanel) return;
+        bool show = !keyboardPanel.activeSelf;
+        keyboardPanel.SetActive(show);
+    }
+
+    public void ToggleGamepadPanel()
+    {
+        if (!gamepadPanel) return;
+        bool show = !gamepadPanel.activeSelf;
+        gamepadPanel.SetActive(show);
+    }
+
+    // ---- Botones opcionales para cerrar ----
+    public void CloseKeyboardPanel()
+    {
+        if (keyboardPanel) keyboardPanel.SetActive(false);
+    }
+
+    public void CloseGamepadPanel()
+    {
+        if (gamepadPanel) gamepadPanel.SetActive(false);
+    }
+
+    // ---- Botones UI originales (mantener compatibilidad) ----
+    public void ShowKeyboardPanel()
+    {
+        if (keyboardPanel) keyboardPanel.SetActive(true);
+    }
+
+    public void ShowGamepadPanel()
+    {
+        if (gamepadPanel) gamepadPanel.SetActive(true);
+    }
+
+    // ==========================
 
     public void TogglePanel()
     {
@@ -68,6 +130,10 @@ public class SettingsMenuControllerPhoton : MonoBehaviour
         {
             PushUIToSettings();
             if (ownerInput) ownerInput.enabled = true;
+
+            // Al cerrar el menú, se apagan ambos submenús
+            if (keyboardPanel) keyboardPanel.SetActive(false);
+            if (gamepadPanel) gamepadPanel.SetActive(false);
         }
     }
 
@@ -90,7 +156,6 @@ public class SettingsMenuControllerPhoton : MonoBehaviour
         if (gamepadSens) SettingsManager.I.SetGamepadSensitivity(gamepadSens.value);
     }
 
-    // Hooks de UI
     public void OnMouseSensChanged(float v) { if (SettingsManager.I) SettingsManager.I.SetMouseSensitivity(v); }
     public void OnGamepadSensChanged(float v) { if (SettingsManager.I) SettingsManager.I.SetGamepadSensitivity(v); }
     public void OnCloseClicked() { TogglePanel(); }

@@ -70,7 +70,7 @@ public class PlayerVortexReceiver : MonoBehaviour
         rb.useGravity = false;
 
         // clear velocities
-        rb.velocity = Vector3.zero;
+        rb.linearVelocity = Vector3.zero;
         rb.angularVelocity = Vector3.zero;
 
         float t = 0f;
@@ -150,7 +150,7 @@ public class PlayerVortexReceiver : MonoBehaviour
             playerCam.fieldOfView = originalFOV;
 
         // Ensure Rigidbody is stable before respawn
-        rb.velocity = Vector3.zero;
+        rb.linearVelocity = Vector3.zero;
         rb.angularVelocity = Vector3.zero;
 
         // ---------------------
@@ -172,7 +172,7 @@ public class PlayerVortexReceiver : MonoBehaviour
 
         // ensure gravity back on and velocities cleared
         rb.useGravity = true;
-        rb.velocity = Vector3.zero;
+        rb.linearVelocity = Vector3.zero;
         rb.angularVelocity = Vector3.zero;
 
         // Restore movement control AFTER respawn
