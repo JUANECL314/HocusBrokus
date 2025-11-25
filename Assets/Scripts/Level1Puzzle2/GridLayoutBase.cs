@@ -1,10 +1,11 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Collections.Specialized;
-using System.Diagnostics;
+using Photon.Pun;
 using UnityEngine;
-using static System.Net.Mime.MediaTypeNames;
 
-public class GridLayoutBase : MonoBehaviour
+
+public class GridLayoutBase : MonoBehaviourPun
 {
     public static GridLayoutBase instance;
 
@@ -29,6 +30,13 @@ public class GridLayoutBase : MonoBehaviour
     public Vector2Int startNode = new Vector2Int(1,0);
 
     public int[,] mazeData;
+
+    public GameObject[] obstacles;
+    public GameObject teletransportEnemy;
+    [Header("Obstacles Settings")]
+    public float obstacleProbability = 0.15f;
+    public int minObstacles = 4;
+
     private static readonly List<Vector2Int> directions = new List<Vector2Int>
     {
         new Vector2Int(0, 1),
@@ -74,6 +82,7 @@ public class GridLayoutBase : MonoBehaviour
             Destroy(old);
         else
             DestroyImmediate(old);
+
     }
     [ContextMenu("Generate Grid")]
     public void GenerateGrid()
@@ -147,9 +156,100 @@ public class GridLayoutBase : MonoBehaviour
 
         CarveRecursive(startNode.y, startNode.x, 0);
 
+        SpawnObstacles();
         // Marcar goal (luego de carve)
         MarkGoalNode();
     }
+    private void SpawnObstacles()
+    {
+        if (obstacles == null || obstacles.Length == 0) return;
+
+        List<Vector2Int> floorTiles = new List<Vector2Int>();
+
+        // Obtener todas las celdas walkable
+        for (int y = 0; y < rows; y++)
+        {
+            for (int x = 0; x < columns; x++)
+            {
+                if (mazeData[y, x] == 1) // 1 = floor
+                {
+                    // Evitar start y goal
+                    if (x == startNode.x && y == startNode.y) continue;
+                    if (x == goalNode.x && y == goalNode.y) continue;
+
+                    floorTiles.Add(new Vector2Int(x, y));
+                }
+            }
+        }
+
+        int placed = 0;
+
+        
+        foreach (var tile in floorTiles)
+        {
+            if (UnityEngine.Random.value <= obstacleProbability)
+            {
+                PlaceObstacle(tile.y, tile.x);
+                placed++;
+            }
+        }
+
+        
+        while (placed < minObstacles && floorTiles.Count > 0)
+        {
+            int i = UnityEngine.Random.Range(0, floorTiles.Count);
+            var tile = floorTiles[i];
+
+            PlaceObstacle(tile.y, tile.x);
+            floorTiles.RemoveAt(i);
+            placed++;
+        }
+    }
+    private void PlaceObstacle(int y, int x)
+    {
+        GameObject tile = tiles[y][x];
+        if (tile == null) return;
+
+        // Seleccionar obstáculo aleatorio
+        GameObject prefab = obstacles[UnityEngine.Random.Range(0, obstacles.Length)];
+
+        Vector3 pos = new Vector3(tile.transform.position.x, tile.transform.position.y + 0.2f, tile.transform.position.z);
+
+        GameObject obs= PhotonNetwork.Instantiate("ObstaclePrefabs/" + prefab.name, pos, Quaternion.identity);
+
+        obs.transform.parent = transform;
+        string name = prefab.name;
+        Vector3 escala;
+        switch(name)
+        {
+            case "VortexObstacle":
+                escala = new Vector3(0.7897533f, 0.5265021f, 0.3948766f);
+                //obs.GetComponent<VortexObstacle>().
+                break;
+            case "FieryObstacle":
+                escala = new Vector3(0.2151325f, 0.2151325f, 0.2151325f);
+                //obs.GetComponent<VortexObstacle>().
+                break;
+            case "RockObstacle":
+                escala = new Vector3(1f, 5.80744f, 1f);
+                float resto = 9.87f - tile.transform.position.y;
+                pos = new Vector3(tile.transform.position.x, tile.transform.position.y + resto, tile.transform.position.z-2);
+                obs.transform.position = pos;
+                //obs.GetComponent<VortexObstacle>().
+                break;
+            case "TreeObstacle":
+                escala = new Vector3(1f, 2.9f, 1f);
+                //obs.GetComponent<VortexObstacle>().
+                break;
+            default:
+                escala = new Vector3(1f, 1f, 1f);
+                break;
+
+        }
+        obs.transform.localScale = escala;
+        UnityEngine.Debug.Log($"Obstacle {name} placed at ({x},{y}) with scale {escala}");
+    }
+
     private void CarveRecursive(int y, int x, int distance)
     {
         visited[y, x] = true;
@@ -182,7 +282,7 @@ public class GridLayoutBase : MonoBehaviour
                 // Abrir la celda destino
                 ReplaceTile(ny, nx, floorPrefab);
 
-                // Recurse
+                // Recursivo
                 CarveRecursive(ny, nx, distance + 1);
             }
         }
@@ -193,7 +293,7 @@ public class GridLayoutBase : MonoBehaviour
     {
         for (int i = 0; i < list.Count; i++)
         {
-            int rand = Random.Range(i, list.Count);
+            int rand = UnityEngine.Random.Range(i, list.Count);
             (list[i], list[rand]) = (list[rand], list[i]);
         }
     }

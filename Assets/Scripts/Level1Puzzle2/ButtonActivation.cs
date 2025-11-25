@@ -37,6 +37,7 @@ public class ButtonActivation : MonoBehaviourPun, ISubject
 
             pipe.GetComponent<Renderer>().material.color = Color.gray;
         }
+        StartCoroutine(CheckStatus());
     }
     IEnumerator FindLocalPlayer()
     {
@@ -46,44 +47,59 @@ public class ButtonActivation : MonoBehaviourPun, ISubject
         }
 
         localPlayer = PhotonNetwork.LocalPlayer.TagObject as Transform;
-        Debug.Log($"[Botón {buttonID}] Local player asignado: {localPlayer.name}");
     }
 
     void Update()
     {
-        if (!isEnabled || localPlayer == null) return;
+        
+        
+        
 
+
+    }
+
+    IEnumerator CheckStatus()
+    {
+        yield return new WaitForSeconds(5f);
+        
         float dist = Vector3.Distance(localPlayer.position, transform.position);
 
         if (dist <= interactionDistance)
         {
             if (!panelUI.activeSelf)
-                panelUI.SetActive(true);
+            { panelUI.SetActive(true); }
+            else if (panelUI.activeSelf)
+            { panelUI.SetActive(true); }
         }
         else
         {
             if (panelUI.activeSelf)
+            { panelUI.SetActive(false); }
+            else
+            {
                 panelUI.SetActive(false);
+            }
         }
 
         if (dist <= interactionDistance && Input.GetKeyDown(teclaAbrir))
         {
             isPressed = true;
-        } else if (Input.GetKeyUp(teclaAbrir) && (dist <= interactionDistance || dist > interactionDistance))
+        }
+        else if (Input.GetKeyUp(teclaAbrir) && (dist <= interactionDistance || dist > interactionDistance))
         {
             isPressed = false;
-            
+
+
         }
         photonView.RPC("RPC_NotifyAll", RpcTarget.All, buttonID, isPressed);
-        if(isEnabled) photonView.RPC("RPC_SetEnabledAll", RpcTarget.All, true);
+        if (isEnabled) photonView.RPC("RPC_SetEnabledAll", RpcTarget.All, true);
         photonView.RPC("RPC_SetPressed", RpcTarget.All, isPressed);
-
+        StartCoroutine(CheckStatus());
     }
 
     [PunRPC]
     void RPC_NotifyAll(int id, bool state)
     {
-        Debug.Log($"[Master] Botón {id} fue presionado. Estado = {state}");
         foreach (var obs in observers)
             obs.OnNotify(id, state);
     }
