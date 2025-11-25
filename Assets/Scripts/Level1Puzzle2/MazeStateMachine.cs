@@ -11,7 +11,8 @@ public class MazeStateMachine : MonoBehaviourPun
     private bool starting = false;
     public float interactionDistance = 2f;
     public Transform localPlayer;
-    public GameObject panelUI;
+    public GameObject panelUIBoton;
+    public GameObject panelMagicLeft;
     public KeyCode teclaAbrir = KeyCode.R;
     public int secondsTimeOut = 15;
     void Awake()
