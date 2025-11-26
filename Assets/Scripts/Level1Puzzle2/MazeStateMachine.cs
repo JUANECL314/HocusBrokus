@@ -11,8 +11,10 @@ public class MazeStateMachine : MonoBehaviourPun
     private bool starting = false;
     public float interactionDistance = 2f;
     public Transform localPlayer;
+    [Header("UI")]
     public GameObject panelUIBoton;
     public GameObject panelMagicLeft;
+
     public KeyCode teclaAbrir = KeyCode.R;
     public int secondsTimeOut = 15;
     void Awake()
@@ -32,18 +34,10 @@ public class MazeStateMachine : MonoBehaviourPun
         if (!PhotonNetwork.IsMasterClient || localPlayer == null) return;
 
         float dist = Vector3.Distance(localPlayer.position, transform.position);
-        if (dist <= interactionDistance && !starting)
-        {   
-            
-            if (!panelUI.activeSelf)
-                panelUI.SetActive(true);
-        }
-        else
-        {
-            if (panelUI.activeSelf)
-                panelUI.SetActive(false);
-        }
-        if (dist <= interactionDistance && Input.GetKeyDown(teclaAbrir) && !starting && currentState == MazeEnumState.Init)
+        bool canInteract = dist <= interactionDistance;
+        panelUIBoton.SetActive((canInteract && !starting));
+        
+        if (canInteract && Input.GetKeyDown(teclaAbrir) && !starting && currentState == MazeEnumState.Init)
         {
             starting = true;
             
@@ -56,21 +50,37 @@ public class MazeStateMachine : MonoBehaviourPun
     }
     IEnumerator TimeOut()
     {
-        // Esperar un tiempo determinado - 1 seg
-        yield return new WaitForSeconds(1f);
-        
-        secondsTimeOut -= 1;
-        if (secondsTimeOut == 0)
+        while (secondsTimeOut > 0)
         {
-            starting = false;
-            secondsTimeOut = 15;
-            StateMachineStatus(MazeEnumState.Destroy);
-            yield break;
-        }
-        StartCoroutine(TimeOut());
+            yield return new WaitForSeconds(1f);
 
+            secondsTimeOut--;
+            photonView.RPC(nameof(UpdateTimeoutRPC), RpcTarget.All, secondsTimeOut);
+        }
+
+        photonView.RPC(nameof(TimeoutFinishedRPC), RpcTarget.All);
     }
-   
+    [PunRPC]
+    void UpdateTimeoutRPC(int timeLeft)
+    {
+        secondsTimeOut = timeLeft;
+        // Aquí puedes actualizar UI del contador
+        panelMagicLeft.SetActive(true);
+        panelMagicLeft.GetComponentInChildren<UnityEngine.UI.Text>().text =
+            "Magia restante: " + secondsTimeOut + "s";
+    }
+
+    [PunRPC]
+    void TimeoutFinishedRPC()
+    {
+        starting = false;
+        secondsTimeOut = 15;
+
+        panelMagicLeft.SetActive(false);
+        StateMachineStatus(MazeEnumState.Destroy);
+    }
+
+
 
     void StateMachineStatus(MazeEnumState next)
     {
@@ -79,9 +89,20 @@ public class MazeStateMachine : MonoBehaviourPun
         {
             case MazeEnumState.Create:
                 Debug.Log("Creando el laberinto");
-                grid.GenerateGrid();
+                if (PhotonNetwork.IsMasterClient)
+                {
+                    grid.GenerateMazeMaster();
+                }
+                else
+                {
+                    // pedir al master que genere (opcional)
+                    photonView.RPC("RPC_RequestMazeGeneration", RpcTarget.Master);
+                }
+
+
                 Debug.Log("Laberinto terminado");
                 break;
+
 
             case MazeEnumState.Destroy:
                 Debug.Log("Destruyendo el laberinto");
@@ -106,21 +127,11 @@ public class MazeStateMachine : MonoBehaviourPun
         localPlayer = PhotonNetwork.LocalPlayer.TagObject as Transform;
         
     }
+    
     [PunRPC]
-    void RPC_SendMaze(int[,] data)
+    void RPC_RequestMazeGeneration()
     {
-        StartCoroutine(ApplyMazeWhenReady(data));
+        if (PhotonNetwork.IsMasterClient)
+            GridLayoutBase.instance.GenerateMazeMaster();
     }
-
-    IEnumerator ApplyMazeWhenReady(int[,] data)
-    {
-        // Esperar a que grid exista
-        while (GridLayoutBase.instance == null)
-            yield return null;
-
-        grid = GridLayoutBase.instance;
-        grid.ApplyMazeData(data);
-    }
-
-
 }

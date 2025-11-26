@@ -37,7 +37,7 @@ public class ButtonActivation : MonoBehaviourPun, ISubject
 
             pipe.GetComponent<Renderer>().material.color = Color.gray;
         }
-        StartCoroutine(CheckStatus());
+        //StartCoroutine(CheckStatus());
     }
     IEnumerator FindLocalPlayer()
     {
@@ -51,9 +51,29 @@ public class ButtonActivation : MonoBehaviourPun, ISubject
 
     void Update()
     {
-        
-        
-        
+
+        float dist = Vector3.Distance(localPlayer.position, transform.position);
+        bool canInteract = dist <= interactionDistance;
+        panelUI.SetActive(canInteract);
+
+        if (canInteract && Input.GetKeyDown(teclaAbrir))
+        {
+            if (!isPressed)
+            {
+                isPressed = true;
+                photonView.RPC("RPC_SetPressed", RpcTarget.All, isPressed);
+                photonView.RPC("RPC_NotifyAll", RpcTarget.All, buttonID, isPressed);
+            }
+        }
+
+        if (Input.GetKeyUp(teclaAbrir) && isPressed)
+        {
+            isPressed = false;
+            photonView.RPC("RPC_SetPressed", RpcTarget.All, isPressed);
+            photonView.RPC("RPC_NotifyAll", RpcTarget.All, buttonID, isPressed);
+        }
+
+
 
 
     }
