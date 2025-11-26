@@ -16,9 +16,9 @@ public class GearBehavior : MonoBehaviourPun
     public bool isFalling = false;
     private bool destroyedDoors = false;
     private Vector3 initialPosition;
+    private Quaternion initialRotation; // ← NUEVO
     public bool IsRotating => isRotating;
 
-    // Nuevo estado
     [SerializeField] private bool isShaking = false;
 
     [Header("Tuning")]
@@ -28,13 +28,14 @@ public class GearBehavior : MonoBehaviourPun
     public float overheatRearmSeconds = 6f;
     public float fallSpeed = 2f;
 
-    // Tiempo del temblor visible en inspector
     [Header("Shake Settings")]
     [SerializeField] private float shakeDuration = 1.3f;
 
-    // 🔥 Nuevo: cuánto se mueve en X durante el temblor
     [Header("Shake Movement")]
     [SerializeField] private float shakeMoveOffsetX = 0.3f;
+
+    [Header("Extra Delay Before Falling")]
+    [SerializeField] private float extraFallDelay = 1.5f; // ← NUEVO
 
     private string LoopId => $"gear_loop_{GetInstanceID()}";
 
@@ -56,7 +57,10 @@ public class GearBehavior : MonoBehaviourPun
         rb.isKinematic = true;
         rb.collisionDetectionMode = CollisionDetectionMode.Continuous;
         rb.constraints = RigidbodyConstraints.None;
+
         initialPosition = transform.position;
+        initialRotation = transform.rotation; // ← NUEVO
+
         rend.material.color = Color.gray;
     }
 
@@ -141,7 +145,10 @@ public class GearBehavior : MonoBehaviourPun
         }
 
         if (!smooth)
+        {
             transform.position = initialPosition;
+            transform.rotation = initialRotation; // ← NUEVO
+        }
         else
             StartCoroutine(ReturnToInitialPosition());
     }
@@ -226,8 +233,6 @@ public class GearBehavior : MonoBehaviourPun
         Vector3 originalRot = transform.localEulerAngles;
 
         Vector3 startPos = transform.position;
-
-        // 🔥 Nuevo: movimiento pequeño en X configurable
         Vector3 targetPos = new Vector3(startPos.x + shakeMoveOffsetX, startPos.y, startPos.z);
 
         float moveDuration = shakeDuration;
@@ -251,6 +256,10 @@ public class GearBehavior : MonoBehaviourPun
         }
 
         isShaking = false;
+
+        // NUEVO: tiempo extra antes de caer
+        yield return new WaitForSeconds(extraFallDelay);
+
         FallNow();
     }
 
@@ -272,7 +281,7 @@ public class GearBehavior : MonoBehaviourPun
     void OnCollisionEnter(Collision collision)
     {
         if (collision.gameObject.CompareTag("Water") && isRotating)
-            photonView.RPC("CoolDown",RpcTarget.All);
+            photonView.RPC("CoolDown", RpcTarget.All);
 
         if (collision.gameObject.CompareTag("Earth") && isShaking)
         {
@@ -304,18 +313,24 @@ public class GearBehavior : MonoBehaviourPun
         rb.isKinematic = true;
         rb.constraints = RigidbodyConstraints.None;
 
-        Vector3 start = transform.position;
+        Vector3 startPos = transform.position;
+        Quaternion startRot = transform.rotation; // ← NUEVO
         float elapsed = 0f;
         float duration = 2f;
 
         while (elapsed < duration)
         {
-            transform.position = Vector3.Lerp(start, initialPosition, elapsed / duration);
+            float t = elapsed / duration;
+
+            transform.position = Vector3.Lerp(startPos, initialPosition, t);
+            transform.rotation = Quaternion.Lerp(startRot, initialRotation, t); // ← NUEVO
+
             elapsed += Time.deltaTime;
             yield return null;
         }
 
         transform.position = initialPosition;
+        transform.rotation = initialRotation; // ← NUEVO
 
         if (autoReactivateOnLand)
             ReactivateAfterLand();
