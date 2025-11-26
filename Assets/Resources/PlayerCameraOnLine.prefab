@@ -2852,6 +2852,7 @@ GameObject:
   - component: {fileID: -3164476102984643106}
   - component: {fileID: 8450864101092532438}
   - component: {fileID: 8275166065548088719}
+  - component: {fileID: 7503714491013021929}
   m_Layer: 0
   m_Name: PlayerCameraOnLine
   m_TagString: Player
@@ -3228,6 +3229,30 @@ MonoBehaviour:
     legs: {fileID: 2100000, guid: 5ee2c872c3b4be2498e08f5aee0f92ff, type: 2}
     rightShoe: {fileID: 2100000, guid: 5ee2c872c3b4be2498e08f5aee0f92ff, type: 2}
     leftShoe: {fileID: 2100000, guid: 5ee2c872c3b4be2498e08f5aee0f92ff, type: 2}
+--- !u!114 &7503714491013021929
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7045669205887240078}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 678599d96ac19374da63f5cb0ac0e616, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  victorySceneName: VictoryScene
+  movementScript: {fileID: 6784334610576334781}
+  magicInputScript: {fileID: 6177203162997360681}
+  extraScriptsToDisable:
+  - {fileID: 421160105492963846}
+  - {fileID: 5406390985583852218}
+  - {fileID: 4720370240322471829}
+  animator: {fileID: 8458955599137080990}
+  danceTriggerName: idle
+  modelRoot: {fileID: 2559192033086659812}
+  localCamera: {fileID: 6775727811422105649}
+  localAudioListener: {fileID: 0}
 --- !u!1 &7767863635850516013
 GameObject:
   m_ObjectHideFlags: 0

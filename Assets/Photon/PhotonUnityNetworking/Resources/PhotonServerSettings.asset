@@ -98,6 +98,11 @@ MonoBehaviour:
   - RPC_GenerateGrid
   - SendMazeData
   - RPC_ApplyElement
+  - RPC_ReceiveMaze
+  - RPC_RequestMazeGeneration
+  - TimeoutFinishedRPC
+  - UpdateTimeoutRPC
+  - RpcEnterVictoryPose
   DisableAutoOpenWizard: 1
   ShowSettings: 1
   DevRegionSetOnce: 1
