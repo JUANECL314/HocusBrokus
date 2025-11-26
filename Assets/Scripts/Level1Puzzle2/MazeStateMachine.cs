@@ -1,16 +1,22 @@
 using Photon.Pun;
-using UnityEngine;
 using System.Collections;
+using UnityEngine;
 public class MazeStateMachine : MonoBehaviourPun
 {
     public static MazeStateMachine Instance;
 
-    public MazeEnumState currentState = MazeEnumState.Create;
+    public MazeEnumState currentState = MazeEnumState.Init;
 
     private GridLayoutBase grid;
     private bool starting = false;
     public float interactionDistance = 2f;
     public Transform localPlayer;
+    [Header("UI")]
+    public GameObject panelUIBoton;
+    public GameObject panelMagicLeft;
+
+    public KeyCode teclaAbrir = KeyCode.R;
+    public int secondsTimeOut = 15;
     void Awake()
     {
         Instance = this;
@@ -20,7 +26,7 @@ public class MazeStateMachine : MonoBehaviourPun
     {
         StartCoroutine(FindLocalPlayer());
         grid = GridLayoutBase.instance;
-        StateMachineStatus();
+        StateMachineStatus(currentState);
     }
 
     void Update()
@@ -28,46 +34,87 @@ public class MazeStateMachine : MonoBehaviourPun
         if (!PhotonNetwork.IsMasterClient || localPlayer == null) return;
 
         float dist = Vector3.Distance(localPlayer.position, transform.position);
-
-        if (dist <= interactionDistance && Input.GetKeyDown(KeyCode.R) && !starting)
+        bool canInteract = dist <= interactionDistance;
+        panelUIBoton.SetActive((canInteract && !starting));
+        
+        if (canInteract && Input.GetKeyDown(teclaAbrir) && !starting && currentState == MazeEnumState.Init)
         {
             starting = true;
-            StartMaze();
+            
+            StateMachineStatus(MazeEnumState.Create);
+            StartCoroutine(TimeOut());
+        }
+        
+        
+        
+    }
+    IEnumerator TimeOut()
+    {
+        while (secondsTimeOut > 0)
+        {
+            yield return new WaitForSeconds(1f);
+
+            secondsTimeOut--;
+            photonView.RPC(nameof(UpdateTimeoutRPC), RpcTarget.All, secondsTimeOut);
         }
 
-        
+        photonView.RPC(nameof(TimeoutFinishedRPC), RpcTarget.All);
+    }
+    [PunRPC]
+    void UpdateTimeoutRPC(int timeLeft)
+    {
+        secondsTimeOut = timeLeft;
+        // Aquí puedes actualizar UI del contador
+        panelMagicLeft.SetActive(true);
+        panelMagicLeft.GetComponentInChildren<UnityEngine.UI.Text>().text =
+            "Magia restante: " + secondsTimeOut + "s";
     }
 
-    void StartMaze()
+    [PunRPC]
+    void TimeoutFinishedRPC()
     {
-        
-        ChangeState(MazeEnumState.Create);
+        starting = false;
+        secondsTimeOut = 15;
 
+        panelMagicLeft.SetActive(false);
+        StateMachineStatus(MazeEnumState.Destroy);
     }
 
 
-    void StateMachineStatus()
+
+    void StateMachineStatus(MazeEnumState next)
     {
-        
+        currentState = next;
         switch (currentState)
         {
             case MazeEnumState.Create:
                 Debug.Log("Creando el laberinto");
-                grid.GenerateGrid();
-                grid.GenerateMaze();
+                if (PhotonNetwork.IsMasterClient)
+                {
+                    grid.GenerateMazeMaster();
+                }
+                else
+                {
+                    // pedir al master que genere (opcional)
+                    photonView.RPC("RPC_RequestMazeGeneration", RpcTarget.Master);
+                }
+
+
                 Debug.Log("Laberinto terminado");
+                break;
+
+
+            case MazeEnumState.Destroy:
+                Debug.Log("Destruyendo el laberinto");
+                grid.DestroyMaze();
+                Debug.Log("Laberinto destruido");
+                currentState = MazeEnumState.Init;
                 break;
             case MazeEnumState.Complete:
 
                 break;
         }
         
-    }
-
-
-    public void ChangeState(MazeEnumState state)
-    {
-        currentState = state;
     }
 
     IEnumerator FindLocalPlayer()
@@ -79,5 +126,12 @@ public class MazeStateMachine : MonoBehaviourPun
 
         localPlayer = PhotonNetwork.LocalPlayer.TagObject as Transform;
         
+    }
+    
+    [PunRPC]
+    void RPC_RequestMazeGeneration()
+    {
+        if (PhotonNetwork.IsMasterClient)
+            GridLayoutBase.instance.GenerateMazeMaster();
     }
 }

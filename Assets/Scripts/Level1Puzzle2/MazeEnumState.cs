@@ -4,5 +4,6 @@ public enum MazeEnumState
 {
     Init,
     Create,
+    Destroy,
     Complete
 }
