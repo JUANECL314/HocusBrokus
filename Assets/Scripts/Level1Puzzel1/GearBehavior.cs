@@ -272,7 +272,7 @@ public class GearBehavior : MonoBehaviourPun
     void OnCollisionEnter(Collision collision)
     {
         if (collision.gameObject.CompareTag("Water") && isRotating)
-            CoolDown();
+            photonView.RPC("CoolDown",RpcTarget.All);
 
         if (collision.gameObject.CompareTag("Earth") && isShaking)
         {
