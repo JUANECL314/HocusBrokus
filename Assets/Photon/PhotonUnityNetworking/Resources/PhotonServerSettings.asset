@@ -99,6 +99,10 @@ MonoBehaviour:
   - SendMazeData
   - RPC_ApplyElement
   - RPC_ApplyTrail
+  - RPC_ReceiveMaze
+  - RPC_RequestMazeGeneration
+  - TimeoutFinishedRPC
+  - UpdateTimeoutRPC
   DisableAutoOpenWizard: 1
   ShowSettings: 1
   DevRegionSetOnce: 1
