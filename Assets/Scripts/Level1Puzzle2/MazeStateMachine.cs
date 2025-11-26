@@ -65,9 +65,8 @@ public class MazeStateMachine : MonoBehaviourPun
     {
         secondsTimeOut = timeLeft;
         // Aquí puedes actualizar UI del contador
-        panelMagicLeft.SetActive(true);
-        panelMagicLeft.GetComponentInChildren<UnityEngine.UI.Text>().text =
-            "Magia restante: " + secondsTimeOut + "s";
+        //panelMagicLeft.SetActive(true);
+       
     }
 
     [PunRPC]
@@ -76,7 +75,7 @@ public class MazeStateMachine : MonoBehaviourPun
         starting = false;
         secondsTimeOut = 15;
 
-        panelMagicLeft.SetActive(false);
+        //panelMagicLeft.SetActive(false);
         StateMachineStatus(MazeEnumState.Destroy);
     }
 
@@ -96,7 +95,7 @@ public class MazeStateMachine : MonoBehaviourPun
                 else
                 {
                     // pedir al master que genere (opcional)
-                    photonView.RPC("RPC_RequestMazeGeneration", RpcTarget.Master);
+                    //photonView.RPC("RPC_RequestMazeGeneration", RpcTarget.Master);
                 }
 
 
