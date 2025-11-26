@@ -220,10 +220,6 @@ public class GearBehavior : MonoBehaviourPun
         StartCoroutine(ShakeThenFall());
     }
 
-    // ---------------------------------------------------------------------
-    // ------------  TEMBLOR + MOVIMIENTO HACIA X --------------------------
-    // ---------------------------------------------------------------------
-
     private IEnumerator ShakeThenFall()
     {
         float elapsed = 0f;
