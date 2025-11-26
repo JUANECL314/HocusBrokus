@@ -19,16 +19,16 @@ public class Detect_objects : MonoBehaviour
     private GameObject jugador;
     private bool jugadorCerca = false;
     private bool estabaCerca = false;
-    private bool menuOpen = false;
+    private bool menuOpen = false; // NUEVO: estado de menú
 
     // ---------- Audio (SoundManager) ----------
     private string LoopId => $"ui_prox_{GetInstanceID()}";
 
+    // override 3D por objeto
     private SfxAreaOverride areaOverride;
 
     void Awake()
     {
-        // Oculta UI al inicio
         if (ui_oculto != null)
             foreach (GameObject ui in ui_oculto)
                 if (ui) ui.SetActive(false);
@@ -50,14 +50,14 @@ public class Detect_objects : MonoBehaviour
     {
         if (string.IsNullOrEmpty(escenaDeterminada)) return;
 
-        // 1) DETECCIÓN
+        // 1) Detección
         bool cercaAhora = DetectarJugador();
         Vector3 centro = transform.position + offset;
 
-        // 2) LÓGICA UI
+        // 2) Lógica UI
         seleccionAccion(escenaDeterminada);
 
-        // 3) AUDIO — considerando menú
+        // 3) Audio (considera menuOpen)
         if (menuOpen)
         {
             SoundManager.Instance?.StopLoop(LoopId);
@@ -66,7 +66,6 @@ public class Detect_objects : MonoBehaviour
         {
             if (cercaAhora && !estabaCerca)
             {
-                // Entró rango
                 //SoundManager.Instance?.Play(enterKey, centro);
                 //SoundManager.Instance?.StartLoop(LoopId, loopKey, centro);
             }
@@ -89,6 +88,7 @@ public class Detect_objects : MonoBehaviour
         Collider[] objetos = Physics.OverlapSphere(centroDeteccion, radioDeteccion);
 
         jugador = null;
+
         foreach (Collider col in objetos)
         {
             if (col.CompareTag(tagObjetivo))
@@ -116,18 +116,17 @@ public class Detect_objects : MonoBehaviour
         }
     }
 
-    // ---------------- LIBRO ----------------
+    void PortalLobby(string nombreEscena) { }
+
     void LibroLobby(string nombreEscena)
     {
-        if (nombreEscena != escenaDeterminada) return;
+        if (nombreEscena != escenaDeterminada || ui_oculto.Length != longitudArreglo) return;
 
-        // Prompt visible
-        if (HasUI(0))
+        if (ui_oculto[0] != null)
             ui_oculto[0].SetActive(jugadorCerca);
 
-        // ----------- ABRIR ----------
-        if (Input.GetKeyDown(teclaAbrir) &&
-            !IsUIActive(1) && IsUIActive(0))
+        // ABRIR
+        if (Input.GetKeyDown(teclaAbrir) && !ui_oculto[1].activeSelf && ui_oculto[0].activeSelf)
         {
             if (!jugador) return;
 
@@ -137,18 +136,17 @@ public class Detect_objects : MonoBehaviour
             Cursor.lockState = CursorLockMode.None;
             Cursor.visible = true;
 
-            SafeSetUI(1, true);
-            SafeSetUI(2, true);
+            EjecutarAccion(ui_oculto[1], true);
+            EjecutarAccion(ui_oculto[2], true);
 
             menuOpen = true;
             SoundManager.Instance?.StopLoop(LoopId);
         }
-        // ----------- CERRAR ----------
-        else if (Input.GetKeyDown(teclaAbrir) &&
-                 IsUIActive(1) && IsUIActive(0))
+        // CERRAR
+        else if (Input.GetKeyDown(teclaAbrir) && ui_oculto[1].activeSelf && ui_oculto[0].activeSelf)
         {
             for (int i = 1; i < ui_oculto.Length; i++)
-                SafeSetUI(i, false);
+                EjecutarAccion(ui_oculto[i], false);
 
             if (jugador)
             {
@@ -169,16 +167,15 @@ public class Detect_objects : MonoBehaviour
         }
     }
 
-    // ---------------- ARMARIO ----------------
     void ArmarioLobby(string nombreEscena)
     {
-        if (nombreEscena != escenaDeterminada) return;
+        if (nombreEscena != escenaDeterminada || ui_oculto.Length != longitudArreglo) return;
 
-        if (HasUI(0))
+        if (ui_oculto[0] != null)
             ui_oculto[0].SetActive(jugadorCerca);
 
         // ABRIR
-        if (Input.GetKeyDown(teclaAbrir) && IsUIActive(0) && !IsUIActive(1))
+        if (Input.GetKeyDown(teclaAbrir) && ui_oculto[0].activeSelf && !ui_oculto[1].activeSelf)
         {
             if (!jugador) return;
 
@@ -188,16 +185,16 @@ public class Detect_objects : MonoBehaviour
             Cursor.lockState = CursorLockMode.None;
             Cursor.visible = true;
 
-            SafeSetUI(1, true);
+            EjecutarAccion(ui_oculto[1], true);
 
             menuOpen = true;
             SoundManager.Instance?.StopLoop(LoopId);
         }
         // CERRAR
-        else if (Input.GetKeyDown(teclaAbrir) && IsUIActive(1) && IsUIActive(0))
+        else if (Input.GetKeyDown(teclaAbrir) && ui_oculto[1].activeSelf && ui_oculto[0].activeSelf)
         {
             for (int i = 1; i < ui_oculto.Length; i++)
-                SafeSetUI(i, false);
+                EjecutarAccion(ui_oculto[i], false);
 
             if (jugador)
             {
@@ -209,23 +206,13 @@ public class Detect_objects : MonoBehaviour
             Cursor.visible = false;
 
             menuOpen = false;
+
+            if (jugadorCerca)
+            {
+                var centro = transform.position + offset;
+                //SoundManager.Instance?.StartLoop(LoopId, loopKey, centro);
+            }
         }
-    }
-
-    // ---------- Safe UI Helpers ----------
-    bool HasUI(int index) =>
-        ui_oculto != null &&
-        index >= 0 &&
-        index < ui_oculto.Length &&
-        ui_oculto[index] != null;
-
-    bool IsUIActive(int index) =>
-        HasUI(index) && ui_oculto[index].activeSelf;
-
-    void SafeSetUI(int index, bool active)
-    {
-        if (HasUI(index))
-            ui_oculto[index].SetActive(active);
     }
 
     void EjecutarAccion(GameObject ui, bool activar)
@@ -233,7 +220,6 @@ public class Detect_objects : MonoBehaviour
         if (ui) ui.SetActive(activar);
     }
 
-    // ---------- Gizmos ----------
     void OnDrawGizmosSelected()
     {
         Gizmos.color = Color.yellow;
@@ -241,7 +227,7 @@ public class Detect_objects : MonoBehaviour
         Gizmos.DrawWireSphere(centroDeteccion, radioDeteccion);
     }
 
-    // ---------- Audio Area Override ----------
+    // ---------- helpers area override ----------
     void EnsureAreaOverride()
     {
         if (!areaOverride) areaOverride = GetComponent<SfxAreaOverride>();
@@ -251,6 +237,7 @@ public class Detect_objects : MonoBehaviour
     void ApplyAreaFromRadio()
     {
         if (!areaOverride) return;
+
         areaOverride.spatialBlend = 1f;
         areaOverride.minDistance = Mathf.Max(0.1f, radioDeteccion * 0.25f);
         areaOverride.maxDistance = Mathf.Max(areaOverride.minDistance + 0.1f, radioDeteccion);

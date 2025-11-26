@@ -16,7 +16,10 @@ public class GearBehavior : MonoBehaviourPun
     public bool isFalling = false;
     private bool destroyedDoors = false;
     private Vector3 initialPosition;
+    private Quaternion initialRotation; // ← NUEVO
     public bool IsRotating => isRotating;
+
+    [SerializeField] private bool isShaking = false;
 
     [Header("Tuning")]
     public float rotationSpeed = 150f;
@@ -24,6 +27,15 @@ public class GearBehavior : MonoBehaviourPun
     public float overheatSeconds = 15f;
     public float overheatRearmSeconds = 6f;
     public float fallSpeed = 2f;
+
+    [Header("Shake Settings")]
+    [SerializeField] private float shakeDuration = 1.3f;
+
+    [Header("Shake Movement")]
+    [SerializeField] private float shakeMoveOffsetX = 0.3f;
+
+    [Header("Extra Delay Before Falling")]
+    [SerializeField] private float extraFallDelay = 1.5f; // ← NUEVO
 
     private string LoopId => $"gear_loop_{GetInstanceID()}";
 
@@ -45,7 +57,10 @@ public class GearBehavior : MonoBehaviourPun
         rb.isKinematic = true;
         rb.collisionDetectionMode = CollisionDetectionMode.Continuous;
         rb.constraints = RigidbodyConstraints.None;
+
         initialPosition = transform.position;
+        initialRotation = transform.rotation; // ← NUEVO
+
         rend.material.color = Color.gray;
     }
 
@@ -111,10 +126,6 @@ public class GearBehavior : MonoBehaviourPun
         rend.material.color = Color.gray;
         SoundManager.Instance?.Play(SfxKey.GearCoolHiss, transform);
         cooledDuringWindow = true;
-
-        // KPI: Agua enfría engranes
-        KPIPuzzle2Tracker.I?.RegisterWaterCooldown();
-
         if (overheatCo != null) StopCoroutine(overheatCo);
         StartCoroutine(RearmOverheatAfterDelay());
     }
@@ -123,16 +134,23 @@ public class GearBehavior : MonoBehaviourPun
     public void ResetToInitialPosition(bool smooth = true)
     {
         isFalling = false;
+        isShaking = false;
+
         if (rb != null)
         {
             rb.isKinematic = true;
             rb.linearVelocity = Vector3.zero;
             rb.angularVelocity = Vector3.zero;
-            rb.constraints = RigidbodyConstraints.None; // desbloquea rotaciones
+            rb.constraints = RigidbodyConstraints.None;
         }
 
-        if (!smooth) transform.position = initialPosition;
-        else StartCoroutine(ReturnToInitialPosition());
+        if (!smooth)
+        {
+            transform.position = initialPosition;
+            transform.rotation = initialRotation; // ← NUEVO
+        }
+        else
+            StartCoroutine(ReturnToInitialPosition());
     }
 
     [PunRPC]
@@ -140,13 +158,16 @@ public class GearBehavior : MonoBehaviourPun
     {
         cooledDuringWindow = false;
         float t = 0f;
+
         while (t < overheatSeconds)
         {
             if (!isRotating) yield break;
             if (cooledDuringWindow) yield break;
+
             t += Time.deltaTime;
             yield return null;
         }
+
         Overheat();
     }
 
@@ -154,12 +175,14 @@ public class GearBehavior : MonoBehaviourPun
     private IEnumerator RearmOverheatAfterDelay()
     {
         float t = 0f;
+
         while (t < overheatRearmSeconds)
         {
             if (!isRotating) yield break;
             t += Time.deltaTime;
             yield return null;
         }
+
         if (isRotating) overheatCo = StartCoroutine(OverheatCountdown());
     }
 
@@ -183,21 +206,72 @@ public class GearBehavior : MonoBehaviourPun
         }
     }
 
+    // ---------------------------------------------------------------------
+    // ------------------------------  MAKEFALL -----------------------------
+    // ---------------------------------------------------------------------
+
     [PunRPC]
     public void MakeFall()
     {
-        if (isFalling) return;
-        isFalling = true;
+        if (isFalling || isShaking) return;
+
         isRotating = false;
+        isShaking = true;
+
+        rb.isKinematic = true;
+        rb.linearVelocity = Vector3.zero;
+
+        SoundManager.Instance?.StopLoop(LoopId);
+        SoundManager.Instance?.Play(SfxKey.GearFall, transform);
+
+        StartCoroutine(ShakeThenFall());
+    }
+
+    private IEnumerator ShakeThenFall()
+    {
+        float elapsed = 0f;
+        Vector3 originalRot = transform.localEulerAngles;
+
+        Vector3 startPos = transform.position;
+        Vector3 targetPos = new Vector3(startPos.x + shakeMoveOffsetX, startPos.y, startPos.z);
+
+        float moveDuration = shakeDuration;
+
+        while (elapsed < moveDuration)
+        {
+            if (!isShaking) yield break;
+
+            float shake = Mathf.Sin(elapsed * 40f) * 5f;
+            transform.localEulerAngles = new Vector3(
+                originalRot.x + shake,
+                originalRot.y,
+                originalRot.z
+            );
+
+            float t = elapsed / moveDuration;
+            transform.position = Vector3.Lerp(startPos, targetPos, t);
+
+            elapsed += Time.deltaTime;
+            yield return null;
+        }
+
+        isShaking = false;
+
+        // NUEVO: tiempo extra antes de caer
+        yield return new WaitForSeconds(extraFallDelay);
+
+        FallNow();
+    }
+
+    private void FallNow()
+    {
+        isFalling = true;
 
         rb.isKinematic = false;
         rb.linearVelocity = Vector3.zero;
         rb.angularVelocity = Vector3.zero;
 
         rb.constraints = RigidbodyConstraints.FreezeRotation;
-
-        SoundManager.Instance?.StopLoop(LoopId);
-        SoundManager.Instance?.Play(SfxKey.GearFall, transform);
 
         var puzzle = FindObjectOfType<ElementalPuzzle>();
         if (puzzle != null) puzzle.DoorPause(true);
@@ -206,19 +280,18 @@ public class GearBehavior : MonoBehaviourPun
     [PunRPC]
     void OnCollisionEnter(Collision collision)
     {
-        // Agua enfría engrane en rotación
         if (collision.gameObject.CompareTag("Water") && isRotating)
+            photonView.RPC("CoolDown", RpcTarget.All);
+
+        if (collision.gameObject.CompareTag("Earth") && isShaking)
         {
-            CoolDown();
+            isShaking = false;
+            StartCoroutine(ReturnToInitialPosition());
+            return;
         }
 
-        // Tierra regresa engrane que está cayendo
         if (collision.gameObject.CompareTag("Earth") && isFalling)
-        {
-            // KPI: Tierra resetea engrane
-            KPIPuzzle2Tracker.I?.RegisterEarthReset();
             StartCoroutine(ReturnToInitialPosition());
-        }
 
         if (collision.gameObject.CompareTag("Ground") && isFalling)
         {
@@ -226,7 +299,7 @@ public class GearBehavior : MonoBehaviourPun
             rb.isKinematic = true;
             rb.linearVelocity = Vector3.zero;
             rb.angularVelocity = Vector3.zero;
-            rb.constraints = RigidbodyConstraints.None; // vuelve a permitir rotar después
+            rb.constraints = RigidbodyConstraints.None;
             SoundManager.Instance?.Play(SfxKey.GearStop, transform);
         }
     }
@@ -235,22 +308,32 @@ public class GearBehavior : MonoBehaviourPun
     IEnumerator ReturnToInitialPosition()
     {
         isFalling = false;
-        rb.isKinematic = true;
-        rb.constraints = RigidbodyConstraints.None; // permite rotación nuevamente
+        isShaking = false;
 
-        Vector3 start = transform.position;
+        rb.isKinematic = true;
+        rb.constraints = RigidbodyConstraints.None;
+
+        Vector3 startPos = transform.position;
+        Quaternion startRot = transform.rotation; // ← NUEVO
         float elapsed = 0f;
         float duration = 2f;
 
         while (elapsed < duration)
         {
-            transform.position = Vector3.Lerp(start, initialPosition, elapsed / duration);
+            float t = elapsed / duration;
+
+            transform.position = Vector3.Lerp(startPos, initialPosition, t);
+            transform.rotation = Quaternion.Lerp(startRot, initialRotation, t); // ← NUEVO
+
             elapsed += Time.deltaTime;
             yield return null;
         }
 
         transform.position = initialPosition;
-        if (autoReactivateOnLand) ReactivateAfterLand();
+        transform.rotation = initialRotation; // ← NUEVO
+
+        if (autoReactivateOnLand)
+            ReactivateAfterLand();
     }
 
     void OnDisable() { SoundManager.Instance?.StopLoop(LoopId); }

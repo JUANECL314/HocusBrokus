@@ -16,22 +16,21 @@ public class PlayerNameListUI : MonoBehaviourPunCallbacks
 
     public string jugadorLocalTexto = "Tú";
     private string salaTitulo = "Sala";
-
+    private System.Action handlerJugadoresActualizados;
     void OnEnable()
     {
-        PlayerName.OnJugadoresActualizados += () =>
+        handlerJugadoresActualizados = () =>
         {
             if (jugadorLocal != null)
-            {
                 ActualizarListaUI();
-            }
-
         };
+
+        PlayerName.OnJugadoresActualizados += handlerJugadoresActualizados;
     }
 
     void OnDisable()
     {
-        PlayerName.OnJugadoresActualizados -= ActualizarListaUI; 
+        PlayerName.OnJugadoresActualizados -= handlerJugadoresActualizados;
     }
 
     void Start()
@@ -80,14 +79,16 @@ public class PlayerNameListUI : MonoBehaviourPunCallbacks
     {
         if (jugadorLocal == null) return;
 
-        // Limpiar anteriores
-        foreach(Transform child in contenedorJugadores)
-        {
+        // 1. Guardar los hijos en una lista temporal
+        List<Transform> hijos = new List<Transform>();
+        foreach (Transform child in contenedorJugadores)
+            hijos.Add(child);
+
+        // 2. Destruir los hijos desde la lista
+        foreach (var child in hijos)
             Destroy(child.gameObject);
-        }
 
         itemsUI.Clear();
-
 
         // Crear lista actualizada
         foreach (var kvp in PlayerName.jugadoresActivos)
@@ -105,7 +106,6 @@ public class PlayerNameListUI : MonoBehaviourPunCallbacks
             itemsUI[jugador] = texto;
         }
     }
-
     void ActualizarDistancias()
     {
         if (jugadorLocal == null) return;

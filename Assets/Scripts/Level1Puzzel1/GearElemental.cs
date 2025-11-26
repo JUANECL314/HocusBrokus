@@ -83,28 +83,5 @@ public class GearElemental : MonoBehaviour
         SoundManager.Instance?.StopLoop(LoopId);
     }
 
-    /*private void OnTriggerEnter(Collider other)
-    {
-        if (other.CompareTag("Magic"))
-        {
-            MagicProjectile magic = other.GetComponent<MagicProjectile>();
-
-            if (magic.type == MagicType.Air || magic.type == MagicType.Fire)
-            {
-                if (magic.type == MagicType.Air && magic.otherType == MagicType.Fire ||
-                    magic.type == MagicType.Fire && magic.otherType == MagicType.Air)
-                {
-                    GearManager.Instance.ActivateGears();
-                }
-            }
-            else if (magic.type == MagicType.Water)
-            {
-                GearManager.Instance.CoolDownGears();
-            }
-            else if (magic.type == MagicType.Earth)
-            {
-                GearManager.Instance.ResetAllGears();
-            }
-        }
-    }*/
+   
 }

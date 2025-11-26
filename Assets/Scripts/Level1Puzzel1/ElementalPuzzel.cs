@@ -122,7 +122,7 @@ public class ElementalPuzzle : MonoBehaviourPun
         {
             overheated = false;
             puzzleActivated = true;
-            doorProgress = 0f;      // progreso desde 0
+            doorProgress = 0f;
             doorPaused = false;
 
             nextRandomFallAllowedTime = Time.time + randomFallGrace;
