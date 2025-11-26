@@ -2784,7 +2784,7 @@ Transform:
   m_GameObject: {fileID: 6574153030710026430}
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 0.05, y: -0.015, z: 0.275}
+  m_LocalPosition: {x: 0.002, y: 0.024, z: 0.275}
   m_LocalScale: {x: 0.5, y: 0.5, z: 0.5}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -2851,6 +2851,7 @@ GameObject:
   - component: {fileID: 2731776004080780194}
   - component: {fileID: -3164476102984643106}
   - component: {fileID: 8450864101092532438}
+  - component: {fileID: 8275166065548088719}
   m_Layer: 0
   m_Name: PlayerCameraOnLine
   m_TagString: Player
@@ -3186,6 +3187,47 @@ MonoBehaviour:
   fovIncrease: 25
   fovSmooth: 7
   respawn: {fileID: 0}
+--- !u!114 &8275166065548088719
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7045669205887240078}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d60274c2e96611d458710e70801d7a6d, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  hatRenderer: {fileID: 2695870921702235}
+  shirtRenderer: {fileID: 8157555577149944616}
+  legsRenderer: {fileID: 7041701537246671563}
+  rightShoeRenderer: {fileID: 2826917664315218409}
+  leftShoeRenderer: {fileID: 4487944163028754951}
+  fireMaterials:
+    hat: {fileID: 2100000, guid: f0efa7f7ac3ba5949aefe183d074ceb5, type: 2}
+    shirt: {fileID: 2100000, guid: f0efa7f7ac3ba5949aefe183d074ceb5, type: 2}
+    legs: {fileID: 2100000, guid: 9c3658babda35264a958d1a5a27b218c, type: 2}
+    rightShoe: {fileID: 2100000, guid: 9c3658babda35264a958d1a5a27b218c, type: 2}
+    leftShoe: {fileID: 2100000, guid: 9c3658babda35264a958d1a5a27b218c, type: 2}
+  waterMaterials:
+    hat: {fileID: 2100000, guid: d2feb4270256de64d8bdb1b5bb26ddd5, type: 2}
+    shirt: {fileID: 2100000, guid: d2feb4270256de64d8bdb1b5bb26ddd5, type: 2}
+    legs: {fileID: 2100000, guid: 1d3e4baeeaff99242b00e8bac6203598, type: 2}
+    rightShoe: {fileID: 2100000, guid: 1d3e4baeeaff99242b00e8bac6203598, type: 2}
+    leftShoe: {fileID: 2100000, guid: 1d3e4baeeaff99242b00e8bac6203598, type: 2}
+  earthMaterials:
+    hat: {fileID: 2100000, guid: 71ad02c1459736b4cb8bf22a4496f010, type: 2}
+    shirt: {fileID: 2100000, guid: 71ad02c1459736b4cb8bf22a4496f010, type: 2}
+    legs: {fileID: 2100000, guid: 180c932c40484b143ab6723bac607301, type: 2}
+    rightShoe: {fileID: 2100000, guid: 180c932c40484b143ab6723bac607301, type: 2}
+    leftShoe: {fileID: 2100000, guid: 180c932c40484b143ab6723bac607301, type: 2}
+  windMaterials:
+    hat: {fileID: 2100000, guid: 1a4a50d83096c8e4983fd4bd89fabf54, type: 2}
+    shirt: {fileID: 2100000, guid: 1a4a50d83096c8e4983fd4bd89fabf54, type: 2}
+    legs: {fileID: 2100000, guid: 5ee2c872c3b4be2498e08f5aee0f92ff, type: 2}
+    rightShoe: {fileID: 2100000, guid: 5ee2c872c3b4be2498e08f5aee0f92ff, type: 2}
+    leftShoe: {fileID: 2100000, guid: 5ee2c872c3b4be2498e08f5aee0f92ff, type: 2}
 --- !u!1 &7767863635850516013
 GameObject:
   m_ObjectHideFlags: 0
@@ -4087,9 +4129,19 @@ PrefabInstance:
       insertIndex: -1
       addedObject: {fileID: 2938196127156726448}
   m_SourcePrefab: {fileID: 100100000, guid: 4fcf7cfafce856241bb4615dd89176b7, type: 3}
+--- !u!137 &2695870921702235 stripped
+SkinnedMeshRenderer:
+  m_CorrespondingSourceObject: {fileID: -6627265635460366252, guid: 4fcf7cfafce856241bb4615dd89176b7, type: 3}
+  m_PrefabInstance: {fileID: 2598201936412850959}
+  m_PrefabAsset: {fileID: 0}
 --- !u!4 &2559192033086659812 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: -8679921383154817045, guid: 4fcf7cfafce856241bb4615dd89176b7, type: 3}
+  m_PrefabInstance: {fileID: 2598201936412850959}
+  m_PrefabAsset: {fileID: 0}
+--- !u!137 &2826917664315218409 stripped
+SkinnedMeshRenderer:
+  m_CorrespondingSourceObject: {fileID: 231249587885023974, guid: 4fcf7cfafce856241bb4615dd89176b7, type: 3}
   m_PrefabInstance: {fileID: 2598201936412850959}
   m_PrefabAsset: {fileID: 0}
 --- !u!1 &2940783713401931358 stripped
@@ -4124,6 +4176,21 @@ MonoBehaviour:
   m_SynchronizeLayers:
   - SynchronizeType: 0
     LayerIndex: 0
+--- !u!137 &4487944163028754951 stripped
+SkinnedMeshRenderer:
+  m_CorrespondingSourceObject: {fileID: -7329947502226745080, guid: 4fcf7cfafce856241bb4615dd89176b7, type: 3}
+  m_PrefabInstance: {fileID: 2598201936412850959}
+  m_PrefabAsset: {fileID: 0}
+--- !u!137 &7041701537246671563 stripped
+SkinnedMeshRenderer:
+  m_CorrespondingSourceObject: {fileID: -4199733266423068220, guid: 4fcf7cfafce856241bb4615dd89176b7, type: 3}
+  m_PrefabInstance: {fileID: 2598201936412850959}
+  m_PrefabAsset: {fileID: 0}
+--- !u!137 &8157555577149944616 stripped
+SkinnedMeshRenderer:
+  m_CorrespondingSourceObject: {fileID: -3081623819537233881, guid: 4fcf7cfafce856241bb4615dd89176b7, type: 3}
+  m_PrefabInstance: {fileID: 2598201936412850959}
+  m_PrefabAsset: {fileID: 0}
 --- !u!95 &8458955599137080990 stripped
 Animator:
   m_CorrespondingSourceObject: {fileID: 5866666021909216657, guid: 4fcf7cfafce856241bb4615dd89176b7, type: 3}
