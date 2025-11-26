@@ -285,24 +285,45 @@ public class GearBehavior : MonoBehaviourPun
 
         if (collision.gameObject.CompareTag("Earth") && isShaking)
         {
-            isShaking = false;
-            StartCoroutine(ReturnToInitialPosition());
+            
+            photonView.RPC("RPC_ReturnToInitialPosition", RpcTarget.All);
             return;
         }
 
         if (collision.gameObject.CompareTag("Earth") && isFalling)
-            StartCoroutine(ReturnToInitialPosition());
+            photonView.RPC("RPC_ReturnToInitialPosition", RpcTarget.All);
 
         if (collision.gameObject.CompareTag("Ground") && isFalling)
         {
-            isFalling = false;
-            rb.isKinematic = true;
-            rb.linearVelocity = Vector3.zero;
-            rb.angularVelocity = Vector3.zero;
-            rb.constraints = RigidbodyConstraints.None;
-            SoundManager.Instance?.Play(SfxKey.GearStop, transform);
+            photonView.RPC("RPC_DownForGood", RpcTarget.All);
         }
     }
+
+
+    [PunRPC]
+    public void RPC_DownForGood()
+    {
+        if (isShaking)
+        {
+            isShaking = false;
+        }
+        DownForGood();
+    }
+    public void DownForGood()
+    {
+        isFalling = false;
+        rb.isKinematic = true;
+        rb.linearVelocity = Vector3.zero;
+        rb.angularVelocity = Vector3.zero;
+        rb.constraints = RigidbodyConstraints.None;
+        SoundManager.Instance?.Play(SfxKey.GearStop, transform);
+    }
+    [PunRPC]
+    public void RPC_ReturnToInitialPosition()
+    {
+        StartCoroutine(ReturnToInitialPosition());
+    }
+
 
     [PunRPC]
     IEnumerator ReturnToInitialPosition()
