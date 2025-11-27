@@ -119,7 +119,7 @@ public class ObstaclesCodeStateMachine : MonoBehaviourPun
                 GameObject nuevo;
                 if (PhotonNetwork.IsConnectedAndReady)
                 {
-                    nuevo = PhotonNetwork.Instantiate(obstaculoActual.name);
+                    //nuevo = PhotonNetwork.Instantiate(obstaculoActual.name);
                 }
                 else
                 {
@@ -128,7 +128,7 @@ public class ObstaclesCodeStateMachine : MonoBehaviourPun
                     
                 Vector3 pos = posicionActual.position;
                 pos.z += i * 3f;
-                nuevo.transform.position = pos; 
+                //nuevo.transform.position = pos; 
             }
             contador += 1;
         }
