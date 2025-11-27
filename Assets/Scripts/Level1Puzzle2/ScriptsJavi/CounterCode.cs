@@ -8,9 +8,11 @@ public class CounterCode : MonoBehaviour
     
     public bool complete = false;
 
-    // Update is called once per frame
-    void Update()
+    public string tagName;
+
+    void Start()
     {
-        
+        tagName = gameObject.tag;
     }
+    
 }

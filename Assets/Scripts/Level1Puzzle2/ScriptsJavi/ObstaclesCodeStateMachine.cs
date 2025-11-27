@@ -2,7 +2,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
-using System.Collections.Specialized;
+
 using UnityEngine;
 public class ObstaclesCodeStateMachine : MonoBehaviourPun
 {
@@ -60,7 +60,7 @@ public class ObstaclesCodeStateMachine : MonoBehaviourPun
    
     void Update()
     {
-        //if (!PhotonNetwork.IsMasterClient) return;
+        if (!PhotonNetwork.IsMasterClient && !PhotonNetwork.IsConnectedAndReady) return;
         if (_generarObstaculosConteo)
         {
             StateMachineStatus(ObstaclesState.Create);
@@ -116,7 +116,16 @@ public class ObstaclesCodeStateMachine : MonoBehaviourPun
             Transform posicionActual = posiciones[contador];
             
             for (int i = 0; i < total; i++) {
-                GameObject nuevo = Instantiate(obstaculoActual);
+                GameObject nuevo;
+                if (PhotonNetwork.IsConnectedAndReady)
+                {
+                    nuevo = PhotonNetwork.Instantiate(obstaculoActual.name);
+                }
+                else
+                {
+                    nuevo = Instantiate(obstaculoActual);
+                }
+                    
                 Vector3 pos = posicionActual.position;
                 pos.z += i * 3f;
                 nuevo.transform.position = pos; 
@@ -130,7 +139,8 @@ public class ObstaclesCodeStateMachine : MonoBehaviourPun
         foreach(GameObject estatua in estatuas)
         {
             CounterCode contador = estatua.GetComponent<CounterCode>();
-            string tagEstatua = estatua.tag;
+            string tagEstatua = contador.tagName;
+            
             contador.total = seleccionarTag(tagEstatua);
         }
     }
@@ -180,12 +190,12 @@ void StateMachineStatus(ObstaclesState next)
                 shuffleObstacles();
                 cantObstaculos();
                 aparecerObstaculos();
+                ConectarEstatus();
                 _empezarJuego = true;
                 Debug.Log("------------------------------------------- Terminando código");
                 break;
-
-
             case ObstaclesState.Play:
+                _empezarJuego = false;
                 Debug.Log("------------------------------------------- Empezar juego");
                 
                 Debug.Log("------------------------------------------- Terminar juego");
