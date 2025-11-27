@@ -76,25 +76,27 @@ public class ElementalPuzzle : MonoBehaviourPun
 
     void OnTriggerEnter(Collider other)
     {
-        if (!photonView.IsMine)
+        // OFFLINE / sin Photon
+        if (!PhotonNetwork.IsConnected)
         {
-            // Si este cliente NO tiene autoridad sobre el puzzle,
-            // manda la acción a todos.
             if (other.CompareTag("Fire"))
-                photonView.RPC("TriggerElement", RpcTarget.All, "Fire");
-
+                TriggerElement("Fire");
             if (other.CompareTag("Wind"))
-                photonView.RPC("TriggerElement", RpcTarget.All, "Wind");
-
+                TriggerElement("Wind");
             return;
         }
 
-        // Si SÍ tiene autoridad (el host), ejecuta directamente:
+        // ONLINE: solo el Master decide y avisa a todos
+        if (!PhotonNetwork.IsMasterClient)
+            return;
+
         if (other.CompareTag("Fire"))
-            TriggerElement("Fire");
+            photonView.RPC("TriggerElement", RpcTarget.All, "Fire");
+
         if (other.CompareTag("Wind"))
-            TriggerElement("Wind");
+            photonView.RPC("TriggerElement", RpcTarget.All, "Wind");
     }
+
 
     [PunRPC]
     void TriggerElement(string element)
@@ -215,7 +217,11 @@ bool AllGearsStable()
             foreach (var gear in gears)
             {
                 var gb = gear.GetComponent<GearBehavior>();
-                if (gb != null) gb.StartRotation();
+                if (gb != null)
+                {
+                    // IMPORTANTE: avisar por RPC
+                    gb.photonView.RPC("StartRotation", RpcTarget.All);
+                }
             }
         }
         finally
@@ -223,6 +229,7 @@ bool AllGearsStable()
             _isActivating = false;
         }
     }
+
 
     [PunRPC]
     void ScheduleActivateGears()
