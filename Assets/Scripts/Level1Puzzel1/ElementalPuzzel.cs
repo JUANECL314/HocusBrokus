@@ -3,48 +3,54 @@ using System.Collections;
 using System.Collections.Generic;
 using Photon.Pun;
 
-public class ElementalPuzzle : MonoBehaviourPun
+public class ElementalPuzzle : MonoBehaviourPun, IPunObservable
 {
     // --- Activador elemental ---
     private bool fireHit = false;
     private bool windHit = false;
-    private bool puzzleActivated = false;
-    private bool overheated = false;  // Sobrecalentamiento
+
+    [SerializeField] private bool puzzleActivated = false;
+    [SerializeField] private bool overheated = false;  // Sobrecalentamiento
     private string FireLoopId => $"activator_fire_{GetInstanceID()}";
+
+    // --- Puerta / progreso ---
+    [Header("Door / Progress")]
+    public float doorOpenTime = 8f;        // segundos necesarios en condiciones válidas
+    [SerializeField] private float doorProgress = 0f;
+    [SerializeField] private bool doorPaused = false;
 
     // Getters para UI
     public float Progress01 => Mathf.Clamp01(doorProgress / Mathf.Max(0.0001f, doorOpenTime));
     public bool IsActivated => puzzleActivated;
     public bool IsPaused => doorPaused;
+    public bool IsOverheated => overheated;
 
     private bool _isActivating = false;
     private bool _activateScheduled = false;
 
-    // --- Puerta / progreso ---
-    [Header("Door / Progress")]
-    public float doorOpenTime = 8f;      // segundos necesarios en condiciones válidas
-    private float doorProgress = 0f;
-    private bool doorPaused = false;
-
-    // --- Caidas aleatorias ---
+    // --- Caídas aleatorias ---
     [Header("Random Falls")]
-    public float randomFallCooldown = 5f;    // CD entre caidas
+    public float randomFallCooldown = 5f;    // CD entre caídas
     public float randomFallGrace = 5f;       // tiempo extra al arrancar
     private bool canTriggerRandomFall = true;
-    private float nextRandomFallAllowedTime = 0f; // tiempo extra
+    private float nextRandomFallAllowedTime = 0f;
 
+    // ======================================================
+    // UPDATE: solo el dueño del puzzle simula la lógica
+    // ======================================================
     void Update()
     {
-        // Pausar/Reanudar puzzles
+        // Si estamos en multiplayer, solo el dueño (MasterClient) simula
+        if (PhotonNetwork.IsConnected && !photonView.IsMine)
+            return;
+
+        // Pausar/Reanudar puzzles según estabilidad de engranajes
         if (puzzleActivated)
         {
             bool stable = AllGearsStable();
 
-            // Si volvió todo a estable y estaba en pausa → reanudar
             if (stable && doorPaused)
                 DoorPause(false);
-
-            // Si dejo de estar estable y no estaba en pausa → pausar
             else if (!stable && !doorPaused)
                 DoorPause(true);
         }
@@ -55,8 +61,9 @@ public class ElementalPuzzle : MonoBehaviourPun
             float dt = Time.deltaTime;
             doorProgress += dt;
 
-            // KPI: tiempo estable acumulado
-            KPIPuzzle2Tracker.I?.AccumulateStableTime(dt);
+            // KPI: tiempo estable acumulado (solo dueño)
+            if (!PhotonNetwork.IsConnected || photonView.IsMine)
+                KPIPuzzle2Tracker.I?.AccumulateStableTime(dt);
 
             if (doorProgress >= doorOpenTime)
             {
@@ -66,35 +73,40 @@ public class ElementalPuzzle : MonoBehaviourPun
         }
         else if (puzzleActivated && doorPaused)
         {
-            // KPI: tiempo en pausa (caos)
-            KPIPuzzle2Tracker.I?.AccumulatePausedTime(Time.deltaTime);
+            // KPI: tiempo en pausa (caos, solo dueño)
+            if (!PhotonNetwork.IsConnected || photonView.IsMine)
+                KPIPuzzle2Tracker.I?.AccumulatePausedTime(Time.deltaTime);
         }
 
-        // Caidas aleatorias con gracia + cooldown
+        // Caídas aleatorias con gracia + cooldown (solo dueño)
         if (puzzleActivated && canTriggerRandomFall && Time.time >= nextRandomFallAllowedTime)
             StartCoroutine(RandomFallTick());
     }
 
+    // ======================================================
+    // TRIGGERS FIRE / WIND
+    // ======================================================
     void OnTriggerEnter(Collider other)
     {
-        if (!photonView.IsMine)
+        // OFFLINE / sin Photon → lógica local
+        if (!PhotonNetwork.IsConnected)
         {
-            // Si este cliente NO tiene autoridad sobre el puzzle,
-            // manda la acción a todos.
             if (other.CompareTag("Fire"))
-                photonView.RPC("TriggerElement", RpcTarget.All, "Fire");
-
+                TriggerElement("Fire");
             if (other.CompareTag("Wind"))
-                photonView.RPC("TriggerElement", RpcTarget.All, "Wind");
-
+                TriggerElement("Wind");
             return;
         }
 
-        // Si SÍ tiene autoridad (el host), ejecuta directamente:
+        // ONLINE: solo el dueño del puzzle procesa el trigger y lo replica
+        if (!photonView.IsMine)
+            return;
+
         if (other.CompareTag("Fire"))
-            TriggerElement("Fire");
+            photonView.RPC("TriggerElement", RpcTarget.All, "Fire");
+
         if (other.CompareTag("Wind"))
-            TriggerElement("Wind");
+            photonView.RPC("TriggerElement", RpcTarget.All, "Wind");
     }
 
     [PunRPC]
@@ -105,16 +117,18 @@ public class ElementalPuzzle : MonoBehaviourPun
             fireHit = true;
             SoundManager.Instance?.StartLoop(FireLoopId, SfxKey.FireIgniteLoop, transform);
 
-            // KPI: primer impacto Fire
-            KPIPuzzle2Tracker.I?.RegisterElementHit("Fire");
+            // KPI: primer impacto Fire (solo dueño)
+            if (!PhotonNetwork.IsConnected || photonView.IsMine)
+                KPIPuzzle2Tracker.I?.RegisterElementHit("Fire");
         }
 
         if (element == "Wind" && !windHit)
         {
             windHit = true;
 
-            // KPI: primer impacto Wind
-            KPIPuzzle2Tracker.I?.RegisterElementHit("Wind");
+            // KPI: primer impacto Wind (solo dueño)
+            if (!PhotonNetwork.IsConnected || photonView.IsMine)
+                KPIPuzzle2Tracker.I?.RegisterElementHit("Wind");
         }
 
         // Si ambos elementos están presentes, activa el puzzle
@@ -124,9 +138,6 @@ public class ElementalPuzzle : MonoBehaviourPun
             puzzleActivated = true;
             doorProgress = 0f;
             doorPaused = false;
-
-            nextRandomFallAllowedTime = Time.time + randomFallGrace;
-            canTriggerRandomFall = true;
 
             SoundManager.Instance?.Play(SfxKey.FireWindBoost, transform);
             SoundManager.Instance?.StopLoop(FireLoopId);
@@ -138,23 +149,30 @@ public class ElementalPuzzle : MonoBehaviourPun
                 if (gb != null) gb.SetAutoReactivateOnLand(true);
             }
 
-            // KPI: combinación Fire+Wind que activa el puzzle
-            KPIPuzzle2Tracker.I?.RegisterPuzzleActivated();
+            // KPI: combinación Fire+Wind que activa el puzzle (solo dueño)
+            if (!PhotonNetwork.IsConnected || photonView.IsMine)
+                KPIPuzzle2Tracker.I?.RegisterPuzzleActivated();
 
-            ScheduleActivateGears();
+            // Solo el dueño se encarga de caídas aleatorias y activación inicial
+            if (!PhotonNetwork.IsConnected || photonView.IsMine)
+            {
+                nextRandomFallAllowedTime = Time.time + randomFallGrace;
+                canTriggerRandomFall = true;
+                ScheduleActivateGears();
+            }
         }
     }
 
-    [PunRPC]
+    // ======================================================
+    // PAUSA / RESET
+    // ======================================================
     public void DoorPause(bool pause)
     {
         doorPaused = pause;
 
-        if (pause)
-        {
-            // KPI: evento de pausa
+        // KPI: evento de pausa sólo en el dueño
+        if (pause && (!PhotonNetwork.IsConnected || photonView.IsMine))
             KPIPuzzle2Tracker.I?.RegisterDoorPause();
-        }
     }
 
     [PunRPC]
@@ -162,8 +180,9 @@ public class ElementalPuzzle : MonoBehaviourPun
     {
         overheated = true;
 
-        // KPI: overheat global
-        KPIPuzzle2Tracker.I?.RegisterOverheatReset();
+        // KPI: overheat global (solo dueño)
+        if (!PhotonNetwork.IsConnected || photonView.IsMine)
+            KPIPuzzle2Tracker.I?.RegisterOverheatReset();
 
         // limpiar flags de activacion (para obligar a relanzar Fuego+Viento)
         fireHit = false;
@@ -187,7 +206,9 @@ public class ElementalPuzzle : MonoBehaviourPun
         }
     }
 
-    [PunRPC]
+    // ======================================================
+    // ESTABILIDAD DE ENGRANAJES
+    // ======================================================
     bool AllGearsStable()
     {
         var gears = GameObject.FindGameObjectsWithTag("Engranaje");
@@ -198,12 +219,15 @@ public class ElementalPuzzle : MonoBehaviourPun
             var gb = g.GetComponent<GearBehavior>();
             if (gb == null) return false;
 
-            if (!gb.IsRotating || gb.isFalling) return false;
+            if (!gb.IsStableForDoor())
+                return false;
         }
         return true;
     }
 
-    [PunRPC]
+    // ======================================================
+    // ACTIVAR ENGRANAJES
+    // ======================================================
     void ActivateGears()
     {
         if (_isActivating) return;
@@ -214,7 +238,11 @@ public class ElementalPuzzle : MonoBehaviourPun
             foreach (var gear in gears)
             {
                 var gb = gear.GetComponent<GearBehavior>();
-                if (gb != null) gb.StartRotation();
+                if (gb != null && gb.photonView != null)
+                {
+                    // Arranca rotación en TODOS los clientes
+                    gb.photonView.RPC("StartRotation", RpcTarget.All);
+                }
             }
         }
         finally
@@ -223,7 +251,6 @@ public class ElementalPuzzle : MonoBehaviourPun
         }
     }
 
-    [PunRPC]
     void ScheduleActivateGears()
     {
         if (_activateScheduled) return;
@@ -231,7 +258,6 @@ public class ElementalPuzzle : MonoBehaviourPun
         StartCoroutine(_ActivateNextFrame());
     }
 
-    [PunRPC]
     IEnumerator _ActivateNextFrame()
     {
         yield return null;
@@ -239,11 +265,15 @@ public class ElementalPuzzle : MonoBehaviourPun
         ActivateGears();
     }
 
+    // ======================================================
+    // ABRIR PUERTA
+    // ======================================================
     [PunRPC]
     void OpenDoor()
     {
-        // KPI: puerta abierta (puzzle resuelto)
-        KPIPuzzle2Tracker.I?.RegisterDoorOpened();
+        // KPI: puerta abierta (puzzle resuelto, sólo dueño)
+        if (!PhotonNetwork.IsConnected || photonView.IsMine)
+            KPIPuzzle2Tracker.I?.RegisterDoorOpened();
 
         // Inicia la rotación de las puertas en lugar de destruirlas
         StartCoroutine(RotateDoors());
@@ -253,11 +283,10 @@ public class ElementalPuzzle : MonoBehaviourPun
         doorProgress = 0f;
         DoorPause(false);
 
-        // (Opcional) parar caídas aleatorias
+        // parar caídas aleatorias
         canTriggerRandomFall = false;
     }
 
-    [PunRPC]
     IEnumerator RotateDoors()
     {
         GameObject[] doors = GameObject.FindGameObjectsWithTag("Puerta");
@@ -286,9 +315,15 @@ public class ElementalPuzzle : MonoBehaviourPun
         }
     }
 
-    [PunRPC]
+    // ======================================================
+    // CAÍDAS ALEATORIAS (solo dueño elige, todos ven)
+    // ======================================================
     IEnumerator RandomFallTick()
     {
+        // Solo el dueño ejecuta esta corrutina en multiplayer
+        if (PhotonNetwork.IsConnected && !photonView.IsMine)
+            yield break;
+
         canTriggerRandomFall = false;
 
         // elige engranajes elegibles (girando y no cayendo)
@@ -306,14 +341,36 @@ public class ElementalPuzzle : MonoBehaviourPun
         {
             var pick = candidates[Random.Range(0, candidates.Count)];
 
-            // KPI: caída aleatoria de engrane
-            KPIPuzzle2Tracker.I?.RegisterRandomFall();
+            // KPI: caída aleatoria de engrane (solo dueño)
+            if (!PhotonNetwork.IsConnected || photonView.IsMine)
+                KPIPuzzle2Tracker.I?.RegisterRandomFall();
 
-            pick.MakeFall();
+            // Hacerlo caer en TODOS los clientes
+            if (pick.photonView != null)
+                pick.photonView.RPC("MakeFall", RpcTarget.All);
         }
 
         // respeta cooldown fijo
         yield return new WaitForSeconds(randomFallCooldown);
         canTriggerRandomFall = true;
+    }
+    public void OnPhotonSerializeView(PhotonStream stream, PhotonMessageInfo info)
+    {
+        if (stream.IsWriting)
+        {
+            // Dueño del puzzle → envía estado
+            stream.SendNext(doorProgress);
+            stream.SendNext(puzzleActivated);
+            stream.SendNext(doorPaused);
+            stream.SendNext(overheated);
+        }
+        else
+        {
+            // Otros clientes → reciben estado
+            doorProgress = (float)stream.ReceiveNext();
+            puzzleActivated = (bool)stream.ReceiveNext();
+            doorPaused = (bool)stream.ReceiveNext();
+            overheated = (bool)stream.ReceiveNext();
+        }
     }
 }

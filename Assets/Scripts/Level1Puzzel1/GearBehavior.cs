@@ -11,15 +11,32 @@ public class GearBehavior : MonoBehaviourPun
     [SerializeField] private bool autoReactivateOnLand = true;
     public void SetAutoReactivateOnLand(bool v) => autoReactivateOnLand = v;
 
-    [Header("State")]
+    [Header("State (legacy flags)")]
     [SerializeField] private bool isRotating = false;
     public bool isFalling = false;
-    private bool destroyedDoors = false;
-    private Vector3 initialPosition;
-    private Quaternion initialRotation; // ← NUEVO
+    [SerializeField] private bool isShaking = false;
     public bool IsRotating => isRotating;
 
-    [SerializeField] private bool isShaking = false;
+    // 👇 NUEVO: helper para ElementalPuzzle
+    public bool IsStableForDoor()
+    {
+        // Estable = está girando y no está temblando ni cayendo
+        return isRotating && !isFalling && !isShaking;
+    }
+
+    [Header("Heat")]
+    [SerializeField] private bool isHot = false;        // true = rojo, candidato a overheat
+    public bool IsHot => isHot;
+
+    // Solo un engranaje cayendo a la vez
+    private static GearBehavior currentFallingGear = null;
+
+    // Solo un engranaje sobrecalentándose a la vez
+    private static GearBehavior currentOverheatingGear = null;
+
+    private bool destroyedDoors = false;
+    private Vector3 initialPosition;
+    private Quaternion initialRotation;
 
     [Header("Tuning")]
     public float rotationSpeed = 150f;
@@ -35,7 +52,7 @@ public class GearBehavior : MonoBehaviourPun
     [SerializeField] private float shakeMoveOffsetX = 0.3f;
 
     [Header("Extra Delay Before Falling")]
-    [SerializeField] private float extraFallDelay = 1.5f; // ← NUEVO
+    [SerializeField] private float extraFallDelay = 1.5f;
 
     private string LoopId => $"gear_loop_{GetInstanceID()}";
 
@@ -44,10 +61,11 @@ public class GearBehavior : MonoBehaviourPun
     private Coroutine overheatCo;
     private bool cooledDuringWindow = false;
 
-    void Start()
+    private void Start()
     {
         rend = GetComponent<Renderer>();
         rb = GetComponent<Rigidbody>();
+
         if (rb == null)
         {
             Debug.LogError($"{name} no tiene Rigidbody");
@@ -59,29 +77,40 @@ public class GearBehavior : MonoBehaviourPun
         rb.constraints = RigidbodyConstraints.None;
 
         initialPosition = transform.position;
-        initialRotation = transform.rotation; // ← NUEVO
+        initialRotation = transform.rotation;
 
         rend.material.color = Color.gray;
+        isRotating = false;
+        isFalling = false;
+        isShaking = false;
+        isHot = false;
     }
 
-    void Update()
+    private void Update()
     {
         if (isRotating)
+        {
             transform.Rotate(Vector3.forward * -rotationSpeed * Time.deltaTime, Space.Self);
-
-        if (isFalling)
+        }
+        else if (isFalling)
         {
             rb.isKinematic = false;
             rb.linearVelocity = new Vector3(0, -fallSpeed, 0);
         }
     }
 
+    // ======================================================
+    // ROTACIÓN / CALOR
+    // ======================================================
+
     [PunRPC]
     public void StartRotation()
     {
-        if (isRotating) return;
+        // No arrancar si ya está en caída/temblando
+        if (isRotating || isFalling || isShaking)
+            return;
+
         isRotating = true;
-        cooledDuringWindow = false;
 
         SoundManager.Instance?.Play(SfxKey.GearStart, transform);
         SoundManager.Instance?.StartLoop(LoopId, SfxKey.GearLoop, transform);
@@ -97,35 +126,54 @@ public class GearBehavior : MonoBehaviourPun
     public void StopRotation()
     {
         if (!isRotating) return;
+
         isRotating = false;
+        isHot = false; // se enfría
+
+        if (currentOverheatingGear == this)
+            currentOverheatingGear = null;
 
         SoundManager.Instance?.StopLoop(LoopId);
         SoundManager.Instance?.Play(SfxKey.GearStop, transform);
 
         if (rotateFlowCo != null) { StopCoroutine(rotateFlowCo); rotateFlowCo = null; }
         if (overheatCo != null) { StopCoroutine(overheatCo); overheatCo = null; }
+
+        rend.material.color = Color.gray;
     }
 
-    [PunRPC]
     private IEnumerator RotateAndChangeColorFlow()
     {
+        // gris → naranja → rojo
         rend.material.color = Color.gray;
+        isHot = false;
+
         yield return new WaitForSeconds(0.5f);
         if (!isRotating) yield break;
 
-        rend.material.color = new Color(1f, 0.5f, 0f);
+        rend.material.color = new Color(1f, 0.5f, 0f); // naranja
+        isHot = false;
+
         yield return new WaitForSeconds(0.5f);
         if (!isRotating) yield break;
 
+        // Rojo = visiblemente caliente
         rend.material.color = Color.red;
+        isHot = true;
     }
 
     [PunRPC]
     public void CoolDown()
     {
+        // Enfría solo si está girando
+        if (!isRotating) return;
+
         rend.material.color = Color.gray;
+        isHot = false;
+
         SoundManager.Instance?.Play(SfxKey.GearCoolHiss, transform);
         cooledDuringWindow = true;
+
         if (overheatCo != null) StopCoroutine(overheatCo);
         StartCoroutine(RearmOverheatAfterDelay());
     }
@@ -133,8 +181,17 @@ public class GearBehavior : MonoBehaviourPun
     [PunRPC]
     public void ResetToInitialPosition(bool smooth = true)
     {
+        if (currentFallingGear == this)
+            currentFallingGear = null;
+        if (currentOverheatingGear == this)
+            currentOverheatingGear = null;
+
+        isRotating = false;
         isFalling = false;
         isShaking = false;
+        isHot = false;
+
+        rend.material.color = Color.gray;
 
         if (rb != null)
         {
@@ -147,22 +204,56 @@ public class GearBehavior : MonoBehaviourPun
         if (!smooth)
         {
             transform.position = initialPosition;
-            transform.rotation = initialRotation; // ← NUEVO
+            transform.rotation = initialRotation;
         }
         else
+        {
             StartCoroutine(ReturnToInitialPosition());
+        }
     }
 
-    [PunRPC]
     private IEnumerator OverheatCountdown()
     {
-        cooledDuringWindow = false;
-        float t = 0f;
-
-        while (t < overheatSeconds)
+        // 1) Esperar a que realmente esté rojo y en estado estable
+        while (true)
         {
             if (!isRotating) yield break;
             if (cooledDuringWindow) yield break;
+
+            // Solo arrancamos contador de overheat si:
+            //  - está rojo (isHot)
+            //  - no está cayendo ni temblando
+            if (isHot && !isFalling && !isShaking)
+                break;
+
+            yield return null;
+        }
+
+        cooledDuringWindow = false;
+        float t = 0f;
+
+        // 2) Solo un engranaje en proceso de sobrecalentamiento a la vez
+        if (currentOverheatingGear != null && currentOverheatingGear != this)
+            yield break;
+
+        currentOverheatingGear = this;
+
+        // 3) Contar tiempo de sobrecalentamiento visible
+        while (t < overheatSeconds)
+        {
+            if (!isRotating || !isHot || isFalling || isShaking)
+            {
+                if (currentOverheatingGear == this)
+                    currentOverheatingGear = null;
+                yield break;
+            }
+
+            if (cooledDuringWindow)
+            {
+                if (currentOverheatingGear == this)
+                    currentOverheatingGear = null;
+                yield break;
+            }
 
             t += Time.deltaTime;
             yield return null;
@@ -171,7 +262,6 @@ public class GearBehavior : MonoBehaviourPun
         Overheat();
     }
 
-    [PunRPC]
     private IEnumerator RearmOverheatAfterDelay()
     {
         float t = 0f;
@@ -183,37 +273,60 @@ public class GearBehavior : MonoBehaviourPun
             yield return null;
         }
 
-        if (isRotating) overheatCo = StartCoroutine(OverheatCountdown());
+        if (isRotating)
+            overheatCo = StartCoroutine(OverheatCountdown());
     }
 
     [PunRPC]
     private void Overheat()
     {
-        StopRotation();
-        var puzzle = FindObjectOfType<ElementalPuzzle>();
-        if (puzzle != null) puzzle.ResetFromOverheatAndReturnAll();
-    }
-
-    [PunRPC]
-    public void ReactivateAfterLand()
-    {
-        if (!isRotating && !isFalling)
+        // Solo sobrecalentar si:
+        //  - sigue girando
+        //  - sigue rojo
+        //  - no está cayendo / temblando
+        //  - es el engranaje "dueño" del slot de overheat
+        if (!isRotating || !isHot || isFalling || isShaking || currentOverheatingGear != this)
         {
-            rend.material.color = Color.red;
-            isRotating = true;
-            SoundManager.Instance?.Play(SfxKey.GearStart, transform);
-            SoundManager.Instance?.StartLoop(LoopId, SfxKey.GearLoop, transform);
+            if (currentOverheatingGear == this)
+                currentOverheatingGear = null;
+            return;
         }
+
+        Debug.Log($"[GearBehavior] OVERHEAT en {name}");
+
+        isHot = false;
+        StopRotation();
+
+        if (currentOverheatingGear == this)
+            currentOverheatingGear = null;
+
+        var puzzle = FindObjectOfType<ElementalPuzzle>();
+        if (puzzle != null)
+            puzzle.ResetFromOverheatAndReturnAll();
     }
 
-    // ---------------------------------------------------------------------
-    // ------------------------------  MAKEFALL -----------------------------
-    // ---------------------------------------------------------------------
+    // ======================================================
+    // CAÍDA
+    // ======================================================
 
     [PunRPC]
     public void MakeFall()
     {
+        // No hacer nada si ya está cayendo/temblando
         if (isFalling || isShaking) return;
+
+        // Solo caer si estaba girando
+        if (!isRotating) return;
+
+        // Solo 1 engranaje cayendo a la vez
+        if (currentFallingGear != null && currentFallingGear != this)
+            return;
+
+        // Si está rojo/caliente no se cae
+        if (isHot)
+            return;
+
+        currentFallingGear = this;
 
         isRotating = false;
         isShaking = true;
@@ -255,9 +368,7 @@ public class GearBehavior : MonoBehaviourPun
             yield return null;
         }
 
-        isShaking = false;
-
-        // NUEVO: tiempo extra antes de caer
+        // Tiempo extra antes de caer
         yield return new WaitForSeconds(extraFallDelay);
 
         FallNow();
@@ -265,24 +376,33 @@ public class GearBehavior : MonoBehaviourPun
 
     private void FallNow()
     {
+        isShaking = false;
         isFalling = true;
 
         rb.isKinematic = false;
         rb.linearVelocity = Vector3.zero;
         rb.angularVelocity = Vector3.zero;
-
         rb.constraints = RigidbodyConstraints.FreezeRotation;
 
         var puzzle = FindObjectOfType<ElementalPuzzle>();
         if (puzzle != null) puzzle.DoorPause(true);
     }
 
-    [PunRPC]
-    void OnCollisionEnter(Collision collision)
-    {
-        if (collision.gameObject.CompareTag("Water") && isRotating)
-            photonView.RPC("CoolDown", RpcTarget.All);
+    // ======================================================
+    // COLISIONES
+    // ======================================================
 
+    [PunRPC]
+    private void OnCollisionEnter(Collision collision)
+    {
+        // Agua enfría si está girando
+        if (collision.gameObject.CompareTag("Water") && isRotating)
+        {
+            photonView.RPC("CoolDown", RpcTarget.All);
+            return;
+        }
+
+        // Tierra cancela el temblor y regresa
         if (collision.gameObject.CompareTag("Earth") && isShaking)
         {
             isShaking = false;
@@ -290,31 +410,47 @@ public class GearBehavior : MonoBehaviourPun
             return;
         }
 
+        // Tierra pegando mientras cae → regresar
         if (collision.gameObject.CompareTag("Earth") && isFalling)
+        {
+            isFalling = false;
             StartCoroutine(ReturnToInitialPosition());
+            return;
+        }
 
+        // Golpea piso normal
         if (collision.gameObject.CompareTag("Ground") && isFalling)
         {
             isFalling = false;
+
             rb.isKinematic = true;
             rb.linearVelocity = Vector3.zero;
             rb.angularVelocity = Vector3.zero;
             rb.constraints = RigidbodyConstraints.None;
+
             SoundManager.Instance?.Play(SfxKey.GearStop, transform);
+
+            if (currentFallingGear == this)
+                currentFallingGear = null;
         }
     }
 
     [PunRPC]
-    IEnumerator ReturnToInitialPosition()
+    private IEnumerator ReturnToInitialPosition()
     {
         isFalling = false;
         isShaking = false;
+
+        if (currentFallingGear == this)
+            currentFallingGear = null;
+        if (currentOverheatingGear == this)
+            currentOverheatingGear = null;
 
         rb.isKinematic = true;
         rb.constraints = RigidbodyConstraints.None;
 
         Vector3 startPos = transform.position;
-        Quaternion startRot = transform.rotation; // ← NUEVO
+        Quaternion startRot = transform.rotation;
         float elapsed = 0f;
         float duration = 2f;
 
@@ -323,19 +459,52 @@ public class GearBehavior : MonoBehaviourPun
             float t = elapsed / duration;
 
             transform.position = Vector3.Lerp(startPos, initialPosition, t);
-            transform.rotation = Quaternion.Lerp(startRot, initialRotation, t); // ← NUEVO
+            transform.rotation = Quaternion.Lerp(startRot, initialRotation, t);
 
             elapsed += Time.deltaTime;
             yield return null;
         }
 
         transform.position = initialPosition;
-        transform.rotation = initialRotation; // ← NUEVO
+        transform.rotation = initialRotation;
 
         if (autoReactivateOnLand)
             ReactivateAfterLand();
     }
 
-    void OnDisable() { SoundManager.Instance?.StopLoop(LoopId); }
-    void OnDestroy() { SoundManager.Instance?.StopLoop(LoopId); }
+    [PunRPC]
+    public void ReactivateAfterLand()
+    {
+        if (!isRotating && !isFalling && !isShaking)
+        {
+            rend.material.color = Color.red;
+            isHot = true;
+
+            isRotating = true;
+
+            SoundManager.Instance?.Play(SfxKey.GearStart, transform);
+            SoundManager.Instance?.StartLoop(LoopId, SfxKey.GearLoop, transform);
+
+            if (overheatCo != null) StopCoroutine(overheatCo);
+            overheatCo = StartCoroutine(OverheatCountdown());
+        }
+    }
+
+    private void OnDisable()
+    {
+        SoundManager.Instance?.StopLoop(LoopId);
+        if (currentFallingGear == this)
+            currentFallingGear = null;
+        if (currentOverheatingGear == this)
+            currentOverheatingGear = null;
+    }
+
+    private void OnDestroy()
+    {
+        SoundManager.Instance?.StopLoop(LoopId);
+        if (currentFallingGear == this)
+            currentFallingGear = null;
+        if (currentOverheatingGear == this)
+            currentOverheatingGear = null;
+    }
 }
