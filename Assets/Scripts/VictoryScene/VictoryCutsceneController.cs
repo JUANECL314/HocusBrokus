@@ -81,7 +81,7 @@ public class VictoryCutsceneController : MonoBehaviourPun
         var rb = GetComponent<Rigidbody>();
         if (rb != null)
         {
-            rb.velocity = Vector3.zero;
+            rb.linearVelocity = Vector3.zero;
             rb.angularVelocity = Vector3.zero;
             rb.useGravity = false;
             rb.constraints = RigidbodyConstraints.FreezeAll;
