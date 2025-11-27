@@ -30,6 +30,7 @@ public class InferenceUploader : MonoBehaviour
 
     [Header("Backend")]
     public string inferenceUrl = "https://hokusbackend-production.up.railway.app/api/inference";
+    public bool IsUploadingInference { get; private set; }
 
     private void Awake()
     {
@@ -80,7 +81,7 @@ public class InferenceUploader : MonoBehaviour
             teamRecovery = res.teamRecovery,
             players = players.ToArray()
         };
-
+        IsUploadingInference = true;
         StartCoroutine(PostInference(dto));
         sm.MarkResultAsSent(); // opcional, marca que ya lo usamos/enviamos
     }
@@ -106,5 +107,7 @@ public class InferenceUploader : MonoBehaviour
         {
             Debug.Log("[InferenceUploader] Respuesta OK: " + req.downloadHandler.text);
         }
+
+        IsUploadingInference = false;           
     }
 }

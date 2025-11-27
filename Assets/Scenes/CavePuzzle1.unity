@@ -6071,7 +6071,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 20eed66900168b34b964d65f3b089389, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  puzzleActivated: 0
+  overheated: 0
   doorOpenTime: 20
+  doorProgress: 0
+  doorPaused: 0
   randomFallCooldown: 5
   randomFallGrace: 5
 --- !u!65 &1046518615
@@ -6114,6 +6118,7 @@ MonoBehaviour:
   OwnershipTransfer: 0
   observableSearch: 2
   ObservedComponents:
+  - {fileID: 1046518614}
   - {fileID: 1046518617}
   sceneViewId: 2
   InstantiationId: 0
