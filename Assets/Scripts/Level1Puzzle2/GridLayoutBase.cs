@@ -63,6 +63,13 @@ public class GridLayoutBase : MonoBehaviourPun
 
     void Awake()
     {
+       
+        
+        if (instance != null && instance != this)
+        {
+            Destroy(gameObject);
+            return;
+        }
         instance = this;
         // inicializar mazeData en Awake con dimensiones actuales
         mazeData = new int[rows, columns];
