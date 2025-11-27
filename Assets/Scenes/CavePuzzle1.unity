@@ -2318,6 +2318,10 @@ PrefabInstance:
       value: 5
       objectReference: {fileID: 0}
     - target: {fileID: -6346381226238368175, guid: 6a83b9c9b2036e841a8efd0ad33bb8b6, type: 3}
+      propertyPath: m_Enabled
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: -6346381226238368175, guid: 6a83b9c9b2036e841a8efd0ad33bb8b6, type: 3}
       propertyPath: shakeDuration
       value: 5
       objectReference: {fileID: 0}
@@ -2431,6 +2435,9 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: 2970017306065775674, guid: 6a83b9c9b2036e841a8efd0ad33bb8b6, type: 3}
       insertIndex: -1
       addedObject: {fileID: 622947477}
+    - targetCorrespondingSourceObject: {fileID: 2970017306065775674, guid: 6a83b9c9b2036e841a8efd0ad33bb8b6, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 622947486}
   m_SourcePrefab: {fileID: 100100000, guid: 6a83b9c9b2036e841a8efd0ad33bb8b6, type: 3}
 --- !u!4 &622947475 stripped
 Transform:
@@ -2481,6 +2488,30 @@ MonoBehaviour:
   sceneViewId: 4
   InstantiationId: 0
   isRuntimeInstantiated: 0
+--- !u!114 &622947486
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 622947476}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a8fbf28c118a28548bc974cd398f9463, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  currentState: 0
+  coldFallProbability: 0.15
+  isRotating: 0
+  isFalling: 0
+  isShaking: 0
+  rotationSpeed: 150
+  overheatSeconds: 15
+  overheatRearmSeconds: 6
+  fallSpeed: 2
+  shakeDuration: 1.3
+  shakeMoveOffsetX: 0.3
+  extraFallDelay: 1.5
 --- !u!4 &626796116 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 9017602581590474371, guid: b4e5c97056c65f8428e5fa362e2a59e6, type: 3}
@@ -3950,6 +3981,10 @@ PrefabInstance:
       value: 0
       objectReference: {fileID: 0}
     - target: {fileID: -6346381226238368175, guid: 6a83b9c9b2036e841a8efd0ad33bb8b6, type: 3}
+      propertyPath: m_Enabled
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: -6346381226238368175, guid: 6a83b9c9b2036e841a8efd0ad33bb8b6, type: 3}
       propertyPath: shakeDuration
       value: 5
       objectReference: {fileID: 0}
@@ -4075,6 +4110,9 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: 2970017306065775674, guid: 6a83b9c9b2036e841a8efd0ad33bb8b6, type: 3}
       insertIndex: -1
       addedObject: {fileID: 921192936}
+    - targetCorrespondingSourceObject: {fileID: 2970017306065775674, guid: 6a83b9c9b2036e841a8efd0ad33bb8b6, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 921192945}
   m_SourcePrefab: {fileID: 100100000, guid: 6a83b9c9b2036e841a8efd0ad33bb8b6, type: 3}
 --- !u!4 &921192934 stripped
 Transform:
@@ -4125,6 +4163,30 @@ MonoBehaviour:
   sceneViewId: 5
   InstantiationId: 0
   isRuntimeInstantiated: 0
+--- !u!114 &921192945
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 921192935}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a8fbf28c118a28548bc974cd398f9463, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  currentState: 0
+  coldFallProbability: 0.15
+  isRotating: 0
+  isFalling: 0
+  isShaking: 0
+  rotationSpeed: 150
+  overheatSeconds: 15
+  overheatRearmSeconds: 6
+  fallSpeed: 2
+  shakeDuration: 1.3
+  shakeMoveOffsetX: 0.3
+  extraFallDelay: 1.5
 --- !u!1 &928598110
 GameObject:
   m_ObjectHideFlags: 0
@@ -4247,6 +4309,10 @@ PrefabInstance:
       value: 5
       objectReference: {fileID: 0}
     - target: {fileID: -6346381226238368175, guid: 6a83b9c9b2036e841a8efd0ad33bb8b6, type: 3}
+      propertyPath: m_Enabled
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: -6346381226238368175, guid: 6a83b9c9b2036e841a8efd0ad33bb8b6, type: 3}
       propertyPath: isRotating
       value: 0
       objectReference: {fileID: 0}
@@ -4364,6 +4430,9 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: 2970017306065775674, guid: 6a83b9c9b2036e841a8efd0ad33bb8b6, type: 3}
       insertIndex: -1
       addedObject: {fileID: 937538678}
+    - targetCorrespondingSourceObject: {fileID: 2970017306065775674, guid: 6a83b9c9b2036e841a8efd0ad33bb8b6, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 937538687}
   m_SourcePrefab: {fileID: 100100000, guid: 6a83b9c9b2036e841a8efd0ad33bb8b6, type: 3}
 --- !u!4 &937538676 stripped
 Transform:
@@ -4414,6 +4483,30 @@ MonoBehaviour:
   sceneViewId: 3
   InstantiationId: 0
   isRuntimeInstantiated: 0
+--- !u!114 &937538687
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 937538677}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a8fbf28c118a28548bc974cd398f9463, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  currentState: 0
+  coldFallProbability: 0.15
+  isRotating: 0
+  isFalling: 0
+  isShaking: 0
+  rotationSpeed: 150
+  overheatSeconds: 15
+  overheatRearmSeconds: 6
+  fallSpeed: 2
+  shakeDuration: 1.3
+  shakeMoveOffsetX: 0.3
+  extraFallDelay: 1.5
 --- !u!1 &953003606
 GameObject:
   m_ObjectHideFlags: 0
@@ -6373,6 +6466,10 @@ PrefabInstance:
       value: 5
       objectReference: {fileID: 0}
     - target: {fileID: -6346381226238368175, guid: 6a83b9c9b2036e841a8efd0ad33bb8b6, type: 3}
+      propertyPath: m_Enabled
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: -6346381226238368175, guid: 6a83b9c9b2036e841a8efd0ad33bb8b6, type: 3}
       propertyPath: shakeDuration
       value: 5
       objectReference: {fileID: 0}
@@ -6482,6 +6579,9 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: 2970017306065775674, guid: 6a83b9c9b2036e841a8efd0ad33bb8b6, type: 3}
       insertIndex: -1
       addedObject: {fileID: 1284417224}
+    - targetCorrespondingSourceObject: {fileID: 2970017306065775674, guid: 6a83b9c9b2036e841a8efd0ad33bb8b6, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 1284417233}
   m_SourcePrefab: {fileID: 100100000, guid: 6a83b9c9b2036e841a8efd0ad33bb8b6, type: 3}
 --- !u!4 &1284417222 stripped
 Transform:
@@ -6532,6 +6632,30 @@ MonoBehaviour:
   sceneViewId: 6
   InstantiationId: 0
   isRuntimeInstantiated: 0
+--- !u!114 &1284417233
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1284417223}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a8fbf28c118a28548bc974cd398f9463, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  currentState: 0
+  coldFallProbability: 0.15
+  isRotating: 0
+  isFalling: 0
+  isShaking: 0
+  rotationSpeed: 150
+  overheatSeconds: 15
+  overheatRearmSeconds: 6
+  fallSpeed: 2
+  shakeDuration: 1.3
+  shakeMoveOffsetX: 0.3
+  extraFallDelay: 1.5
 --- !u!1 &1318157077
 GameObject:
   m_ObjectHideFlags: 0
