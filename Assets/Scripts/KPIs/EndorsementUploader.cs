@@ -60,7 +60,28 @@ public class EndorsementUploader : MonoBehaviour
 
     private bool _uploadingEndorse;
     private bool _uploadingCompat;
+    public bool IsUploadingEndorse => _uploadingEndorse;
+    public bool IsUploadingCompat => _uploadingCompat;
 
+    public bool HasPendingEndorsements
+    {
+        get
+        {
+            var q = LoadQueue();
+            return q.pending.Count > 0 || _uploadingEndorse;
+        }
+    }
+
+    public bool HasPendingCompatibility
+    {
+        get
+        {
+            var q = LoadCompatQueue();
+            return q.pending.Count > 0 || _uploadingCompat;
+        }
+    }
+
+    public bool HasAnyPendingUploads => HasPendingEndorsements || HasPendingCompatibility;
     private void Awake()
     {
         if (Instance != null && Instance != this)

@@ -2383,7 +2383,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!4 &676783909619652017
 Transform:
   m_ObjectHideFlags: 0
@@ -2407,7 +2407,7 @@ TrailRenderer:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 4887256886260590085}
-  m_Enabled: 1
+  m_Enabled: 0
   m_CastShadows: 1
   m_ReceiveShadows: 1
   m_DynamicOccludee: 1
@@ -3408,6 +3408,8 @@ MonoBehaviour:
   magicInputScript: {fileID: 6177203162997360681}
   extraScriptsToDisable:
   - {fileID: 4720370240322471829}
+  - {fileID: 421160105492963846}
+  - {fileID: 5032153860629961460}
   animator: {fileID: 8458955599137080990}
   danceTriggerName: idle
   modelRoot: {fileID: 2559192033086659812}
@@ -3427,6 +3429,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   trailRenderer: {fileID: 6764183898525033675}
   requiredSku: trail_basic
+  debugLogs: 1
 --- !u!1 &7767863635850516013
 GameObject:
   m_ObjectHideFlags: 0
