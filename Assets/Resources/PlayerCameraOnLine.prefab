@@ -2444,7 +2444,7 @@ TrailRenderer:
   m_SortingLayerID: 0
   m_SortingLayer: 0
   m_SortingOrder: 0
-  m_Time: 5
+  m_Time: 1
   m_PreviewTimeScale: 1
   m_Parameters:
     serializedVersion: 3
@@ -2453,8 +2453,8 @@ TrailRenderer:
       serializedVersion: 2
       m_Curve:
       - serializedVersion: 3
-        time: 0
-        value: 1
+        time: 0.014335632
+        value: 0.27074432
         inSlope: 0
         outSlope: 0
         tangentMode: 0
@@ -3430,6 +3430,7 @@ MonoBehaviour:
   trailRenderer: {fileID: 6764183898525033675}
   requiredSku: trail_basic
   debugLogs: 1
+  forceAlwaysOnTest: 0
 --- !u!1 &7767863635850516013
 GameObject:
   m_ObjectHideFlags: 0
