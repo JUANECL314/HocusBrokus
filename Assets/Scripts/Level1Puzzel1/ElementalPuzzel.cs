@@ -16,7 +16,6 @@ public class ElementalPuzzle : MonoBehaviourPun
     public float Progress01 => Mathf.Clamp01(doorProgress / Mathf.Max(0.0001f, doorOpenTime));
     public bool IsActivated => puzzleActivated;
     public bool IsPaused => doorPaused;
-
     private bool _isActivating = false;
     private bool _activateScheduled = false;
 
@@ -187,21 +186,23 @@ public class ElementalPuzzle : MonoBehaviourPun
         }
     }
 
-    [PunRPC]
-    bool AllGearsStable()
+[PunRPC]
+bool AllGearsStable()
+{
+    var gears = GameObject.FindGameObjectsWithTag("Engranaje");
+    if (gears.Length == 0) return false;
+
+    foreach (var g in gears)
     {
-        var gears = GameObject.FindGameObjectsWithTag("Engranaje");
-        if (gears.Length == 0) return false;
+        var gb = g.GetComponent<GearBehavior>();
+        if (gb == null) return false;
 
-        foreach (var g in gears)
-        {
-            var gb = g.GetComponent<GearBehavior>();
-            if (gb == null) return false;
-
-            if (!gb.IsRotating || gb.isFalling) return false;
-        }
-        return true;
+        if (!gb.IsStableForDoor())
+            return false;
     }
+    return true;
+}
+
 
     [PunRPC]
     void ActivateGears()
