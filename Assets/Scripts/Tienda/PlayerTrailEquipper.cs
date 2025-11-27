@@ -1,31 +1,39 @@
-using System;
+﻿using System;
 using UnityEngine;
 
 public class PlayerTrailEquipper : MonoBehaviour
 {
     [Header("Trail")]
-    public TrailRenderer trailRenderer;       // arr�strale el TrailSpawn (o el TrailRenderer)
+    [Tooltip("TrailRenderer que se debe encender/apagar")]
+    public TrailRenderer trailRenderer;   // arrastra aquí el TrailRenderer
 
-    [Tooltip("SKU de la trail que debe estar equipada para activar este TrailRenderer")]
+    [Tooltip("SKU que debe estar equipada para activar este trail")]
     public string requiredSku = "trail_basic";
 
     [Header("Debug")]
     public bool debugLogs = true;
 
-    private void Awake()
+    [Tooltip("Ignora la tienda y deja el trail siempre encendido (para pruebas).")]
+    public bool forceAlwaysOnTest = false;
+
+    float defaultTime = 0.5f;
+
+    void Awake()
     {
         if (!trailRenderer)
-            trailRenderer = GetComponentInChildren<TrailRenderer>(true);
+            trailRenderer = GetComponent<TrailRenderer>();
+
+        if (trailRenderer)
+            defaultTime = Mathf.Max(0.3f, trailRenderer.time);
     }
 
-    private void Start()
+    void Start()
     {
         RefreshTrail();
     }
 
-    private void OnEnable()
+    void OnEnable()
     {
-        // Por si el prefab persiste entre escenas
         RefreshTrail();
     }
 
@@ -34,22 +42,43 @@ public class PlayerTrailEquipper : MonoBehaviour
         if (!trailRenderer)
         {
             if (debugLogs)
-                Debug.LogWarning("[PlayerTrailEquipper] No hay TrailRenderer asignado.", this);
+                Debug.LogWarning("[PlayerTrailEquipper] No TrailRenderer asignado.", this);
             return;
         }
 
-        string equipped = OwnedItemsStore.GetEquippedTrailSku();
-        bool active = !string.IsNullOrEmpty(equipped) &&
-                      string.Equals(equipped, requiredSku, StringComparison.OrdinalIgnoreCase);
+        bool active;
 
-        if (debugLogs)
+        if (forceAlwaysOnTest)
         {
-            Debug.Log(
-                $"[PlayerTrailEquipper] requiredSku='{requiredSku}', equipped='{equipped}', active={active}",
-                this
-            );
+            active = true;
+            if (debugLogs)
+                Debug.Log("[PlayerTrailEquipper] forceAlwaysOnTest = true → activando trail sin mirar tienda.", this);
+        }
+        else
+        {
+            string equipped = OwnedItemsStore.GetEquippedTrailSku();
+            active = !string.IsNullOrEmpty(equipped) &&
+                     string.Equals(equipped, requiredSku, StringComparison.OrdinalIgnoreCase);
+
+            if (debugLogs)
+                Debug.Log($"[PlayerTrailEquipper] requiredSku='{requiredSku}', equipped='{equipped}', active={active}", this);
         }
 
-        trailRenderer.gameObject.SetActive(active);
+        // Aseguramos TODO:
+        trailRenderer.enabled = active;
+        trailRenderer.emitting = active;
+        trailRenderer.time = active ? defaultTime : 0f;
+
+        if (!active)
+            trailRenderer.Clear();
     }
+
+#if UNITY_EDITOR
+    void OnValidate()
+    {
+        // si arrastras el TrailRenderer en el inspector, recalcula defaultTime
+        if (trailRenderer)
+            defaultTime = Mathf.Max(0.3f, trailRenderer.time);
+    }
+#endif
 }
