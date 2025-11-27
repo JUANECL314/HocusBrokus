@@ -1,76 +1,113 @@
 ﻿using Photon.Pun;
 using System;
-using System.Collections;
 using System.Collections.Generic;
 
 using UnityEngine;
+
 public class ObstaclesCodeStateMachine : MonoBehaviourPun
 {
     public static ObstaclesCodeStateMachine instance;
-    [Header("Obstacles")]
-    public GameObject[] obstacles;
 
-    [Header("ID_Obstacles")]
-    // Water - 0, Fire - 1, Earth - 2, Wind - 3
+    [Header("Obstacles")]
+    public GameObject[] obstacles;   // Prefabs registrados en Photon
+    public string pathObstacles = "Elements/";
+    [Header("ID_Obstacles (Water=0, Fire=1, Earth=2, Wind=3)")]
     public int[] id = { 0, 1, 2, 3 };
     List<int> lista;
     List<int> orden;
 
-    [Header("Cantidad_Obstáculos")]
+    [Header("Cantidad Obstáculos")]
     int limiteDeObstaculos = 5;
     public int totalCantidadAgua;
     public int totalCantidadFuego;
     public int totalCantidadTierra;
     public int totalCantidadAire;
-    
-    [Header("Posiciones_Obstaculos")]
+
+    [Header("Posiciones")]
     public Transform[] posiciones;
 
-    [Header("EstadoActual")]
-    public ObstaclesState currentState = ObstaclesState.Init;
     public enum ObstaclesState
     {
         Init,
         Create,
         Play,
-        Destroy,
         Complete
     }
 
-    [Header("Condiciones")]
+    public ObstaclesState currentState = ObstaclesState.Init;
+
     private bool _generarObstaculosConteo = false;
     private bool _empezarJuego = false;
+
     [Header("Pilares")]
-    // Water - 0, Fire - 1, Earth - 2, Wind - 3
     public GameObject[] estatuas;
+
     void Awake()
     {
         if (instance != null && instance != this)
         {
-            Destroy(gameObject); //  destruye el objeto duplicado
+            Destroy(gameObject);
             return;
         }
 
         instance = this;
+
         lista = new List<int>(id);
         orden = new List<int>();
+
         _generarObstaculosConteo = true;
     }
-    
-   
+
     void Update()
     {
-        if (!PhotonNetwork.IsMasterClient && !PhotonNetwork.IsConnectedAndReady) return;
-        if (_generarObstaculosConteo)
-        {
+        if (!PhotonNetwork.IsConnectedAndReady) return;
+
+        // SOLO MASTER EJECUTA LA LÓGICA
+        if (!PhotonNetwork.IsMasterClient) return;
+
+        if (_generarObstaculosConteo && !_empezarJuego)
             StateMachineStatus(ObstaclesState.Create);
-        }
-        else if(_empezarJuego)
-        {
+
+        else if (_empezarJuego && !_generarObstaculosConteo)
             StateMachineStatus(ObstaclesState.Play);
-        }
-        
     }
+
+    // ==============================
+    //  MAQUINA DE ESTADOS
+    // ==============================
+
+    void StateMachineStatus(ObstaclesState next)
+    {
+        currentState = next;
+
+        switch (currentState)
+        {
+            case ObstaclesState.Create:
+                Debug.Log("----- CREANDO OBSTÁCULOS -----");
+
+                _generarObstaculosConteo = false;
+
+                ResetLista();
+                shuffleObstacles();
+                cantObstaculos();
+                aparecerObstaculos();
+                photonView.RPC("RPC_UpdateTotals", RpcTarget.AllBuffered);
+
+                _empezarJuego = true;
+
+                Debug.Log("----- FIN CREATE -----");
+                break;
+
+            case ObstaclesState.Play:
+                _empezarJuego = false;
+                Debug.Log("----- EMPEZAR JUEGO -----");
+                break;
+        }
+    }
+
+    // ==============================
+    //  GENERAR ORDEN
+    // ==============================
 
     void shuffleObstacles()
     {
@@ -78,132 +115,124 @@ public class ObstaclesCodeStateMachine : MonoBehaviourPun
         {
             orden.Add(ShuffleOrderCode());
         }
-
-
-        _generarObstaculosConteo = false;
     }
+
+    int ShuffleOrderCode()
+    {
+        int index = UnityEngine.Random.Range(0, lista.Count);
+        int value = lista[index];
+        lista.RemoveAt(index);
+        return value;
+    }
+
+    void ResetLista()
+    {
+        limiteDeObstaculos = 5;
+        lista = new List<int>(id);
+        orden.Clear();
+    }
+
+    // ==============================
+    //  CANTIDADES
+    // ==============================
 
     void cantObstaculos()
     {
-        limiteDeObstaculos += 1;
-        totalCantidadAgua = randomCant(1,limiteDeObstaculos);
-        totalCantidadFuego = randomCant(1,limiteDeObstaculos);
-        totalCantidadTierra = randomCant(1,limiteDeObstaculos);
-        totalCantidadAire = randomCant(1,limiteDeObstaculos);
-        Debug.Log("Total agua" + totalCantidadAgua);
-        Debug.Log("Total fuego" + totalCantidadFuego);
-        Debug.Log("Total tierra" + totalCantidadTierra);
-        Debug.Log("Total aire" + totalCantidadAire);
+        limiteDeObstaculos++;
+
+        totalCantidadAgua = UnityEngine.Random.Range(1, limiteDeObstaculos);
+        totalCantidadFuego = UnityEngine.Random.Range(1, limiteDeObstaculos);
+        totalCantidadTierra = UnityEngine.Random.Range(1, limiteDeObstaculos);
+        totalCantidadAire = UnityEngine.Random.Range(1, limiteDeObstaculos);
+
+        photonView.RPC(
+           "RPC_SetTotals",
+           RpcTarget.OthersBuffered,
+           totalCantidadAgua,
+           totalCantidadFuego,
+           totalCantidadTierra,
+           totalCantidadAire
+        );
     }
 
-    int randomCant(int inicio,int limite)
-    {
-        return UnityEngine.Random.Range(inicio, limite);
-    }
-    int ShuffleOrderCode()
-    {
-        int randomPick = lista[randomCant(0,lista.Count)];
-        lista.Remove(randomPick);
-        return randomPick;
-    }
-    void aparecerObstaculos()
-    {
-        int contador = 0;
-        while (contador < posiciones.Length) {
-            int ordenActual = orden[contador];
-            GameObject obstaculoActual = obstacles[ordenActual];
-            int total = seleccionarTotal(ordenActual);
-            Transform posicionActual = posiciones[contador];
-            
-            for (int i = 0; i < total; i++) {
-                GameObject nuevo;
-                if (PhotonNetwork.IsConnectedAndReady)
-                {
-                    //nuevo = PhotonNetwork.Instantiate(obstaculoActual.name);
-                }
-                else
-                {
-                    nuevo = Instantiate(obstaculoActual);
-                }
-                    
-                Vector3 pos = posicionActual.position;
-                pos.z += i * 3f;
-                //nuevo.transform.position = pos; 
-            }
-            contador += 1;
-        }
-    }
-
-    void ConectarEstatus()
-    {
-        foreach(GameObject estatua in estatuas)
-        {
-            CounterCode contador = estatua.GetComponent<CounterCode>();
-            string tagEstatua = contador.tagName;
-            
-            contador.total = seleccionarTag(tagEstatua);
-        }
-    }
     int seleccionarTotal(int id)
     {
         switch (id)
         {
-            case 0:
-                return totalCantidadAgua;
-            case 1:
-                return totalCantidadFuego;
-            case 2:
-                return totalCantidadTierra;
-            case 3:
-                return totalCantidadAire;
-            default:
-                return 0;
+            case 0: return totalCantidadAgua;
+            case 1: return totalCantidadFuego;
+            case 2: return totalCantidadTierra;
+            case 3: return totalCantidadAire;
         }
+        return 0;
     }
 
-    int seleccionarTag(string id)
+    // ==============================
+    //  GENERAR OBSTÁCULOS
+    // ==============================
+
+    void aparecerObstaculos()
     {
-        switch (id)
+        for (int i = 0; i < posiciones.Length; i++)
         {
-            case "Water":
-                return totalCantidadAgua;
-            case "Fire":
-                return totalCantidadFuego;
-            case "Earth":
-                return totalCantidadTierra;
-            case "Wind":
-                return totalCantidadAire;
-            default:
-                return 0;
+            int ordenActual = orden[i];
+            int total = seleccionarTotal(ordenActual);
+            Transform pos = posiciones[i];
+
+            for (int j = 0; j < total; j++)
+            {
+                Vector3 newPos = pos.position;
+                newPos.z += j * 3f;
+
+                // AHORA SÍ ES CORRECTO ✨
+                PhotonNetwork.Instantiate(pathObstacles+obstacles[ordenActual].name, newPos, Quaternion.identity);
+            }
         }
     }
 
-void StateMachineStatus(ObstaclesState next)
+    // ==============================
+    //  ESTATUAS
+    // ==============================
+
+    void ConectarEstatuas()
     {
-        currentState = next;
-        switch (currentState)
+        foreach (GameObject estatua in estatuas)
         {
-            case ObstaclesState.Create:
-                Debug.Log("------------------------------------------- Creando código");
-                
-                _generarObstaculosConteo = false;
-                shuffleObstacles();
-                cantObstaculos();
-                aparecerObstaculos();
-                ConectarEstatus();
-                _empezarJuego = true;
-                Debug.Log("------------------------------------------- Terminando código");
-                break;
-            case ObstaclesState.Play:
-                _empezarJuego = false;
-                Debug.Log("------------------------------------------- Empezar juego");
-                
-                Debug.Log("------------------------------------------- Terminar juego");
-                break;
-            
-        }
+            CounterCode contador = estatua.GetComponent<CounterCode>();
+            string tagEstatua = contador.tagName;
 
+            contador.total = seleccionarTag(tagEstatua);
+        }
     }
 
-   
+    int seleccionarTag(string tag)
+    {
+        switch (tag)
+        {
+            case "Water": return totalCantidadAgua;
+            case "Fire": return totalCantidadFuego;
+            case "Earth": return totalCantidadTierra;
+            case "Wind": return totalCantidadAire;
+        }
+        return 0;
+    }
+
+    // ==============================
+    //  RPCs
+    // ==============================
+
+    [PunRPC]
+    void RPC_SetTotals(int agua, int fuego, int tierra, int aire)
+    {
+        totalCantidadAgua = agua;
+        totalCantidadFuego = fuego;
+        totalCantidadTierra = tierra;
+        totalCantidadAire = aire;
+    }
+
+    [PunRPC]
+    void RPC_UpdateTotals()
+    {
+        ConectarEstatuas();
+    }
 }

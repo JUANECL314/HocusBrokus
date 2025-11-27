@@ -2,6 +2,7 @@ using Photon.Pun;
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Threading;
 using Unity.VisualScripting;
 using UnityEngine;
 public class ButtonActivation : MonoBehaviourPun, ISubject
@@ -37,7 +38,7 @@ public class ButtonActivation : MonoBehaviourPun, ISubject
 
             pipe.GetComponent<Renderer>().material.color = Color.gray;
         }
-        //StartCoroutine(CheckStatus());
+       
     }
     IEnumerator FindLocalPlayer()
     {
@@ -54,6 +55,7 @@ public class ButtonActivation : MonoBehaviourPun, ISubject
 
         float dist = Vector3.Distance(localPlayer.position, transform.position);
         bool canInteract = dist <= interactionDistance;
+        Debug.Log(canInteract);
         panelUI.SetActive(canInteract);
 
         if (canInteract && Input.GetKeyDown(teclaAbrir))
