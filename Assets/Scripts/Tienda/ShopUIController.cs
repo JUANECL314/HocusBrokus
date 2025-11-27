@@ -55,6 +55,9 @@ public class ShopUIController : MonoBehaviour
     private readonly HashSet<string> _ownedSkus = new(StringComparer.OrdinalIgnoreCase);
     private readonly Dictionary<string, ShopItemCardUI> _cardsBySku = new(StringComparer.OrdinalIgnoreCase);
 
+    // NUEVO: cuál trail está equipada (SKU). La leemos/guardamos en PlayerPrefs usando OwnedItemsStore.
+    private string _equippedTrailSku = "";
+
     private void OnEnable()
     {
         if (refreshOnEnable) StartCoroutine(LoadStore());
@@ -66,9 +69,12 @@ public class ShopUIController : MonoBehaviour
     {
         if (!EnsureLogged()) yield break;
 
-        SetStatus("Cargando tienda...");
+        SetStatus("Cargando tienda.");
         _ownedSkus.Clear();
         _cardsBySku.Clear();
+
+        // Leer trail equipada localmente
+        _equippedTrailSku = OwnedItemsStore.GetEquippedTrailSku();
 
         yield return StartCoroutine(CoLoadWallet());
         yield return StartCoroutine(CoLoadInventory());
@@ -109,7 +115,6 @@ public class ShopUIController : MonoBehaviour
         if (txtCoins) txtCoins.text = data != null ? $"Monedas: {data.balance}" : "Monedas: -";
     }
 
-
     private IEnumerator CoLoadInventory()
     {
         var url = $"{apiBaseUrl.TrimEnd('/')}/shop/inventory?userId={AuthState.UserId}";
@@ -134,7 +139,6 @@ public class ShopUIController : MonoBehaviour
         }
     }
 
-
     private IEnumerator CoLoadCatalog()
     {
         if (contentGrid == null)
@@ -155,14 +159,14 @@ public class ShopUIController : MonoBehaviour
         req.timeout = Mathf.RoundToInt(requestTimeoutSeconds);
         SetAuth(req);
 
-        Debug.Log($"[Shop] Solicitando catálogo: {url}"); // <- LOG clave
+        Debug.Log($"[Shop] Solicitando catálogo: {url}");
 
         yield return req.SendWebRequest();
 
 #if UNITY_2020_2_OR_NEWER
         bool transportError = req.result != UnityWebRequest.Result.Success;
 #else
-    bool transportError = req.isNetworkError || req.isHttpError;
+        bool transportError = req.isNetworkError || req.isHttpError;
 #endif
 
         if (transportError || req.responseCode < 200 || req.responseCode >= 300)
@@ -196,9 +200,9 @@ public class ShopUIController : MonoBehaviour
             // 2) ¿objeto con 'items'?
             try
             {
-                var catalogObj = JsonUtility.FromJson<CatalogResponse>(body);
-                if (catalogObj != null && catalogObj.items != null)
-                    items = catalogObj.items;
+                var wrapper = JsonUtility.FromJson<CatalogResponse>(body);
+                if (wrapper != null && wrapper.items != null)
+                    items = wrapper.items;
             }
             catch (Exception e)
             {
@@ -208,7 +212,7 @@ public class ShopUIController : MonoBehaviour
 
         if (items == null || items.Count == 0)
         {
-            SetStatus("No hay artículos disponibles.");
+            SetStatus("Catálogo vacío.");
             Debug.LogWarning($"[Shop] Catálogo vacío o no parseable. Body: {body}");
             yield break;
         }
@@ -233,15 +237,22 @@ public class ShopUIController : MonoBehaviour
             }
 
             bool isOwned = _ownedSkus.Contains(it.sku);
+            bool isEquipped = string.Equals(it.sku, _equippedTrailSku, StringComparison.OrdinalIgnoreCase);
+
             ui.Bind(
                 sku: it.sku,
                 title: string.IsNullOrEmpty(it.title) ? it.sku : it.title,
                 price: it.price,
                 isOwned: isOwned,
-                imageUrl: it.image_url,   
+                isEquipped: isEquipped,
+                imageUrl: it.image_url,
                 onBuy: () =>
                 {
                     if (!isOwned) StartCoroutine(CoPurchase(it.sku, 1));
+                },
+                onEquip: () =>
+                {
+                    OnEquipTrail(it.sku);
                 }
             );
 
@@ -250,7 +261,6 @@ public class ShopUIController : MonoBehaviour
 
         SetStatus("");
     }
-
 
     // ---------------------- Comprar ----------------------
 
@@ -266,7 +276,7 @@ public class ShopUIController : MonoBehaviour
             yield break;
         }
 
-        SetStatus("Procesando compra...");
+        SetStatus("Procesando compra.");
 
         var payload = new PurchaseRequest { user_id = AuthState.UserId, sku = sku, quantity = qty };
         var json = JsonUtility.ToJson(payload);
@@ -293,6 +303,41 @@ public class ShopUIController : MonoBehaviour
 
         yield return StartCoroutine(CoLoadWallet()); // refresca Monedas: X
         SetStatus("Compra realizada.");
+    }
+
+    // ---------------------- EQUIPAR TRAIL ----------------------
+
+    /// <summary>
+    /// Lógica de equipar/desequipar una trail usando el mismo SKU del catálogo.
+    /// </summary>
+    private void OnEquipTrail(string sku)
+    {
+        if (!_ownedSkus.Contains(sku))
+        {
+            SetStatus("Primero compra la trail para equiparla.");
+            return;
+        }
+
+        // Toggle: si ya está equipada esta misma, la quitamos.
+        if (string.Equals(_equippedTrailSku, sku, StringComparison.OrdinalIgnoreCase))
+        {
+            _equippedTrailSku = "";
+            OwnedItemsStore.SetEquippedTrailSku("");
+            SetStatus("Trail quitada.");
+        }
+        else
+        {
+            _equippedTrailSku = sku;
+            OwnedItemsStore.SetEquippedTrailSku(sku);
+            SetStatus("Trail equipada.");
+        }
+
+        // Actualizar todas las cards
+        foreach (var kvp in _cardsBySku)
+        {
+            bool eq = string.Equals(kvp.Key, _equippedTrailSku, StringComparison.OrdinalIgnoreCase);
+            kvp.Value.SetEquipped(eq);
+        }
     }
 
     // ---------------------- Helpers ----------------------
