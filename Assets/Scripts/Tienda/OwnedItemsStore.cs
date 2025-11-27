@@ -5,6 +5,11 @@ public static class OwnedItemsStore
 {
     private const string PP_KEY = "store.owned.items";
 
+    // NUEVO: PlayerPrefs para la trail equipada
+    private const string PP_TRAIL_EQUIPPED = "cosmetic.trail.equipped";
+
+    // --------- ÍTEMS COMPRADOS (legacy/local) ----------
+
     // Carga como HashSet<string>
     public static HashSet<string> LoadOwned()
     {
@@ -46,5 +51,21 @@ public static class OwnedItemsStore
     public static void Clear()
     {
         PlayerPrefs.DeleteKey(PP_KEY);
+    }
+
+    // --------- TRAIL EQUIPADA (cosmético) ----------
+
+    /// <summary>SKU de la trail equipada actualmente (o "" si ninguna).</summary>
+    public static string GetEquippedTrailSku()
+    {
+        return PlayerPrefs.GetString(PP_TRAIL_EQUIPPED, "");
+    }
+
+    /// <summary>Guarda la trail equipada (puede ser "" para quitar).</summary>
+    public static void SetEquippedTrailSku(string sku)
+    {
+        if (sku == null) sku = "";
+        PlayerPrefs.SetString(PP_TRAIL_EQUIPPED, sku);
+        PlayerPrefs.Save();
     }
 }
