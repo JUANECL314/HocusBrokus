@@ -2,7 +2,7 @@
 using UnityEngine.UI;
 using UnityEngine.InputSystem;
 using UnityEngine.EventSystems;
-using UnityEngine.SceneManagement;   // ⬅️ NUEVO
+using UnityEngine.SceneManagement;   // ⬅️ Necesario
 using Photon.Pun;
 
 public class SettingsMenuController : MonoBehaviour
@@ -11,6 +11,10 @@ public class SettingsMenuController : MonoBehaviour
     [SerializeField] private GameObject panelRoot;
     [SerializeField] private Slider mouseSens;
     [SerializeField] private Slider gamepadSens;
+
+    [Header("Submenús")]
+    [SerializeField] private GameObject keyboardPanel;
+    [SerializeField] private GameObject gamepadPanel;
 
     [Header("Escenas Lobby")]
     [SerializeField] private string[] allowedScenesWithPhoton;
@@ -36,7 +40,6 @@ public class SettingsMenuController : MonoBehaviour
             }
         }
 
-        // ⬅️ Si Photon está conectado Y NO es una escena permitida → apagar este menú
         if (PhotonNetwork.IsConnected && !isAllowedScene)
         {
             if (panelRoot) panelRoot.SetActive(false);
@@ -44,16 +47,35 @@ public class SettingsMenuController : MonoBehaviour
             return;
         }
 
-        // Escena offline normal, o escena especial permitida con Photon
-        if (!panelRoot) Debug.LogError("[SettingsMenu] panelRoot no asignado");
-        if (panelRoot) panelRoot.SetActive(false);
+        if (!panelRoot)
+            Debug.LogError("[SettingsMenu] panelRoot no asignado");
+
+        if (panelRoot)
+            panelRoot.SetActive(false);
+
+        if (keyboardPanel) keyboardPanel.SetActive(false);
+        if (gamepadPanel) gamepadPanel.SetActive(false);
+
         RefreshUIFromSettings();
     }
 
     void Update()
     {
-        if (Keyboard.current != null && Keyboard.current.f10Key.wasPressedThisFrame)
+        if (Keyboard.current == null) return;
+
+        // Abrir/cerrar menú principal
+        if (Keyboard.current.f10Key.wasPressedThisFrame)
             TogglePanel();
+
+        // Solo si el menú está abierto
+        if (panelRoot != null && panelRoot.activeSelf)
+        {
+            if (Keyboard.current.eKey.wasPressedThisFrame)
+                ToggleKeyboardPanel();
+
+            if (Keyboard.current.qKey.wasPressedThisFrame)
+                ToggleGamepadPanel();
+        }
     }
 
     void TryFindLocalPlayerInput()
@@ -61,10 +83,68 @@ public class SettingsMenuController : MonoBehaviour
         if (triedFindPlayer) return;
         triedFindPlayer = true;
 
-        // Busca un PlayerInput en la escena (el tuyo / único)
         localPlayerInput = FindObjectOfType<PlayerInput>();
-        // Si no hay ninguno (Main Menu), se queda null y no se deshabilita nada — está bien.
     }
+
+    // ============================
+    //  SUBMENÚS EXCLUSIVOS
+    // ============================
+
+    public void ToggleKeyboardPanel()
+    {
+        if (!keyboardPanel) return;
+
+        bool show = !keyboardPanel.activeSelf;
+
+        if (show && gamepadPanel)
+            gamepadPanel.SetActive(false);
+
+        keyboardPanel.SetActive(show);
+    }
+
+    public void ToggleGamepadPanel()
+    {
+        if (!gamepadPanel) return;
+
+        bool show = !gamepadPanel.activeSelf;
+
+        if (show && keyboardPanel)
+            keyboardPanel.SetActive(false);
+
+        gamepadPanel.SetActive(show);
+    }
+
+    // ---- Mostrar uno específico desde UI ----
+    public void ShowKeyboardPanel()
+    {
+        if (keyboardPanel)
+        {
+            keyboardPanel.SetActive(true);
+            if (gamepadPanel) gamepadPanel.SetActive(false);
+        }
+    }
+
+    public void ShowGamepadPanel()
+    {
+        if (gamepadPanel)
+        {
+            gamepadPanel.SetActive(true);
+            if (keyboardPanel) keyboardPanel.SetActive(false);
+        }
+    }
+
+    // ---- Ocultar desde UI ----
+    public void HideKeyboardPanel()
+    {
+        if (keyboardPanel) keyboardPanel.SetActive(false);
+    }
+
+    public void HideGamepadPanel()
+    {
+        if (gamepadPanel) gamepadPanel.SetActive(false);
+    }
+
+    // ============================
 
     public void TogglePanel()
     {
@@ -88,8 +168,12 @@ public class SettingsMenuController : MonoBehaviour
         else
         {
             PushUIToSettings();
+
+            // al cerrar, siempre apaga los submenús
+            if (keyboardPanel) keyboardPanel.SetActive(false);
+            if (gamepadPanel) gamepadPanel.SetActive(false);
+
             if (localPlayerInput) localPlayerInput.enabled = true;
-            // Aquí puedes relockear el cursor si quieres.
         }
     }
 
@@ -101,6 +185,7 @@ public class SettingsMenuController : MonoBehaviour
             ms = SettingsManager.I.MouseSensitivity;
             gs = SettingsManager.I.GamepadSensitivity;
         }
+
         if (mouseSens) mouseSens.value = ms;
         if (gamepadSens) gamepadSens.value = gs;
     }
@@ -108,14 +193,25 @@ public class SettingsMenuController : MonoBehaviour
     void PushUIToSettings()
     {
         if (!SettingsManager.I) return;
+
         if (mouseSens) SettingsManager.I.SetMouseSensitivity(mouseSens.value);
         if (gamepadSens) SettingsManager.I.SetGamepadSensitivity(gamepadSens.value);
     }
 
-    // Hooks de UI
-    public void OnMouseSensChanged(float v) { if (SettingsManager.I) SettingsManager.I.SetMouseSensitivity(v); }
-    public void OnGamepadSensChanged(float v) { if (SettingsManager.I) SettingsManager.I.SetGamepadSensitivity(v); }
-    public void OnCloseClicked() { TogglePanel(); }
+    public void OnMouseSensChanged(float v)
+    {
+        if (SettingsManager.I) SettingsManager.I.SetMouseSensitivity(v);
+    }
+
+    public void OnGamepadSensChanged(float v)
+    {
+        if (SettingsManager.I) SettingsManager.I.SetGamepadSensitivity(v);
+    }
+
+    public void OnCloseClicked()
+    {
+        TogglePanel();
+    }
 
     static void EnsureEventSystem()
     {

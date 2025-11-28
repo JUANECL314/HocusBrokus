@@ -261,7 +261,7 @@ void Update()
 
     public void OnGamepadSensChanged(float v)
     {
-        if (SettingsManager.I) SettingsManager.I.SetGamepadSensitivity(v);
+        if (SettingsManager.I) SettingsManager.I.SetGamepadSensitivity(v)   ;
     }
 
     public void OnCloseClicked()
