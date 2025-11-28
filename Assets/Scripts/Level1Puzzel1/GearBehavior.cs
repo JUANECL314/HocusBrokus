@@ -2,7 +2,7 @@
 using System.Collections;
 using UnityEngine;
 
-public class GearBehavior : MonoBehaviourPun
+public class GearBehavior : MonoBehaviourPun, IPunObservable
 {
     private Renderer rend;
     private Rigidbody rb;
@@ -17,10 +17,9 @@ public class GearBehavior : MonoBehaviourPun
     [SerializeField] private bool isShaking = false;
     public bool IsRotating => isRotating;
 
-    // 👇 NUEVO: helper para ElementalPuzzle
+    // Para ElementalPuzzle
     public bool IsStableForDoor()
     {
-        // Estable = está girando y no está temblando ni cayendo
         return isRotating && !isFalling && !isShaking;
     }
 
@@ -61,6 +60,10 @@ public class GearBehavior : MonoBehaviourPun
     private Coroutine overheatCo;
     private bool cooledDuringWindow = false;
 
+    // --- Datos para sync de red ---
+    private Vector3 networkPosition;
+    private Quaternion networkRotation;
+
     private void Start()
     {
         rend = GetComponent<Renderer>();
@@ -84,10 +87,23 @@ public class GearBehavior : MonoBehaviourPun
         isFalling = false;
         isShaking = false;
         isHot = false;
+
+        networkPosition = transform.position;
+        networkRotation = transform.rotation;
     }
 
     private void Update()
     {
+        // Si estamos en red y NO somos el dueño, solo interpolamos hacia la posición/rotación de red
+        if (PhotonNetwork.IsConnected && !photonView.IsMine)
+        {
+            float lerpSpeed = 10f;
+            transform.position = Vector3.Lerp(transform.position, networkPosition, Time.deltaTime * lerpSpeed);
+            transform.rotation = Quaternion.Slerp(transform.rotation, networkRotation, Time.deltaTime * lerpSpeed);
+            return;
+        }
+
+        // Dueño local: simula física y rotación
         if (isRotating)
         {
             transform.Rotate(Vector3.forward * -rotationSpeed * Time.deltaTime, Space.Self);
@@ -106,7 +122,10 @@ public class GearBehavior : MonoBehaviourPun
     [PunRPC]
     public void StartRotation()
     {
-        // No arrancar si ya está en caída/temblando
+        // En online solo el dueño ejecuta lógica real, el resto recibe estado por sync
+        if (PhotonNetwork.IsConnected && !photonView.IsMine)
+            return;
+
         if (isRotating || isFalling || isShaking)
             return;
 
@@ -125,6 +144,9 @@ public class GearBehavior : MonoBehaviourPun
     [PunRPC]
     public void StopRotation()
     {
+        if (PhotonNetwork.IsConnected && !photonView.IsMine)
+            return;
+
         if (!isRotating) return;
 
         isRotating = false;
@@ -144,43 +166,77 @@ public class GearBehavior : MonoBehaviourPun
 
     private IEnumerator RotateAndChangeColorFlow()
     {
-        // gris → naranja → rojo
-        rend.material.color = Color.gray;
+        // Transición progresiva: gris → naranja/amarillo → rojo
+        Color c0 = Color.gray;
+        Color c1 = new Color(1f, 0.75f, 0f); // amarillo/naranja
+        Color c2 = Color.red;
+
+        float dur1 = 1.0f; // tiempo de gris→naranja
+        float dur2 = 1.0f; // tiempo de naranja→rojo
+
         isHot = false;
+        float t = 0f;
 
-        yield return new WaitForSeconds(0.5f);
-        if (!isRotating) yield break;
+        // Fase 1: gris → naranja
+        while (t < dur1)
+        {
+            if (!isRotating) yield break;
 
-        rend.material.color = new Color(1f, 0.5f, 0f); // naranja
-        isHot = false;
+            float k = t / dur1;
+            rend.material.color = Color.Lerp(c0, c1, k);
 
-        yield return new WaitForSeconds(0.5f);
-        if (!isRotating) yield break;
+            t += Time.deltaTime;
+            yield return null;
+        }
 
-        // Rojo = visiblemente caliente
-        rend.material.color = Color.red;
-        isHot = true;
+        // Fase 2: naranja → rojo
+        t = 0f;
+        while (t < dur2)
+        {
+            if (!isRotating) yield break;
+
+            float k = t / dur2;
+            rend.material.color = Color.Lerp(c1, c2, k);
+
+            t += Time.deltaTime;
+            yield return null;
+        }
+
+        // Estado final: rojo caliente
+        if (isRotating)
+        {
+            rend.material.color = c2;
+            isHot = true;
+        }
     }
 
     [PunRPC]
     public void CoolDown()
     {
-        // Enfría solo si está girando
-        if (!isRotating) return;
-
-        rend.material.color = Color.gray;
+        if (rend != null)
+            rend.material.color = Color.gray;
         isHot = false;
+
+        // 🎧 Sonido y lógica de overheat SOLO en el dueño
+        if (PhotonNetwork.IsConnected && !photonView.IsMine)
+            return;
 
         SoundManager.Instance?.Play(SfxKey.GearCoolHiss, transform);
         cooledDuringWindow = true;
 
-        if (overheatCo != null) StopCoroutine(overheatCo);
+        if (overheatCo != null)
+            StopCoroutine(overheatCo);
+
         StartCoroutine(RearmOverheatAfterDelay());
     }
+
 
     [PunRPC]
     public void ResetToInitialPosition(bool smooth = true)
     {
+        if (PhotonNetwork.IsConnected && !photonView.IsMine)
+            return;
+
         if (currentFallingGear == this)
             currentFallingGear = null;
         if (currentOverheatingGear == this)
@@ -220,9 +276,6 @@ public class GearBehavior : MonoBehaviourPun
             if (!isRotating) yield break;
             if (cooledDuringWindow) yield break;
 
-            // Solo arrancamos contador de overheat si:
-            //  - está rojo (isHot)
-            //  - no está cayendo ni temblando
             if (isHot && !isFalling && !isShaking)
                 break;
 
@@ -232,7 +285,6 @@ public class GearBehavior : MonoBehaviourPun
         cooledDuringWindow = false;
         float t = 0f;
 
-        // 2) Solo un engranaje en proceso de sobrecalentamiento a la vez
         if (currentOverheatingGear != null && currentOverheatingGear != this)
             yield break;
 
@@ -280,11 +332,10 @@ public class GearBehavior : MonoBehaviourPun
     [PunRPC]
     private void Overheat()
     {
-        // Solo sobrecalentar si:
-        //  - sigue girando
-        //  - sigue rojo
-        //  - no está cayendo / temblando
-        //  - es el engranaje "dueño" del slot de overheat
+        if (PhotonNetwork.IsConnected && !photonView.IsMine)
+            return;
+
+        // Solo sobrecalentar si sigue girando, rojo y no cayendo/temblando
         if (!isRotating || !isHot || isFalling || isShaking || currentOverheatingGear != this)
         {
             if (currentOverheatingGear == this)
@@ -312,17 +363,16 @@ public class GearBehavior : MonoBehaviourPun
     [PunRPC]
     public void MakeFall()
     {
-        // No hacer nada si ya está cayendo/temblando
+        if (PhotonNetwork.IsConnected && !photonView.IsMine)
+            return;
+
         if (isFalling || isShaking) return;
 
-        // Solo caer si estaba girando
         if (!isRotating) return;
 
-        // Solo 1 engranaje cayendo a la vez
         if (currentFallingGear != null && currentFallingGear != this)
             return;
 
-        // Si está rojo/caliente no se cae
         if (isHot)
             return;
 
@@ -368,7 +418,6 @@ public class GearBehavior : MonoBehaviourPun
             yield return null;
         }
 
-        // Tiempo extra antes de caer
         yield return new WaitForSeconds(extraFallDelay);
 
         FallNow();
@@ -392,9 +441,12 @@ public class GearBehavior : MonoBehaviourPun
     // COLISIONES
     // ======================================================
 
-    [PunRPC]
     private void OnCollisionEnter(Collision collision)
     {
+        // En red, sólo el dueño procesa las colisiones y manda RPCs
+        if (PhotonNetwork.IsConnected && !photonView.IsMine)
+            return;
+
         // Agua enfría si está girando
         if (collision.gameObject.CompareTag("Water") && isRotating)
         {
@@ -435,7 +487,6 @@ public class GearBehavior : MonoBehaviourPun
         }
     }
 
-    [PunRPC]
     private IEnumerator ReturnToInitialPosition()
     {
         isFalling = false;
@@ -475,6 +526,9 @@ public class GearBehavior : MonoBehaviourPun
     [PunRPC]
     public void ReactivateAfterLand()
     {
+        if (PhotonNetwork.IsConnected && !photonView.IsMine)
+            return;
+
         if (!isRotating && !isFalling && !isShaking)
         {
             rend.material.color = Color.red;
@@ -506,5 +560,41 @@ public class GearBehavior : MonoBehaviourPun
             currentFallingGear = null;
         if (currentOverheatingGear == this)
             currentOverheatingGear = null;
+    }
+
+    // ======================================================
+    // SYNC DE PHOTON
+    // ======================================================
+    public void OnPhotonSerializeView(PhotonStream stream, PhotonMessageInfo info)
+    {
+        if (stream.IsWriting)
+        {
+            // Dueño → envía
+            stream.SendNext(transform.position);
+            stream.SendNext(transform.rotation);
+            stream.SendNext(isRotating);
+            stream.SendNext(isFalling);
+            stream.SendNext(isShaking);
+            stream.SendNext(isHot);
+        }
+        else
+        {
+            // Resto → recibe
+            networkPosition = (Vector3)stream.ReceiveNext();
+            networkRotation = (Quaternion)stream.ReceiveNext();
+            isRotating = (bool)stream.ReceiveNext();
+            isFalling = (bool)stream.ReceiveNext();
+            isShaking = (bool)stream.ReceiveNext();
+            isHot = (bool)stream.ReceiveNext();
+
+            // Ajuste rápido del color según estado caliente
+            if (rend != null)
+            {
+                if (isHot)
+                    rend.material.color = Color.red;
+                else if (!isRotating)
+                    rend.material.color = Color.gray;
+            }
+        }
     }
 }
