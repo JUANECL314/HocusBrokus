@@ -98,23 +98,31 @@ public class ElementalPuzzle : MonoBehaviourPun, IPunObservable
             return;
         }
 
-        // ONLINE: solo el dueño del puzzle procesa el trigger y lo replica
-        if (!photonView.IsMine)
-            return;
-
+        // ONLINE: cualquier cliente que vea el impacto avisa al MasterClient
         if (other.CompareTag("Fire"))
-            photonView.RPC("TriggerElement", RpcTarget.All, "Fire");
+        {
+            Debug.Log($"[ElementalPuzzle] Fire trigger por {PhotonNetwork.LocalPlayer.NickName}, owner={photonView.OwnerActorNr}");
+            photonView.RPC("TriggerElement", RpcTarget.MasterClient, "Fire");
+        }
 
         if (other.CompareTag("Wind"))
-            photonView.RPC("TriggerElement", RpcTarget.All, "Wind");
+        {
+            Debug.Log($"[ElementalPuzzle] Wind trigger por {PhotonNetwork.LocalPlayer.NickName}, owner={photonView.OwnerActorNr}");
+            photonView.RPC("TriggerElement", RpcTarget.MasterClient, "Wind");
+        }
     }
 
     [PunRPC]
     void TriggerElement(string element)
     {
+        // Seguridad extra: solo el dueño del puzzle aplica la lógica en online
+        if (PhotonNetwork.IsConnected && !photonView.IsMine)
+            return;
+
         if (element == "Fire" && !fireHit)
         {
             fireHit = true;
+            Debug.Log("[ElementalPuzzle] Fire hit registrado");
             SoundManager.Instance?.StartLoop(FireLoopId, SfxKey.FireIgniteLoop, transform);
 
             // KPI: primer impacto Fire (solo dueño)
@@ -125,6 +133,7 @@ public class ElementalPuzzle : MonoBehaviourPun, IPunObservable
         if (element == "Wind" && !windHit)
         {
             windHit = true;
+            Debug.Log("[ElementalPuzzle] Wind hit registrado");
 
             // KPI: primer impacto Wind (solo dueño)
             if (!PhotonNetwork.IsConnected || photonView.IsMine)
@@ -134,6 +143,8 @@ public class ElementalPuzzle : MonoBehaviourPun, IPunObservable
         // Si ambos elementos están presentes, activa el puzzle
         if (fireHit && windHit && !puzzleActivated)
         {
+            Debug.Log("[ElementalPuzzle] Fire + Wind → ACTIVA puzzle");
+
             overheated = false;
             puzzleActivated = true;
             doorProgress = 0f;
@@ -354,6 +365,7 @@ public class ElementalPuzzle : MonoBehaviourPun, IPunObservable
         yield return new WaitForSeconds(randomFallCooldown);
         canTriggerRandomFall = true;
     }
+
     public void OnPhotonSerializeView(PhotonStream stream, PhotonMessageInfo info)
     {
         if (stream.IsWriting)
