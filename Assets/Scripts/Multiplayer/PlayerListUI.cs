@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Linq;
 using Photon.Pun;
 using Photon.Realtime;
 using TMPro;
@@ -6,124 +7,141 @@ using UnityEngine;
 
 public class PlayerNameListUI : MonoBehaviourPunCallbacks
 {
-    [Header("Referencias UI")]
+    [Header("UI")]
     public Transform contenedorJugadores;
     public GameObject prefabJugadorItem;
     public TextMeshProUGUI nombreSala;
 
-    private readonly Dictionary<Player, TMP_Text> itemsUI = new();
-    private PlayerName jugadorLocal;
+    [Header("Textos")]
+    public string jugadorLocalTexto = "TÚ";
+    public string salaTitulo = "Sala";
 
-    public string jugadorLocalTexto = "Tú";
-    private string salaTitulo = "Sala";
-    private System.Action handlerJugadoresActualizados;
+    [Header("Debug")]
+    [SerializeField] private bool logDebug = true;
+
+    private readonly Dictionary<Player, TMP_Text> itemsUI = new();
+
     void OnEnable()
     {
-        handlerJugadoresActualizados = () =>
-        {
-            if (jugadorLocal != null)
-                ActualizarListaUI();
-        };
-
-        PlayerName.OnJugadoresActualizados += handlerJugadoresActualizados;
+        PlayerName.OnJugadoresActualizados += HandleJugadoresActualizados;
     }
 
     void OnDisable()
     {
-        PlayerName.OnJugadoresActualizados -= handlerJugadoresActualizados;
+        PlayerName.OnJugadoresActualizados -= HandleJugadoresActualizados;
     }
 
     void Start()
     {
-        
-
         if (PhotonNetwork.InRoom)
             nombreSala.text = $"{salaTitulo}: {PhotonNetwork.CurrentRoom.Name}";
         else
             nombreSala.text = "Sin sala";
 
-        // Buscar jugador local
-        foreach (var kvp in PlayerName.jugadoresActivos)
+        if (logDebug)
         {
-            if (kvp.Value.photonView.IsMine)
-            {
-                jugadorLocal = kvp.Value;
-                break;
-            }
+            Debug.Log($"[PlayerNameListUI] Start en cliente {PhotonNetwork.LocalPlayer.ActorNumber}, " +
+                      $"Nick={PhotonNetwork.NickName}");
         }
 
-        // Si aún no está listo, reintentar
-        if (jugadorLocal == null)
-            InvokeRepeating(nameof(RevisarJugadorLocal), 0.2f, 0.2f);
-        else
-            ActualizarListaUI();
-
+        ActualizarListaUI();
         InvokeRepeating(nameof(ActualizarDistancias), 0.5f, 0.5f);
     }
 
-    void RevisarJugadorLocal()
+    private void HandleJugadoresActualizados()
     {
-        foreach (var kvp in PlayerName.jugadoresActivos)
+        if (logDebug)
         {
-            if (kvp.Value.photonView.IsMine)
-            {
-                jugadorLocal = kvp.Value;
-                CancelInvoke(nameof(RevisarJugadorLocal));
-                ActualizarListaUI();
-                break;
-            }
+            Debug.Log($"[PlayerNameListUI] HandleJugadoresActualizados en cliente {PhotonNetwork.LocalPlayer.ActorNumber}. " +
+                      $"Total jugadoresActivos = {PlayerName.jugadoresActivos.Count}");
         }
+        ActualizarListaUI();
     }
 
-    void ActualizarListaUI()
+    private void ActualizarListaUI()
     {
-        if (jugadorLocal == null) return;
-
-        // 1. Guardar los hijos en una lista temporal
-        List<Transform> hijos = new List<Transform>();
+        // 1. limpiar hijos del contenedor
+        List<Transform> hijos = new();
         foreach (Transform child in contenedorJugadores)
             hijos.Add(child);
 
-        // 2. Destruir los hijos desde la lista
         foreach (var child in hijos)
             Destroy(child.gameObject);
 
         itemsUI.Clear();
 
-        // Crear lista actualizada
-        foreach (var kvp in PlayerName.jugadoresActivos)
+        if (PlayerName.jugadoresActivos.Count == 0)
         {
-            var jugador = kvp.Key;
-            var info = kvp.Value;
+            if (logDebug)
+                Debug.Log("[PlayerNameListUI] No hay jugadoresActivos aún.");
+            return;
+        }
+
+        // 2. crear items ordenados por ActorNumber para que el orden sea estable
+        foreach (var kvp in PlayerName.jugadoresActivos.OrderBy(p => p.Key.ActorNumber))
+        {
+            Player jugador = kvp.Key;
+            PlayerName info = kvp.Value;
 
             GameObject item = Instantiate(prefabJugadorItem, contenedorJugadores);
             TMP_Text texto = item.GetComponentInChildren<TMP_Text>();
 
-            texto.text = info.photonView.IsMine
-                ? $"{info.playerName} ({jugadorLocalTexto})"
-                : $"{info.playerName}";
+            if (info == null)
+            {
+                texto.text = "(desconocido)";
+            }
+            else
+            {
+                bool esLocal = jugador == PhotonNetwork.LocalPlayer;
+
+                if (esLocal)
+                    texto.text = $"{info.playerName} ({jugadorLocalTexto})";
+                else
+                    texto.text = $"{info.playerName}";
+            }
 
             itemsUI[jugador] = texto;
+
+            if (logDebug)
+            {
+                Debug.Log($"[PlayerNameListUI] Creo item para Player {jugador.ActorNumber} " +
+                          $"name='{info?.playerName}', esLocal={jugador == PhotonNetwork.LocalPlayer}");
+            }
         }
     }
-    void ActualizarDistancias()
+
+    private void ActualizarDistancias()
     {
-        if (jugadorLocal == null) return;
+        PlayerName local = PlayerName.LocalPlayerName;
+        if (local == null)
+        {
+            if (logDebug)
+            {
+                Debug.Log($"[PlayerNameListUI] ActualizarDistancias sin LocalPlayerName en cliente " +
+                          $"{PhotonNetwork.LocalPlayer.ActorNumber}");
+            }
+            return;
+        }
 
         foreach (var kvp in PlayerName.jugadoresActivos)
         {
-            var jugador = kvp.Key;
-            var info = kvp.Value;
+            Player jugador = kvp.Key;
+            PlayerName info = kvp.Value;
 
-            if (!itemsUI.ContainsKey(jugador)) continue;
+            if (info == null) continue;
+            if (!itemsUI.TryGetValue(jugador, out TMP_Text texto)) continue;
 
-            TMP_Text texto = itemsUI[jugador];
-            if (info.photonView.IsMine)
+            bool esLocal = jugador == PhotonNetwork.LocalPlayer;
+
+            if (esLocal)
+            {
                 texto.text = $"{info.playerName} ({jugadorLocalTexto})";
+            }
             else
             {
-                float distancia = Vector3.Distance(jugadorLocal.transform.position, info.transform.position);
-                texto.text = $"{info.playerName} — {distancia:F1} m — {PhotonNetwork.GetPing()} ms";
+                float distancia = Vector3.Distance(local.transform.position, info.transform.position);
+                int ping = PhotonNetwork.GetPing();
+                texto.text = $"{info.playerName} — {distancia:F1} m — {ping} ms";
             }
         }
     }

@@ -144,22 +144,49 @@ public class GearBehavior : MonoBehaviourPun
 
     private IEnumerator RotateAndChangeColorFlow()
     {
-        // gris → naranja → rojo
-        rend.material.color = Color.gray;
+        // Transición progresiva:
+        // gris → naranja/amarillo → rojo
+        Color c0 = Color.gray;
+        Color c1 = new Color(1f, 0.75f, 0f); // amarillo/naranja
+        Color c2 = Color.red;
+
+        float dur1 = 1.0f; // tiempo de gris→naranja
+        float dur2 = 1.0f; // tiempo de naranja→rojo
+
         isHot = false;
+        float t = 0f;
 
-        yield return new WaitForSeconds(0.5f);
-        if (!isRotating) yield break;
+        // Fase 1: gris → naranja
+        while (t < dur1)
+        {
+            if (!isRotating) yield break;
 
-        rend.material.color = new Color(1f, 0.5f, 0f); // naranja
-        isHot = false;
+            float k = t / dur1;
+            rend.material.color = Color.Lerp(c0, c1, k);
 
-        yield return new WaitForSeconds(0.5f);
-        if (!isRotating) yield break;
+            t += Time.deltaTime;
+            yield return null;
+        }
 
-        // Rojo = visiblemente caliente
-        rend.material.color = Color.red;
-        isHot = true;
+        // Fase 2: naranja → rojo
+        t = 0f;
+        while (t < dur2)
+        {
+            if (!isRotating) yield break;
+
+            float k = t / dur2;
+            rend.material.color = Color.Lerp(c1, c2, k);
+
+            t += Time.deltaTime;
+            yield return null;
+        }
+
+        // Estado final: rojo caliente
+        if (isRotating)
+        {
+            rend.material.color = c2;
+            isHot = true;
+        }
     }
 
     [PunRPC]
