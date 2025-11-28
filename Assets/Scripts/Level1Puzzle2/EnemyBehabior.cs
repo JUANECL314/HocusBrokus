@@ -1,3 +1,4 @@
+using System;
 using UnityEngine;
 
 public class EnemyBehabior : MonoBehaviour
@@ -11,10 +12,11 @@ public class EnemyBehabior : MonoBehaviour
     public float changeDirectionTime = 3f;
 
     [Header("Stun Settings")]
-    public float stunDuration = 2f;
+    public float stunDuration = 3f; // 3 segundos como pediste
 
     private bool isStunned = false;
     private float stunTimer = 0f;
+    private Vector3 lockedPosition;
 
     private Transform targetPlayer;
     private Vector3 randomDirection;
@@ -44,13 +46,16 @@ public class EnemyBehabior : MonoBehaviour
         }
     }
 
-    // ------------------ STUN SYSTEM ------------------
+    // ------------------ STUN CON POSICIÓN BLOQUEADA ------------------
 
     void HandleStun()
     {
         if (isStunned)
         {
             stunTimer -= Time.deltaTime;
+
+            // Mantener la posición EXACTA donde fue stuneado
+            transform.position = lockedPosition;
 
             if (stunTimer <= 0)
             {
@@ -66,14 +71,17 @@ public class EnemyBehabior : MonoBehaviour
             other.CompareTag("Water") ||
             other.CompareTag("Fire"))
         {
-            Stun();
+            StunLockPosition();
         }
     }
 
-    void Stun()
+    void StunLockPosition()
     {
         isStunned = true;
         stunTimer = stunDuration;
+
+        // Guardamos posición
+        lockedPosition = transform.position;
     }
 
     // ------------------ DETECTACIÓN ------------------
@@ -107,6 +115,7 @@ public class EnemyBehabior : MonoBehaviour
 
         transform.position += dir * moveSpeed * Time.deltaTime;
 
+        // Rotar hacia el jugador
         Vector3 lookDir = targetPlayer.position - transform.position;
         lookDir.y = 0;
         transform.rotation = Quaternion.LookRotation(lookDir);
@@ -137,13 +146,15 @@ public class EnemyBehabior : MonoBehaviour
     void SetRandomDirection()
     {
         randomDirection = new Vector3(
-            Random.Range(-1f, 1f),
+            UnityEngine.Random.Range(-1f, 1f),
             0,
-            Random.Range(-1f, 1f)
+            UnityEngine.Random.Range(-1f, 1f)
         ).normalized;
 
         directionTimer = changeDirectionTime;
     }
+
+    // ------------------ GIZMOS ------------------
 
     void OnDrawGizmosSelected()
     {
