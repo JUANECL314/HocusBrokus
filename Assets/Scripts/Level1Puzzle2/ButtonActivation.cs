@@ -1,122 +1,87 @@
 using Photon.Pun;
-using System;
 using System.Collections;
 using System.Collections.Generic;
-using System.Threading;
-using Unity.VisualScripting;
 using UnityEngine;
+
 public class ButtonActivation : MonoBehaviourPun, ISubject
 {
     public int buttonID;
-
     public float interactionDistance = 2f;
-
     public bool isEnabled = true;
+    public bool isPressed = false;
 
-    private bool isPressed = false;
     public KeyCode teclaAbrir = KeyCode.R;
     public Transform localPlayer;
     public GameObject panelUI;
+    public GameObject[] pipes;
 
+    private Renderer rend;
     private List<IObserver> observers = new List<IObserver>();
 
-    public void AddObserver(IObserver obs ) => observers.Add( obs );
-
+    public void AddObserver(IObserver obs) => observers.Add(obs);
     public void RemoveObserver(IObserver obs) => observers.Remove(obs);
-    private Renderer rend;
-    public GameObject[] pipes;
+
     void Start()
     {
         panelUI.SetActive(false);
-        StartCoroutine(FindLocalPlayer());
         rend = GetComponent<Renderer>();
 
+        if (rend != null) rend.material.color = isEnabled ? Color.red : Color.gray;
 
-        if (rend != null && isEnabled) rend.material.color = Color.red;
         foreach (GameObject pipe in pipes)
         {
-
-            pipe.GetComponent<Renderer>().material.color = Color.gray;
+            Renderer r = pipe.GetComponent<Renderer>();
+            if (r != null) r.material.color = Color.gray;
         }
-       
+
+        StartCoroutine(FindLocalPlayer());
     }
+
     IEnumerator FindLocalPlayer()
     {
         while (PhotonNetwork.LocalPlayer.TagObject == null)
-        {
-            yield return null; 
-        }
+            yield return null;
 
         localPlayer = PhotonNetwork.LocalPlayer.TagObject as Transform;
     }
 
     void Update()
     {
+        if (localPlayer == null) return;
+
 
         float dist = Vector3.Distance(localPlayer.position, transform.position);
+        //Debug.Log(dist);
         bool canInteract = dist <= interactionDistance;
-        Debug.Log(canInteract);
-        panelUI.SetActive(canInteract);
-
-        if (canInteract && Input.GetKeyDown(teclaAbrir))
-        {
-            if (!isPressed)
-            {
-                isPressed = true;
-                photonView.RPC("RPC_SetPressed", RpcTarget.All, isPressed);
-                photonView.RPC("RPC_NotifyAll", RpcTarget.All, buttonID, isPressed);
-            }
-        }
-
-        if (Input.GetKeyUp(teclaAbrir) && isPressed)
-        {
-            isPressed = false;
-            photonView.RPC("RPC_SetPressed", RpcTarget.All, isPressed);
-            photonView.RPC("RPC_NotifyAll", RpcTarget.All, buttonID, isPressed);
-        }
-
-
-
-
-    }
-
-    IEnumerator CheckStatus()
-    {
-        yield return new WaitForSeconds(5f);
-        
-        float dist = Vector3.Distance(localPlayer.position, transform.position);
-
-        if (dist <= interactionDistance)
-        {
-            if (!panelUI.activeSelf)
-            { panelUI.SetActive(true); }
-            else if (panelUI.activeSelf)
-            { panelUI.SetActive(true); }
+        //Debug.Log(canInteract);
+        // Solo mostrar el panel al jugador local
+        if (dist <= interactionDistance) {
+            panelUI.SetActive(true);
         }
         else
         {
-            if (panelUI.activeSelf)
-            { panelUI.SetActive(false); }
-            else
-            {
-                panelUI.SetActive(false);
-            }
+            panelUI.SetActive(false);
         }
 
-        if (dist <= interactionDistance && Input.GetKeyDown(teclaAbrir))
+
+        if (canInteract && Input.GetKeyDown(teclaAbrir) && photonView.IsMine)
         {
             isPressed = true;
+
+
+            photonView.RPC(nameof(RPC_SetPressed), RpcTarget.All, isPressed);
+            photonView.RPC(nameof(RPC_NotifyAll), RpcTarget.All, buttonID, isPressed);
         }
-        else if (Input.GetKeyUp(teclaAbrir) && (dist <= interactionDistance || dist > interactionDistance))
+        else if ((canInteract || !canInteract) && Input.GetKeyUp(teclaAbrir) && photonView.IsMine)
         {
             isPressed = false;
 
 
+            photonView.RPC(nameof(RPC_SetPressed), RpcTarget.All, isPressed);
+            photonView.RPC(nameof(RPC_NotifyAll), RpcTarget.All, buttonID, isPressed);
         }
-        photonView.RPC("RPC_NotifyAll", RpcTarget.All, buttonID, isPressed);
-        if (isEnabled) photonView.RPC("RPC_SetEnabledAll", RpcTarget.All, true);
-        photonView.RPC("RPC_SetPressed", RpcTarget.All, isPressed);
-        StartCoroutine(CheckStatus());
+
+        
     }
 
     [PunRPC]
@@ -125,15 +90,18 @@ public class ButtonActivation : MonoBehaviourPun, ISubject
         foreach (var obs in observers)
             obs.OnNotify(id, state);
     }
+
     [PunRPC]
     void RPC_SetEnabledAll(bool state)
     {
         SetEnabled(state);
     }
+
     public void SetEnabled(bool e)
     {
         isEnabled = e;
-        rend.material.color = isEnabled ? Color.red : Color.gray;        
+        if (rend != null)
+            rend.material.color = isEnabled ? Color.red : Color.gray;
     }
 
     [PunRPC]
@@ -141,24 +109,34 @@ public class ButtonActivation : MonoBehaviourPun, ISubject
     {
         SetPressed(state);
     }
+
     public void SetPressed(bool e)
     {
-        rend.material.color = e ? Color.green : Color.red;
+        isPressed = e;
+
+        if (rend != null)
+            rend.material.color = e ? Color.green : (isEnabled ? Color.red : Color.gray);
+
         foreach (GameObject pipe in pipes)
         {
-            Renderer renderer = pipe.GetComponent<Renderer>();
-            Material pipeMaterial = renderer.material;
+            Renderer r = pipe.GetComponent<Renderer>();
+            if (r == null) continue;
+
+            Material mat = r.material;
             if (e)
             {
-                pipeMaterial.EnableKeyword("_EMISSION");
-                pipeMaterial.SetColor("_EmissionColor", Color.green * 1.4f);
+                mat.EnableKeyword("_EMISSION");
+                mat.SetColor("_EmissionColor", Color.green * 1.4f);
             }
             else
             {
-                pipeMaterial.DisableKeyword("_EMISSION");
-                pipeMaterial.SetColor("_EmissionColor", Color.black);
-            } 
+                mat.DisableKeyword("_EMISSION");
+                mat.SetColor("_EmissionColor", Color.black);
+            }
         }
-    }    
-}
 
+        // Notificar a observadores solo si está habilitado
+        if (isEnabled)
+            photonView.RPC(nameof(RPC_NotifyAll), RpcTarget.All, buttonID, isPressed);
+    }
+}

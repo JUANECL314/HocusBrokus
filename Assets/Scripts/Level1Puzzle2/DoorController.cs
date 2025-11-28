@@ -1,45 +1,36 @@
+ï»¿using System;
 using UnityEngine;
-
 public class DoorController : MonoBehaviour, IObserver
 {
-    public ButtonActivation[] buttons;
-    
-    private bool[] buttonStates;
-
-    
+    public ButtonActivation[] mainButtons; // Solo los botones principales
+    private bool doorOpened = false;
 
     void Start()
     {
-        buttonStates = new bool[buttons.Length];
-        foreach (var b in buttons)
-        {
+        foreach (var b in mainButtons)
             b.AddObserver(this);
-        }
     }
 
     public void OnNotify(int id, bool state)
     {
-        if (id < 0 || id >= buttonStates.Length) return;
-
-        buttonStates[id] = state;
-
-        // si todos los botones están presionados
-        if (AllPressed())
+        if (!doorOpened && AllPressed())
         {
-            gameObject.SetActive(true);
-        }
-        else
-        {
-            gameObject.SetActive(false);
+            OpenDoor();
+            doorOpened = true;
         }
     }
 
     private bool AllPressed()
     {
-        for (int i = 0; i < buttonStates.Length; i++)
-            if (!buttonStates[i])
+        foreach (var b in mainButtons)
+            if (!b.isEnabled || !b.isPressed)
                 return false;
-
         return true;
+    }
+
+    private void OpenDoor()
+    {
+        
+        gameObject.SetActive(true);
     }
 }
