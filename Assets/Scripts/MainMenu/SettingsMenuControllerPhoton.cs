@@ -11,20 +11,27 @@ public class SettingsMenuControllerPhoton : MonoBehaviour
     [SerializeField] private Slider mouseSens;
     [SerializeField] private Slider gamepadSens;
 
-    [Header("Multiplayer UI (objetos que se deben ocultar)")]
-    [SerializeField] private GameObject[] multiplayerUIRoots; // UI_Multiplayer, Mira, etc.
+    [SerializeField] GameObject keyboardPanel;
+    [SerializeField] GameObject gamepadPanel;
+    [SerializeField] GameObject guidePanel; // NUEVO PANEL GUÍA
 
-    // Referencias del jugador local (dueño)
+    // NUEVAS IMÁGENES DE GUÍA
+    [SerializeField] private GameObject fuegoImage;
+    [SerializeField] private GameObject vientoImage;
+    [SerializeField] private GameObject tierraImage;
+    [SerializeField] private GameObject aguaImage;
+
+    [Header("Multiplayer UI (objetos que se deben ocultar)")]
+    [SerializeField] private GameObject[] multiplayerUIRoots;
+
     private PlayerInput ownerInput;
     private FreeFlyCameraMulti ownerController;
     private PhotonView ownerView;
 
-    // Es true si este controlador le pertenece al jugador local
     private bool IsLocalController
     {
         get
         {
-            // En offline, no hay Photon, así que siempre es local
             if (!PhotonNetwork.IsConnected) return true;
             if (ownerView == null) return false;
             return ownerView.IsMine;
@@ -33,22 +40,23 @@ public class SettingsMenuControllerPhoton : MonoBehaviour
 
     void Awake()
     {
-        // Buscamos el PhotonView más cercano hacia arriba en la jerarquía
         ownerView = GetComponentInParent<PhotonView>();
     }
 
     void Start()
     {
+        if (keyboardPanel) keyboardPanel.SetActive(false);
+        if (gamepadPanel) gamepadPanel.SetActive(false);
+        if (guidePanel) guidePanel.SetActive(false);
+
         if (!panelRoot)
             Debug.LogError("[SettingsMenuPhoton] panelRoot no asignado", this);
 
         if (panelRoot)
             panelRoot.SetActive(false);
 
-        // 🔒 SI ES UN PLAYER REMOTO => APAGAR SU UI COMPLETA
         if (!IsLocalController)
         {
-            // Apagar cualquier HUD/mira que tenga asignado
             if (multiplayerUIRoots != null)
             {
                 foreach (var go in multiplayerUIRoots)
@@ -57,46 +65,50 @@ public class SettingsMenuControllerPhoton : MonoBehaviour
                 }
             }
 
-            // Deshabilitar este Canvas y su GraphicRaycaster para que NO capturen clics
             var canvas = GetComponent<Canvas>();
             if (canvas) canvas.enabled = false;
 
             var raycaster = GetComponent<GraphicRaycaster>();
             if (raycaster) raycaster.enabled = false;
 
-            // No necesitamos que este script siga activo en el remoto
             return;
         }
 
-        // LOCAL: funciona normal
         RefreshUIFromSettings();
     }
 
     void Update()
     {
-        // Solo el controlador del jugador local escucha F10
         if (!IsLocalController) return;
 
-        if (Keyboard.current != null && Keyboard.current.f10Key.wasPressedThisFrame)
-            TogglePanel();
+        if (Keyboard.current != null)
+        {
+            // 🔵 Guía puede abrirse siempre
+            if (Keyboard.current.gKey.wasPressedThisFrame)
+                ToggleGuidePanel();
+
+            // Settings con F10
+            if (Keyboard.current.f10Key.wasPressedThisFrame)
+                TogglePanel();
+
+            // Submenús solo si settings está activo
+            if (panelRoot != null && panelRoot.activeSelf)
+            {
+                if (Keyboard.current.eKey.wasPressedThisFrame)
+                    ToggleKeyboardPanel();
+
+                if (Keyboard.current.qKey.wasPressedThisFrame)
+                    ToggleGamepadPanel();
+            }
+        }
     }
 
-    /// <summary>
-    /// Saca PlayerInput y FreeFlyCameraMulti del mismo prefab del dueño local.
-    /// </summary>
     void FindOwnerComponents()
     {
         if (!IsLocalController) return;
+        if (ownerInput != null && ownerController != null) return;
 
-        // Si ya tenemos ambas referencias, nada que hacer
-        if (ownerInput != null && ownerController != null)
-            return;
-
-        if (ownerView == null)
-        {
-            // Si por alguna razón no encontramos PhotonView (offline?) salimos sin crashear
-            return;
-        }
+        if (ownerView == null) return;
 
         if (ownerInput == null)
         {
@@ -113,6 +125,69 @@ public class SettingsMenuControllerPhoton : MonoBehaviour
         }
     }
 
+    // ==========================
+    //  SUBMENÚS
+    // ==========================
+
+    public void ToggleKeyboardPanel()
+    {
+        if (!keyboardPanel) return;
+        keyboardPanel.SetActive(!keyboardPanel.activeSelf);
+    }
+
+    public void ToggleGamepadPanel()
+    {
+        if (!gamepadPanel) return;
+        gamepadPanel.SetActive(!gamepadPanel.activeSelf);
+    }
+
+    // ============================================================
+    //  PANEL GUÍA (FUNCIONA IGUAL QUE SETTINGS)
+    // ============================================================
+
+    public void ToggleGuidePanel()
+    {
+        if (!guidePanel) return;
+
+        bool show = !guidePanel.activeSelf;
+        guidePanel.SetActive(show);
+
+        FindOwnerComponents();
+
+        if (!IsLocalController) return;
+
+        if (show)
+        {
+            if (ownerController) ownerController.SetFrozen(true);
+            if (ownerInput) ownerInput.enabled = false;
+
+            Cursor.lockState = CursorLockMode.None;
+            Cursor.visible = true;
+        }
+        else
+        {
+            if (ownerController) ownerController.SetFrozen(false);
+            if (ownerInput) ownerInput.enabled = true;
+
+            Cursor.lockState = CursorLockMode.Locked;
+            Cursor.visible = false;
+        }
+    }
+
+    public void ShowGuidePanel()
+    {
+        if (guidePanel) guidePanel.SetActive(true);
+    }
+
+    public void CloseGuidePanel()
+    {
+        if (guidePanel) guidePanel.SetActive(false);
+    }
+
+    // ==========================
+    //  SETTINGS MENU
+    // ==========================
+
     public void TogglePanel()
     {
         if (!panelRoot) return;
@@ -121,10 +196,8 @@ public class SettingsMenuControllerPhoton : MonoBehaviour
 
         bool show = !panelRoot.activeSelf;
 
-        // Mostrar/ocultar panel Settings (solo en este player local)
         panelRoot.SetActive(show);
 
-        // Ocultar/mostrar TODA la UI de multiplayer inversamente
         if (multiplayerUIRoots != null)
         {
             foreach (var go in multiplayerUIRoots)
@@ -133,16 +206,13 @@ public class SettingsMenuControllerPhoton : MonoBehaviour
             }
         }
 
+        FindOwnerComponents();
+
         if (show)
         {
-            // Buscar components del dueño local
-            FindOwnerComponents();
-
-            // Congelar al player
             if (ownerController)
                 ownerController.SetFrozen(true);
 
-            // Desactivar inputs del player
             if (ownerInput)
                 ownerInput.enabled = false;
 
@@ -155,7 +225,11 @@ public class SettingsMenuControllerPhoton : MonoBehaviour
         {
             PushUIToSettings();
 
-            // Descongelar al player
+            if (keyboardPanel) keyboardPanel.SetActive(false);
+            if (gamepadPanel) gamepadPanel.SetActive(false);
+
+            // Guía NO se cierra al cerrar settings
+
             if (ownerController)
                 ownerController.SetFrozen(false);
 
@@ -180,11 +254,11 @@ public class SettingsMenuControllerPhoton : MonoBehaviour
     void PushUIToSettings()
     {
         if (!SettingsManager.I) return;
+
         if (mouseSens) SettingsManager.I.SetMouseSensitivity(mouseSens.value);
         if (gamepadSens) SettingsManager.I.SetGamepadSensitivity(gamepadSens.value);
     }
 
-    // Hooks UI
     public void OnMouseSensChanged(float v)
     {
         if (SettingsManager.I) SettingsManager.I.SetMouseSensitivity(v);
@@ -199,6 +273,29 @@ public class SettingsMenuControllerPhoton : MonoBehaviour
     {
         TogglePanel();
     }
+
+    // ============================================================
+    //  IMÁGENES DEL PANEL GUÍA
+    // ============================================================
+
+    private void HideAllGuideImages()
+    {
+        if (fuegoImage) fuegoImage.SetActive(false);
+        if (vientoImage) vientoImage.SetActive(false);
+        if (tierraImage) tierraImage.SetActive(false);
+        if (aguaImage) aguaImage.SetActive(false);
+    }
+
+    private void ShowGuideImage(GameObject img)
+    {
+        HideAllGuideImages();
+        if (img) img.SetActive(true);
+    }
+
+    public void ShowFuego() => ShowGuideImage(fuegoImage);
+    public void ShowViento() => ShowGuideImage(vientoImage);
+    public void ShowTierra() => ShowGuideImage(tierraImage);
+    public void ShowAgua() => ShowGuideImage(aguaImage);
 
     static void EnsureEventSystem()
     {
