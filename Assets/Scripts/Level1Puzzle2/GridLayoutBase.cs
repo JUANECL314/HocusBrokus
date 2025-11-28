@@ -63,6 +63,13 @@ public class GridLayoutBase : MonoBehaviourPun
 
     void Awake()
     {
+       
+        
+        if (instance != null && instance != this)
+        {
+            Destroy(gameObject);
+            return;
+        }
         instance = this;
         // inicializar mazeData en Awake con dimensiones actuales
         mazeData = new int[rows, columns];
@@ -359,14 +366,6 @@ public class GridLayoutBase : MonoBehaviourPun
     private void CarveRecursive(int y, int x, int distance)
     {
         visited[y, x] = true;
-
-        // actualizar mayor distancia y goalNode
-        if (distance > longestDistance)
-        {
-            longestDistance = distance;
-            goalNode = new Vector2Int(x, y);
-        }
-
         // mezclar direcciones
         List<Vector2Int> dirs = new List<Vector2Int>(directions);
         Shuffle(dirs);

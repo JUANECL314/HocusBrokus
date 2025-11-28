@@ -42,7 +42,7 @@ public class MazeStateMachine : MonoBehaviourPun
             starting = true;
             
             StateMachineStatus(MazeEnumState.Create);
-            StartCoroutine(TimeOut());
+            //StartCoroutine(TimeOut());
         }
         
         
