@@ -97,6 +97,12 @@ MonoBehaviour:
   - RPC_SendMaze
   - RPC_GenerateGrid
   - SendMazeData
+  - RPC_ReceiveMaze
+  - RPC_RequestMazeGeneration
+  - TimeoutFinishedRPC
+  - UpdateTimeoutRPC
+  - RPC_DownForGood
+  - RPC_ReturnToInitialPosition
   - RPC_ApplyElement
   - RPC_ApplyTrail
   - RPC_ReceiveMaze
