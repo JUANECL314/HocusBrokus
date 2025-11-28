@@ -5,7 +5,7 @@ EditorBuildSettings:
   m_ObjectHideFlags: 0
   serializedVersion: 2
   m_Scenes:
-  - enabled: 1
+  - enabled: 0
     path: Assets/Scenes/Multijugador.unity
     guid: 689f80e6b46b0f34c9bbfd1115a424e0
   - enabled: 1
@@ -24,9 +24,6 @@ EditorBuildSettings:
     path: Assets/Scenes/TownRoom.unity
     guid: fc6c92e0f7b1dbe4682ba01b9c6300f9
   - enabled: 1
-    path: Assets/Scenes/CavePuzzle1.unity
-    guid: 31a862d3e06e81f46999c2c55f1ed139
-  - enabled: 1
     path: Assets/Scenes/Endorsments.unity
     guid: 0c4d7e09103f77c499024410878f5236
   - enabled: 1
@@ -38,6 +35,12 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/Scenes/VictoryScene.unity
     guid: 6361e3ed6c50c7246b19f695248ee923
+  - enabled: 1
+    path: Assets/Scenes/Multijugador.unity
+    guid: 689f80e6b46b0f34c9bbfd1115a424e0
+  - enabled: 1
+    path: Assets/Scenes/CavePuzzle1.unity
+    guid: 31a862d3e06e81f46999c2c55f1ed139
   m_configObjects:
     com.unity.input.settings.actions: {fileID: -944628639613478452, guid: 052faaac586de48259a63d0c4782560b, type: 3}
     com.unity.xr.management.loader_settings: {fileID: 11400000, guid: 29e08605140dddb4bb6b274d83d1a37c, type: 2}
