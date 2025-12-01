@@ -1,18 +1,20 @@
 using Photon.Pun;
 using System.Collections;
 using System.Collections.Generic;
+using System.Diagnostics;
+using System.Threading;
 using UnityEngine;
-
+[RequireComponent(typeof(SphereCollider))]
 public class ButtonActivation : MonoBehaviourPun, ISubject
 {
     public int buttonID;
     public float interactionDistance = 2f;
     public bool isEnabled = true;
     public bool isPressed = false;
+    private bool canInteract = false;
 
     public KeyCode teclaAbrir = KeyCode.R;
     public Transform localPlayer;
-    public GameObject panelUI;
     public GameObject[] pipes;
 
     private Renderer rend;
@@ -23,7 +25,7 @@ public class ButtonActivation : MonoBehaviourPun, ISubject
 
     void Start()
     {
-        panelUI.SetActive(false);
+
         rend = GetComponent<Renderer>();
 
         if (rend != null) rend.material.color = isEnabled ? Color.red : Color.gray;
@@ -35,6 +37,10 @@ public class ButtonActivation : MonoBehaviourPun, ISubject
         }
 
         StartCoroutine(FindLocalPlayer());
+        var trigger = GetComponent<SphereCollider>();
+        trigger.isTrigger = true;
+        trigger.radius = 2f;
+        
     }
 
     IEnumerator FindLocalPlayer()
@@ -47,43 +53,53 @@ public class ButtonActivation : MonoBehaviourPun, ISubject
 
     void Update()
     {
-        if (localPlayer == null) return;
+        if(!canInteract || !isEnabled) return;
 
-
-        float dist = Vector3.Distance(localPlayer.position, transform.position);
-        //Debug.Log(dist);
-        bool canInteract = dist <= interactionDistance;
-        //Debug.Log(canInteract);
-        // Solo mostrar el panel al jugador local
-        if (dist <= interactionDistance) {
-            panelUI.SetActive(true);
-        }
-        else
-        {
-            panelUI.SetActive(false);
-        }
-
-
-        if (canInteract && Input.GetKeyDown(teclaAbrir) && photonView.IsMine)
+        if (Input.GetKeyDown(teclaAbrir) && isEnabled)
         {
             isPressed = true;
+            SetPressedRPC(isPressed);
+            UIControllerPuzzle2.Instance.ShowButtonUI((canInteract && !isPressed), this);
 
-
-            photonView.RPC(nameof(RPC_SetPressed), RpcTarget.All, isPressed);
-            photonView.RPC(nameof(RPC_NotifyAll), RpcTarget.All, buttonID, isPressed);
         }
-        else if ((canInteract || !canInteract) && Input.GetKeyUp(teclaAbrir) && photonView.IsMine)
+        else if (Input.GetKeyUp(teclaAbrir))
         {
             isPressed = false;
-
-
-            photonView.RPC(nameof(RPC_SetPressed), RpcTarget.All, isPressed);
-            photonView.RPC(nameof(RPC_NotifyAll), RpcTarget.All, buttonID, isPressed);
+            SetPressedRPC(isPressed);
+            UIControllerPuzzle2.Instance.ShowButtonUI((canInteract && !isPressed), this);
         }
-
         
+
     }
 
+    private void OnTriggerEnter(Collider other)
+    {
+        if (localPlayer == null) return;
+        if (other.transform != localPlayer) return;
+
+
+
+        canInteract = true;
+        UIControllerPuzzle2.Instance.ShowButtonUI(canInteract, this);
+
+    }
+
+    private void OnTriggerExit(Collider other)
+    {
+        if (localPlayer == null) return;
+        if (other.transform != localPlayer) return;
+
+        canInteract = false;
+        UIControllerPuzzle2.Instance.ShowButtonUI(canInteract, this);
+
+
+    }
+    private void SetPressedRPC(bool state)
+    {
+       
+        photonView.RPC(nameof(RPC_SetPressed), RpcTarget.AllBuffered,state);
+       
+    }
     [PunRPC]
     void RPC_NotifyAll(int id, bool state)
     {
@@ -94,12 +110,14 @@ public class ButtonActivation : MonoBehaviourPun, ISubject
     [PunRPC]
     void RPC_SetEnabledAll(bool state)
     {
+
         SetEnabled(state);
     }
 
-    public void SetEnabled(bool e)
+    public void SetEnabled(bool state)
     {
-        isEnabled = e;
+
+        isEnabled = state;
         if (rend != null)
             rend.material.color = isEnabled ? Color.red : Color.gray;
     }
@@ -107,15 +125,10 @@ public class ButtonActivation : MonoBehaviourPun, ISubject
     [PunRPC]
     void RPC_SetPressed(bool state)
     {
-        SetPressed(state);
-    }
-
-    public void SetPressed(bool e)
-    {
-        isPressed = e;
+       isPressed = state;
 
         if (rend != null)
-            rend.material.color = e ? Color.green : (isEnabled ? Color.red : Color.gray);
+            rend.material.color = isPressed ? Color.green : (isEnabled ? Color.red : Color.gray);
 
         foreach (GameObject pipe in pipes)
         {
@@ -123,7 +136,7 @@ public class ButtonActivation : MonoBehaviourPun, ISubject
             if (r == null) continue;
 
             Material mat = r.material;
-            if (e)
+            if (isPressed)
             {
                 mat.EnableKeyword("_EMISSION");
                 mat.SetColor("_EmissionColor", Color.green * 1.4f);
@@ -135,8 +148,8 @@ public class ButtonActivation : MonoBehaviourPun, ISubject
             }
         }
 
-        // Notificar a observadores solo si está habilitado
         if (isEnabled)
             photonView.RPC(nameof(RPC_NotifyAll), RpcTarget.All, buttonID, isPressed);
     }
+
 }
