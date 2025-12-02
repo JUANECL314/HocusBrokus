@@ -1,8 +1,9 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
-using System;
+using UnityEngine.SceneManagement;
 
 #if PHOTON_UNITY_NETWORKING
 using Photon.Pun;
@@ -22,8 +23,11 @@ public class EndorsementScreenController : MonoBehaviour
     [SerializeField] private int maxEndorsements = 3;
     [SerializeField] private string matchIdPrefix = "match";
 
+    [Header("Flujo / Escenas")]
+    [SerializeField] private string lobbySceneName = "Lobby";  // ← pon aquí tu escena de lobby
+
     [Header("Mock (para pruebas sin jugadores)")]
-    [SerializeField] private bool useMockPlayers = true;  // <- activa esto en el Inspector
+    [SerializeField] private bool useMockPlayers = true;
     [SerializeField] private int mockPlayersCount = 3;
     [SerializeField] private string mockNamePrefix = "Compañero ";
 
@@ -59,11 +63,10 @@ public class EndorsementScreenController : MonoBehaviour
 
     private void BuildList()
     {
-        // limpiar
-        foreach (Transform child in content) Destroy(child.gameObject);
+        foreach (Transform child in content)
+            Destroy(child.gameObject);
         _cards.Clear();
 
-        // 1) Si está activo el modo mock, generamos tarjetas ficticias siempre
         if (useMockPlayers)
         {
             for (int i = 1; i <= Mathf.Max(0, mockPlayersCount); i++)
@@ -76,7 +79,6 @@ public class EndorsementScreenController : MonoBehaviour
             return;
         }
 
-        // 2) Si no hay mock, usamos Photon si está disponible
 #if PHOTON_UNITY_NETWORKING
         foreach (var p in PhotonNetwork.PlayerList)
         {
@@ -88,8 +90,6 @@ public class EndorsementScreenController : MonoBehaviour
             ui.Bind(p);
             _cards.Add(ui);
         }
-#else
-        // 3) Sin Photon ni mock → nada (o podrías forzar una lista mínima aquí)
 #endif
     }
 
@@ -120,17 +120,25 @@ public class EndorsementScreenController : MonoBehaviour
 
     private void LateUpdate() => UpdateCounterLabel();
 
+    // ===================== BOTÓN ENVIAR =====================
+
     private void OnClickEnviar()
     {
         int c = CountSelections();
         if (c > maxEndorsements) return;
 
+        // Deshabilitar botones para evitar doble click
+        btnEnviar.interactable = false;
+        btnOmitir.interactable = false;
+
         long now = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
 
-        // 1) Endorsements (como antes)
+        // 1) Endorsements
         var endorseList = new List<EndorsementPayload>();
         foreach (var card in _cards)
+        {
             if (card.HasSelection(out var type))
+            {
                 endorseList.Add(new EndorsementPayload
                 {
                     matchId = _matchId,
@@ -139,11 +147,15 @@ public class EndorsementScreenController : MonoBehaviour
                     type = type,
                     unixTime = now
                 });
+            }
+        }
 
-        // 2) Compatibilidad (“Volvería a jugar”) – independientes
+        // 2) Compatibilidad
         var compatList = new List<CompatibilityVotePayload>();
         foreach (var card in _cards)
+        {
             if (card.PlayAgainSelected)
+            {
                 compatList.Add(new CompatibilityVotePayload
                 {
                     matchId = _matchId,
@@ -152,11 +164,18 @@ public class EndorsementScreenController : MonoBehaviour
                     wouldPlayAgain = true,
                     unixTime = now
                 });
+            }
+        }
 
-        // Si no hay nada, cerrar
-        if (endorseList.Count == 0 && compatList.Count == 0) { CloseScreen(); return; }
+        // Si no hay nada, igual puedes mandar inferencia y luego ir al lobby
+        if (endorseList.Count == 0 && compatList.Count == 0)
+        {
+            TrySendInference();
+            StartCoroutine(CoReturnToLobbyAfterSends(waitForUploads: true));
+            return;
+        }
 
-        // Asegurar uploader
+        // Asegurar uploader de endorsements en escena
         if (EndorsementUploader.Instance == null)
         {
             var go = new GameObject("EndorsementUploader");
@@ -169,41 +188,94 @@ public class EndorsementScreenController : MonoBehaviour
         if (compatList.Count > 0)
             EndorsementUploader.Instance.EnqueueAndSendCompatibility(compatList);
 
-        CloseScreen();
+        // Mandar también la inferencia del KPI State Machine
+        TrySendInference();
+
+        // Ahora esperamos a que terminen uploads (o timeout) y regresamos al lobby
+        StartCoroutine(CoReturnToLobbyAfterSends(waitForUploads: true));
     }
 
-
-    private void LogPlayAgainVotes()
+    private void TrySendInference()
     {
-        var playAgainIds = new List<string>();
-        var playAgainNames = new List<string>();
-        foreach (var card in _cards)
+        if (InferenceUploader.Instance == null)
         {
-            if (card.PlayAgainSelected)
+            var go = new GameObject("InferenceUploader");
+            go.AddComponent<InferenceUploader>();
+        }
+
+        InferenceUploader.Instance.SendInference(_matchId);
+    }
+
+    // ===================== BOTÓN OMITIR =====================
+
+    private void OnClickOmitir()
+    {
+        btnEnviar.interactable = false;
+        btnOmitir.interactable = false;
+
+        // No mandamos nada, solo regresamos al lobby.
+        StartCoroutine(CoReturnToLobbyAfterSends(waitForUploads: false));
+    }
+
+    // ===================== CIERRE + REGRESO AL LOBBY =====================
+
+    private System.Collections.IEnumerator CoReturnToLobbyAfterSends(bool waitForUploads)
+    {
+        if (waitForUploads)
+        {
+            float timeout = 10f;   // segundo de seguridad
+            float t = 0f;
+
+            while (HasPendingUploads() && t < timeout)
             {
-                playAgainIds.Add(card.ReceiverUserId);
-                playAgainNames.Add(card.ReceiverDisplayName);
+                t += Time.unscaledDeltaTime;
+                yield return null;
             }
         }
 
-        if (playAgainIds.Count > 0)
-        {
-            Debug.Log($"[Endorsements] 'Volvería a jugar' con: {string.Join(", ", playAgainNames)} " +
-                      $"(Ids: {string.Join(", ", playAgainIds)})");
-        }
-        else
-        {
-            Debug.Log("[Endorsements] No se marcó 'Volvería a jugar' con nadie.");
-        }
-
-        // FUTURO: si agregas endpoint/tabla para afinidades, aquí prepara y envía el batch.
+        CloseScreen();
+        GoBackToLobby();
     }
 
-    private void OnClickOmitir() => CloseScreen();
+    private bool HasPendingUploads()
+    {
+        bool pendingEndorse = false;
+        bool pendingInference = false;
+
+        if (EndorsementUploader.Instance != null)
+        {
+            pendingEndorse = EndorsementUploader.Instance.HasAnyPendingUploads;
+        }
+
+        if (InferenceUploader.Instance != null)
+        {
+            pendingInference = InferenceUploader.Instance.IsUploadingInference;
+        }
+
+        return pendingEndorse || pendingInference;
+    }
 
     private void CloseScreen()
     {
         gameObject.SetActive(false);
-        // aquí puedes cargar la pantalla de resultados/menú, etc.
     }
+
+    private void GoBackToLobby()
+    {
+#if PHOTON_UNITY_NETWORKING
+        // En online, normalmente dejas que el Master cambie de escena.
+        if (PhotonNetwork.InRoom && PhotonNetwork.IsMasterClient)
+        {
+            PhotonNetwork.LoadLevel(lobbySceneName);
+        }
+        else if (!PhotonNetwork.InRoom)
+        {
+            SceneManager.LoadScene(lobbySceneName);
+        }
+#else
+        SceneManager.LoadScene(lobbySceneName);
+#endif
+    }
+
+    // (LogPlayAgainVotes se puede quedar igual si lo usas para debug)
 }

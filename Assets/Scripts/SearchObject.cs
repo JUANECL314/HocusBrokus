@@ -1,51 +1,60 @@
 using System.Collections;
+using System.Collections.Generic;
 using UnityEngine;
 
 public class SearchObject : MonoBehaviour
 {
-    [SerializeField] private string gameObjectToUse = null;
-    [SerializeField] private GameObject sceneObject = null;
-    [SerializeField] private MirrorController mirrorController = null;
-    [SerializeField] private GameObject[] lista;
+    [Header("Puzzle Setup")]
+    [Tooltip("Tag used for all MirrorPillar prefabs")]
+    [SerializeField] private string mirrorTag = "MirrorPillar";
+
+    [Tooltip("Assign the puzzle manager that will control mirrors")]
+    [SerializeField] private MagicPillarPuzzleManager puzzleManager;
+
+    [Tooltip("Delay between search attempts in seconds")]
+    [SerializeField] private float searchDelay = 0.5f;
+
+    // Mirrors we have found so far
+    private List<MirrorController> foundMirrors = new List<MirrorController>();
 
     void Start()
     {
-        StartCoroutine(BuscarYAsignar());
+        StartCoroutine(FindMirrorsCoroutine());
     }
 
-    IEnumerator BuscarYAsignar()
+    private IEnumerator FindMirrorsCoroutine()
     {
-        // Esperar hasta encontrar el objeto
-        while (sceneObject == null)
+        while (foundMirrors.Count == 0)
         {
-            sceneObject = GameObject.Find(gameObjectToUse + "(Clone)");
-            if (sceneObject == null)
-                yield return new WaitForSeconds(0.5f);
-        }
+            // Find all objects with the MirrorPillar tag
+            GameObject[] mirrorsInScene = GameObject.FindGameObjectsWithTag(mirrorTag);
 
-        // Asignar el componente MirrorController cuando el objeto aparece
-        mirrorController = sceneObject.GetComponent<MirrorController>();
-
-        if (mirrorController == null)
-        {
-            Debug.LogWarning("El objeto encontrado no tiene MirrorController.");
-            yield break;
-        }
-
-        // Asignar controller a cada botón de la lista
-        foreach (GameObject obj in lista)
-        {
-            MirrorButton boton = obj.GetComponent<MirrorButton>();
-            if (boton != null)
+            foreach (var obj in mirrorsInScene)
             {
-                boton.mirrorController = mirrorController;
-            }
-            else
-            {
-                Debug.LogWarning($" {obj.name} no tiene componente MirrorButton.");
-            }
-        }
+                MirrorController mirror = obj.GetComponent<MirrorController>();
 
-        Debug.Log("MirrorController asignado a todos los botones.");
+                // Add to our list if not already present
+                if (mirror != null && !foundMirrors.Contains(mirror))
+                {
+                    foundMirrors.Add(mirror);
+                    Debug.Log($"Mirror {mirror.name} found and registered.");
+                }
+            }
+
+            if (foundMirrors.Count > 0)
+            {
+                // Register mirrors with the puzzle manager
+                foreach (var mirror in foundMirrors)
+                {
+                    if (!puzzleManager.mirrorsToAlign.Contains(mirror))
+                        puzzleManager.mirrorsToAlign.Add(mirror);
+                }
+
+                Debug.Log($"SearchObject: {foundMirrors.Count} mirror(s) registered with puzzle manager.");
+                break; // stop searching once mirrors are found and registered
+            }
+
+            yield return new WaitForSeconds(searchDelay);
+        }
     }
 }

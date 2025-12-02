@@ -1,17 +1,18 @@
 ﻿using UnityEngine;
-using UnityEngine.InputSystem; // Input System
+using UnityEngine.InputSystem;
+using UnityEngine.SceneManagement; // ⬅️ NUEVO
 using Photon.Pun;
 
 [RequireComponent(typeof(Rigidbody))]
 public class FreeFlyCameraMulti : MonoBehaviourPun
 {
     [Header("Mode")]
-    [Tooltip("F1 alterna en runtime. Cuando está desactivado, usa movimiento normal con física.")]
     public bool debugFreeFly = false;
 
     [Header("Movement (Normal)")]
     public float walkSpeed = 5f;
-    public float jumpForce = 5f;
+    [Tooltip("Jump force actually used at runtime (puede ser override por escena).")]
+    public float jumpForce = 20f;
     public LayerMask groundMask = ~0;
     public float groundCheckDistance = 0.2f;
 
@@ -20,36 +21,83 @@ public class FreeFlyCameraMulti : MonoBehaviourPun
 
     [Header("Look")]
     public float mouseSensitivity = 1.5f;
-    public float gamepadSensitivity = 0.7f; // menor para stick
-    public float maxHeadTilt = 80f;
+    public float gamepadSensitivity = 0.7f;
+    public float maxHeadTilt = 150f;
     public bool invertY = false;
 
     [Header("References")]
-    public Transform characterModel;  // yaw (cuerpo)
-    public Transform cameraTransform; // pitch (cámara)
+    public Transform characterModel;  // yaw (body)
+    public Transform cameraTransform; // pitch (camera)
     public Vector3 cameraOffset = Vector3.zero;
+
+    // === NUEVO: configuración de salto por escena ===
+    [System.Serializable]
+    public class SceneJumpConfig
+    {
+        public string sceneName;   // nombre exacto de la escena
+        public float jumpForce;    // fuerza de salto para esa escena
+    }
+
+    [Header("Jump per Scene")]
+    [Tooltip("Si está activo, buscará la fuerza de salto según el nombre de la escena actual.")]
+    public bool useSceneJumpConfig = true;
+    [Tooltip("Valor por defecto si la escena no está en la lista.")]
+    public float defaultJumpForce = 20f;
+    public SceneJumpConfig[] sceneJumpConfigs;
+
+    // Animator (synchronized by PhotonAnimatorView)
+    private Animator _animator;
+    private const string PARAM_SPEED = "Speed";
+    private const string PARAM_GROUNDED = "Grounded";
+    private const string PARAM_JUMP = "Jump";
 
     // state
     private Rigidbody rb;
     private float yaw, pitch;
-    private Vector2 moveInput;   // Input Actions: Move (Vector2)
-    private Vector2 lookInput;   // Input Actions: Look (Vector2)
+    private Vector2 moveInput;
+    private Vector2 lookInput;
     private bool jumpPressed;
     private bool isLocalMode;
+    private bool isFrozen = false;
+
+
+    [Header("Jump Settings")]
+    public float jumpHeight = 10f;
+    public float gravity = -9.81f;
+
+    private float verticalVelocity = 0f;
+    private bool hasJumped = false;
+
+    // 👁 For Eye Look System
+    [HideInInspector] public Vector2 eyeLookOffset;
+    private float currentLookAngle = 0f;
+
+    // 👁 Optional getter for external access (e.g. iris)
+    public Vector2 EyeLookOffset => eyeLookOffset;
+
+    // convenience
+    public bool IsLocalOwner => isLocalMode || photonView.IsMine;
 
     void Awake()
     {
         rb = GetComponent<Rigidbody>();
         if (!cameraTransform)
             cameraTransform = GetComponentInChildren<Camera>(true)?.transform;
-        if (!characterModel) characterModel = transform;
+        if (!characterModel)
+            characterModel = transform;
+        // animator lives in the character model
+        _animator = characterModel ? characterModel.GetComponentInChildren<Animator>(true) : null;
     }
 
     void Start()
     {
-        isLocalMode = !PhotonNetwork.IsConnected;
+        // Rigidbody setup
+        rb.freezeRotation = true;
+        rb.useGravity = true;
+        rb.collisionDetectionMode = CollisionDetectionMode.ContinuousDynamic;
+        rb.interpolation = RigidbodyInterpolation.Interpolate;
 
-        // Settings iniciales y suscripción
+        isLocalMode = !PhotonNetwork.IsConnected;
         if (SettingsManager.I)
         {
             mouseSensitivity = SettingsManager.I.MouseSensitivity;
@@ -57,130 +105,214 @@ public class FreeFlyCameraMulti : MonoBehaviourPun
             invertY = SettingsManager.I.InvertY;
             SettingsManager.I.OnChanged += ApplySettings;
         }
-
-        // Solo mi player controla y muestra su cámara
+        // Camera only active for the owner (or in local mode)
         if (isLocalMode || photonView.IsMine) ActivateCamera();
-        else
-        {
-            DeactivateCamera();
-            // (Opcional) Deshabilitar el script completo si no es mío:
-            // enabled = false; return;
-        }
+        else DeactivateCamera();
+        if (cameraTransform == null)
+            cameraTransform = GetComponentInChildren<Camera>(true)?.transform;
 
-        // Rigidbody settings para movimiento normal
-        rb.useGravity = true;
-        rb.constraints = RigidbodyConstraints.FreezeRotationX | RigidbodyConstraints.FreezeRotationZ;
+        if (characterModel == null)
+            characterModel = transform;
+
+        _animator = characterModel.GetComponent<Animator>();
+        if (_animator == null)
+            _animator = characterModel.GetComponentInChildren<Animator>(true);
 
         yaw = characterModel.eulerAngles.y;
-        pitch = cameraTransform ? cameraTransform.localEulerAngles.x : 0f;
+        pitch = cameraTransform.localEulerAngles.x;
+
+        rb.constraints = RigidbodyConstraints.FreezeRotationX | RigidbodyConstraints.FreezeRotationZ;
 
         LockCursor(true);
-        if (cameraTransform) cameraTransform.localPosition = cameraOffset;
+        if (cameraTransform)
+            cameraTransform.localPosition = cameraOffset;
+
+        // === NUEVO: aplicar fuerza de salto según la escena ===
+        ApplySceneJumpForce();
+    }
+
+    /// <summary>
+    /// Ajusta jumpForce según la escena actual usando la lista sceneJumpConfigs.
+    /// </summary>
+    void ApplySceneJumpForce()
+    {
+        if (!useSceneJumpConfig)
+        {
+            // si no quieres usarlo, respeta el valor actual
+            return;
+        }
+
+        string currentScene = SceneManager.GetActiveScene().name;
+
+        // valor por defecto primero
+        jumpForce = defaultJumpForce;
+
+        if (sceneJumpConfigs == null || sceneJumpConfigs.Length == 0)
+            return;
+
+        foreach (var cfg in sceneJumpConfigs)
+        {
+            if (!string.IsNullOrEmpty(cfg.sceneName) && cfg.sceneName == currentScene)
+            {
+                jumpForce = cfg.jumpForce;
+                // Debug opcional para validar
+                Debug.Log($"[FreeFlyCameraMulti] Escena '{currentScene}' usando jumpForce = {jumpForce}");
+                return;
+            }
+        }
+
+        // Debug opcional para cuando no encuentra la escena
+        Debug.Log($"[FreeFlyCameraMulti] Escena '{currentScene}' no encontrada en sceneJumpConfigs, usando defaultJumpForce = {defaultJumpForce}");
     }
 
     void Update()
     {
         if (!isLocalMode && !photonView.IsMine) return;
+        if (isFrozen) return;
 
-        // Toggle de modo debug (F1)
         if (Keyboard.current != null && Keyboard.current.f1Key.wasPressedThisFrame)
             debugFreeFly = !debugFreeFly;
 
-        // Sensibilidad según fuente (mouse vs stick)
+        // LOOK
         bool usingGamepad = Gamepad.current != null && Gamepad.current.rightStick.IsActuated();
         float sens = usingGamepad ? gamepadSensitivity : mouseSensitivity;
 
-        // Limpieza de ruido mínimo en look
         if (lookInput.sqrMagnitude < 0.0005f) lookInput = Vector2.zero;
 
-        // ROTACIÓN
         float lookX = lookInput.x * sens;
         float lookY = lookInput.y * sens * (invertY ? 1f : -1f);
 
-        yaw += lookX;
-        pitch += lookY;
-        pitch = Mathf.Clamp(pitch, -maxHeadTilt, maxHeadTilt);
+        // camera pitch
+        pitch = Mathf.Clamp(pitch + lookY, -maxHeadTilt, maxHeadTilt);
 
-        if (characterModel) characterModel.rotation = Quaternion.Euler(0f, yaw, 0f);
+        // yaw
+        yaw += lookX;
+
+        // Apply rotation to the body
+        transform.rotation = Quaternion.Euler(0f, yaw, 0f);
+
+        // Apply rotation to the camera
         if (cameraTransform)
         {
             cameraTransform.localRotation = Quaternion.Euler(pitch, 0f, 0f);
             cameraTransform.localPosition = cameraOffset;
         }
 
-        // UP/DOWN solo en modo free-fly (E/Q)
-        if (debugFreeFly)
-        {
-            float upDown = 0f;
-            var kb = Keyboard.current;
-            if (kb != null)
-            {
-                if (kb.eKey.isPressed) upDown += 1f;
-                if (kb.qKey.isPressed) upDown -= 1f;
-            }
+        // Eye offset calculation (local to body)
+        float maxLookAngle = 25f;   // how far eyes/head can look relative to body
+        float deadzone = 15f;       // circular radius for eyes-only movement
+        float reCenterSpeed = 5f;   // how fast eyes recenters
 
-            // Movimiento directo sin inercia
-            Vector3 desired =
-                characterModel.forward * moveInput.y +
-                characterModel.right * moveInput.x +
-                Vector3.up * upDown;
+        float localYawDelta = Mathf.DeltaAngle(transform.eulerAngles.y, cameraTransform.eulerAngles.y);
+        float clampedYaw = Mathf.Clamp(localYawDelta, -maxLookAngle, maxLookAngle);
 
-            if (desired.sqrMagnitude < 0.001f) desired = Vector3.zero;
-            if (desired.sqrMagnitude > 1f) desired.Normalize();
+        if (Mathf.Abs(clampedYaw) > deadzone)
+            clampedYaw = Mathf.Lerp(clampedYaw, 0f, Time.deltaTime * reCenterSpeed);
 
-            // Desacoplar de física mientras vuelas
-            rb.useGravity = false;
-            rb.linearVelocity = Vector3.zero; // <<< corregido
-            transform.position += desired * flySpeed * Time.deltaTime;
-        }
-        else
-        {
-            // Volvemos a física normal
-            if (!rb.useGravity) rb.useGravity = true;
-        }
+        eyeLookOffset = new Vector2(clampedYaw / maxLookAngle, lookY / maxHeadTilt);
+
+        // Movement input
+        moveInput.x = Input.GetAxisRaw("Horizontal");
+        moveInput.y = Input.GetAxisRaw("Vertical");
+
+        if (Input.GetKeyDown(KeyCode.Space))
+            jumpPressed = true;
+
+        float inputMagnitude = Mathf.Clamp01(moveInput.magnitude);
+        if (_animator)
+            _animator.SetFloat("Speed", inputMagnitude, 0.1f, Time.deltaTime);
+        HandleWalkSFX();
     }
 
     void FixedUpdate()
     {
         if (!isLocalMode && !photonView.IsMine) return;
-        if (debugFreeFly) return; // el free-fly ya se mueve en Update
 
-        // MOVIMIENTO NORMAL con física (plano XZ)
+        if (debugFreeFly) return; // free-fly handled in Update when enabled
+        if (isFrozen) return;
+
+        // MOVEMENT (XZ plane)
         Vector3 wishDir = (characterModel.forward * moveInput.y) + (characterModel.right * moveInput.x);
         if (wishDir.sqrMagnitude > 1f) wishDir.Normalize();
 
-        // Conserva la Y de la física (gravedad / saltos), controla XZ
-        Vector3 vel = rb.linearVelocity; // <<< corregido
+        Vector3 vel = rb.linearVelocity;
         Vector3 targetXZ = wishDir * walkSpeed;
-        rb.linearVelocity = new Vector3(targetXZ.x, vel.y, targetXZ.z); // <<< corregido
+        rb.linearVelocity = new Vector3(targetXZ.x, vel.y, targetXZ.z);
 
-        // Salto
+        // Jump
         if (jumpPressed && IsGrounded())
         {
-            // reset Y para salto consistente
-            rb.linearVelocity = new Vector3(rb.linearVelocity.x, 0f, rb.linearVelocity.z); // <<< corregido
+            rb.linearVelocity = new Vector3(rb.linearVelocity.x, 0f, rb.linearVelocity.z);
             rb.AddForce(Vector3.up * jumpForce, ForceMode.VelocityChange);
+
+            if (_animator) _animator.SetTrigger(PARAM_JUMP);
+            SoundManager.Instance.Play(SfxKey.Jump, transform);
         }
-        jumpPressed = false; // consumir
+
+        // Animation speed
+        if (_animator)
+        {
+            float speed = Mathf.Clamp01(moveInput.magnitude);
+            _animator.SetFloat(PARAM_SPEED, speed, 0.1f, Time.deltaTime);
+        }
+
+        jumpPressed = false;
     }
 
     bool IsGrounded()
     {
-        // chequeo simple al centro del capsule/collider
-        Vector3 origin = transform.position + Vector3.up * 0.05f;
-        return Physics.Raycast(origin, Vector3.down, groundCheckDistance + 0.05f, groundMask, QueryTriggerInteraction.Ignore);
+        CapsuleCollider capsule = GetComponent<CapsuleCollider>();
+        if (capsule == null) return false;
+
+        float radius = capsule.radius * 0.95f;
+        float castDistance = groundCheckDistance;
+        Vector3 origin = transform.position + Vector3.up * (capsule.radius + 0.05f);
+
+        return Physics.SphereCast(origin, radius, Vector3.down, out _, castDistance, groundMask, QueryTriggerInteraction.Ignore);
     }
 
-    // ===== Input System (PlayerInput → Send Messages) =====
+    private bool isWalkingSfxPlaying = false;
+
+    void HandleWalkSFX()
+    {
+        if (_animator == null) return;
+
+        bool isMoving = _animator.GetFloat("Speed") > 0.1f;
+        bool grounded = IsGrounded();
+
+        if (isMoving && grounded)
+        {
+            if (!isWalkingSfxPlaying)
+            {
+                isWalkingSfxPlaying = true;
+                SoundManager.Instance.StartLoop("playerWalk_" + photonView.ViewID, SfxKey.Walk, transform);
+            }
+        }
+        else
+        {
+            if (isWalkingSfxPlaying)
+            {
+                isWalkingSfxPlaying = false;
+                SoundManager.Instance.StopLoop("playerWalk_" + photonView.ViewID);
+            }
+        }
+    }
+
+
     public void OnMove(InputValue value) => moveInput = value.Get<Vector2>();
     public void OnLook(InputValue value) => lookInput = value.Get<Vector2>();
-    public void OnJump(InputValue value) { if (value.isPressed) jumpPressed = true; }
-    public void OnToggleCursor(InputValue value)
+    public void OnJump(InputValue value)
     {
-        if (value.isPressed) LockCursor(Cursor.lockState != CursorLockMode.Locked);
+        if (value.isPressed)
+            jumpPressed = true;
     }
 
-    // ===== Settings binding =====
+    public void OnToggleCursor(InputValue value)
+    {
+        if (value.isPressed)
+            LockCursor(Cursor.lockState != CursorLockMode.Locked);
+    }
+
     void ApplySettings()
     {
         if (!SettingsManager.I) return;
@@ -191,7 +323,7 @@ public class FreeFlyCameraMulti : MonoBehaviourPun
 
     void OnDestroy()
     {
-        if (SettingsManager.I) SettingsManager.I.OnChanged -= ApplySettings; // <<< importante
+        if (SettingsManager.I) SettingsManager.I.OnChanged -= ApplySettings;
     }
 
     // ===== Helpers =====
@@ -201,5 +333,54 @@ public class FreeFlyCameraMulti : MonoBehaviourPun
     {
         Cursor.lockState = locked ? CursorLockMode.Locked : CursorLockMode.None;
         Cursor.visible = !locked;
+    }
+
+    public void SetFrozen(bool frozen)
+    {
+        isFrozen = frozen;
+
+        moveInput = Vector2.zero;
+
+        // forzar anim a idle
+        if (_animator)
+        {
+            // Speed = 0 → estado Idle en tu blend tree
+            _animator.SetFloat(PARAM_SPEED, 0f);
+
+            // si fuera bool usa SetBool en lugar de ResetTrigger)
+            _animator.ResetTrigger(PARAM_JUMP);
+        }
+
+        if (rb != null && frozen)
+        {
+            rb.linearVelocity = Vector3.zero;
+            rb.angularVelocity = Vector3.zero;
+        }
+
+        if (frozen)
+        {
+            Cursor.lockState = CursorLockMode.None;
+            Cursor.visible = true;
+        }
+        else
+        {
+            LockCursor(true);
+        }
+    }
+
+
+
+    public void ApplyForceLocal(Vector3 force)
+    {
+        if (!IsLocalOwner) return;
+        if (rb == null) return;
+        rb.AddForce(force, ForceMode.VelocityChange);
+    }
+
+    [PunRPC]
+    public void RPC_ApplyForce(Vector3 force)
+    {
+        if (rb == null) return;
+        rb.AddForce(force, ForceMode.VelocityChange);
     }
 }

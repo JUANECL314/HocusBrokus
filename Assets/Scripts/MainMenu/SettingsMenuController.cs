@@ -1,30 +1,81 @@
-using UnityEngine;
+Ôªøusing UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.InputSystem;
 using UnityEngine.EventSystems;
+using UnityEngine.SceneManagement;   // ‚¨ÖÔ∏è Necesario
+using Photon.Pun;
 
 public class SettingsMenuController : MonoBehaviour
 {
     [Header("UI (asignar en Inspector)")]
-    [SerializeField] GameObject panelRoot;
-    [SerializeField] Slider mouseSens;
-    [SerializeField] Slider gamepadSens;
+    [SerializeField] private GameObject panelRoot;
+    [SerializeField] private Slider mouseSens;
+    [SerializeField] private Slider gamepadSens;
 
-    // PlayerInput local (solo para in-game; en Main Menu no habr· ninguno)
+    [Header("Submen√∫s")]
+    [SerializeField] private GameObject keyboardPanel;
+    [SerializeField] private GameObject gamepadPanel;
+
+    [Header("Escenas Lobby")]
+    [SerializeField] private string[] allowedScenesWithPhoton;
+
     private PlayerInput localPlayerInput;
     private bool triedFindPlayer = false;
 
     void Start()
     {
-        if (!panelRoot) Debug.LogError("[SettingsMenu] panelRoot no asignado");
-        if (panelRoot) panelRoot.SetActive(false);
-        RefreshUIFromSettings(); // funciona en Main Menu aunque no haya Player
+        string currentScene = SceneManager.GetActiveScene().name;
+        bool isAllowedScene = false;
+
+        if (allowedScenesWithPhoton != null)
+        {
+            for (int i = 0; i < allowedScenesWithPhoton.Length; i++)
+            {
+                if (!string.IsNullOrEmpty(allowedScenesWithPhoton[i]) &&
+                    allowedScenesWithPhoton[i] == currentScene)
+                {
+                    isAllowedScene = true;
+                    break;
+                }
+            }
+        }
+
+        if (PhotonNetwork.IsConnected && !isAllowedScene)
+        {
+            if (panelRoot) panelRoot.SetActive(false);
+            enabled = false;
+            return;
+        }
+
+        if (!panelRoot)
+            Debug.LogError("[SettingsMenu] panelRoot no asignado");
+
+        if (panelRoot)
+            panelRoot.SetActive(false);
+
+        if (keyboardPanel) keyboardPanel.SetActive(false);
+        if (gamepadPanel) gamepadPanel.SetActive(false);
+
+        RefreshUIFromSettings();
     }
 
     void Update()
     {
-        if (Keyboard.current != null && Keyboard.current.f10Key.wasPressedThisFrame)
+        if (Keyboard.current == null) return;
+
+        // Abrir/cerrar men√∫ principal
+        if (Keyboard.current.f10Key.wasPressedThisFrame)
             TogglePanel();
+
+        // Solo si el men√∫ est√° abierto
+        if (panelRoot != null && panelRoot.activeSelf)
+        {
+            if (Keyboard.current.eKey.wasPressedThisFrame)
+                ToggleKeyboardPanel();
+
+            if (Keyboard.current.qKey.wasPressedThisFrame)
+                ToggleGamepadPanel();
+        }
     }
 
     void TryFindLocalPlayerInput()
@@ -32,10 +83,68 @@ public class SettingsMenuController : MonoBehaviour
         if (triedFindPlayer) return;
         triedFindPlayer = true;
 
-        // Busca un PlayerInput en la escena (el tuyo / ˙nico)
         localPlayerInput = FindObjectOfType<PlayerInput>();
-        // Si no hay ninguno (Main Menu), se queda null y no se deshabilita nada ó est· bien.
     }
+
+    // ============================
+    //  SUBMEN√öS EXCLUSIVOS
+    // ============================
+
+    public void ToggleKeyboardPanel()
+    {
+        if (!keyboardPanel) return;
+
+        bool show = !keyboardPanel.activeSelf;
+
+        if (show && gamepadPanel)
+            gamepadPanel.SetActive(false);
+
+        keyboardPanel.SetActive(show);
+    }
+
+    public void ToggleGamepadPanel()
+    {
+        if (!gamepadPanel) return;
+
+        bool show = !gamepadPanel.activeSelf;
+
+        if (show && keyboardPanel)
+            keyboardPanel.SetActive(false);
+
+        gamepadPanel.SetActive(show);
+    }
+
+    // ---- Mostrar uno espec√≠fico desde UI ----
+    public void ShowKeyboardPanel()
+    {
+        if (keyboardPanel)
+        {
+            keyboardPanel.SetActive(true);
+            if (gamepadPanel) gamepadPanel.SetActive(false);
+        }
+    }
+
+    public void ShowGamepadPanel()
+    {
+        if (gamepadPanel)
+        {
+            gamepadPanel.SetActive(true);
+            if (keyboardPanel) keyboardPanel.SetActive(false);
+        }
+    }
+
+    // ---- Ocultar desde UI ----
+    public void HideKeyboardPanel()
+    {
+        if (keyboardPanel) keyboardPanel.SetActive(false);
+    }
+
+    public void HideGamepadPanel()
+    {
+        if (gamepadPanel) gamepadPanel.SetActive(false);
+    }
+
+    // ============================
 
     public void TogglePanel()
     {
@@ -58,9 +167,13 @@ public class SettingsMenuController : MonoBehaviour
         }
         else
         {
-            PushUIToSettings(); // por si no movieron sliders tras abrir
+            PushUIToSettings();
+
+            // al cerrar, siempre apaga los submen√∫s
+            if (keyboardPanel) keyboardPanel.SetActive(false);
+            if (gamepadPanel) gamepadPanel.SetActive(false);
+
             if (localPlayerInput) localPlayerInput.enabled = true;
-            // Si quieres relockear el cursor aquÌ, hazlo seg˙n tu flujo.
         }
     }
 
@@ -72,6 +185,7 @@ public class SettingsMenuController : MonoBehaviour
             ms = SettingsManager.I.MouseSensitivity;
             gs = SettingsManager.I.GamepadSensitivity;
         }
+
         if (mouseSens) mouseSens.value = ms;
         if (gamepadSens) gamepadSens.value = gs;
     }
@@ -79,14 +193,25 @@ public class SettingsMenuController : MonoBehaviour
     void PushUIToSettings()
     {
         if (!SettingsManager.I) return;
+
         if (mouseSens) SettingsManager.I.SetMouseSensitivity(mouseSens.value);
         if (gamepadSens) SettingsManager.I.SetGamepadSensitivity(gamepadSens.value);
     }
 
-    // Hooks de UI
-    public void OnMouseSensChanged(float v) { if (SettingsManager.I) SettingsManager.I.SetMouseSensitivity(v); }
-    public void OnGamepadSensChanged(float v) { if (SettingsManager.I) SettingsManager.I.SetGamepadSensitivity(v); }
-    public void OnCloseClicked() { TogglePanel(); }
+    public void OnMouseSensChanged(float v)
+    {
+        if (SettingsManager.I) SettingsManager.I.SetMouseSensitivity(v);
+    }
+
+    public void OnGamepadSensChanged(float v)
+    {
+        if (SettingsManager.I) SettingsManager.I.SetGamepadSensitivity(v);
+    }
+
+    public void OnCloseClicked()
+    {
+        TogglePanel();
+    }
 
     static void EnsureEventSystem()
     {

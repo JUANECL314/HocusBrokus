@@ -6,6 +6,7 @@ using TMPro;
 using UnityEngine;
 using UnityEngine.Networking;
 using UnityEngine.UI;
+using UnityEngine.SceneManagement;
 using Photon.Pun;
 
 public class LoginUIController : MonoBehaviour
@@ -20,22 +21,24 @@ public class LoginUIController : MonoBehaviour
     [Header("Navegacion")]
     [SerializeField] private GameObject panelAlRegresar;
 
-    [Header("Photon")]
-    [SerializeField] private ConnectToServer photonConnector;
+    [Header("Photon / Net")]
+    [SerializeField] private NetworkManager photonConnector; // arrástralo en el Inspector
 
     [Header("API")]
     [SerializeField] private string apiBaseUrl = "https://hokusbackend-production.up.railway.app";
     [SerializeField] private float requestTimeoutSeconds = 15f;
 
     [Header("Opcional")]
-    [SerializeField] private bool rememberToken = true; // guarda token en PlayerPrefs
+    [SerializeField] private bool rememberToken = true;
+    [SerializeField] private bool autoConnectIfRememberedToken = false;
+    [SerializeField] private bool connectPhotonAfterLogin = true;
 
-    // --- Modelos simples para (de)serializar ---
+    // --- DTOs ---
     [Serializable] private class LoginPayload { public string email; public string password; }
     [Serializable] private class UserDTO { public int id; public string username; public string email; }
     [Serializable] private class LoginResponse { public string token; public UserDTO user; }
 
-    // formatos de error típicos de FastAPI
+    // Errores FastAPI
     [Serializable] private class DetailList { public List<DetailItem> detail; }
     [Serializable] private class DetailItem { public string msg; public string type; public List<string> loc; }
     [Serializable] private class DetailString { public string detail; }
@@ -46,15 +49,23 @@ public class LoginUIController : MonoBehaviour
         if (btnRegresar) btnRegresar.onClick.AddListener(OnClickRegresar);
         if (lblEstado) lblEstado.text = "";
 
-        // Recordar sesion
-        if (rememberToken && AuthState.TryLoadFromPrefs())
+        // Autologin opcional
+        if (rememberToken && autoConnectIfRememberedToken && AuthState.TryLoadFromPrefs())
         {
             SetEstado($"Bienvenido de nuevo, {AuthState.Username}.");
-            if (photonConnector != null)
+
+            // Asegura nickname y conexión
+            if (connectPhotonAfterLogin)
             {
-                PhotonNetwork.NickName = string.IsNullOrWhiteSpace(AuthState.Username) ? "Player" : AuthState.Username;
-                photonConnector.conectarServidor();
+                SetPhotonNick(AuthState.Username, AuthState.Email);
+                if (photonConnector != null) photonConnector.ConectarServidor();
             }
+
+            // Ir directo al Lobby local si así lo quieres
+            if (NetworkManager.Instance != null)
+                NetworkManager.Instance.EntrarLobbyIndividual();
+            else
+                SceneManager.LoadScene("Lobby");
         }
     }
 
@@ -66,7 +77,7 @@ public class LoginUIController : MonoBehaviour
 
     public void OnClickIngresar()
     {
-        /*var email = inputUsuarioEmail ? inputUsuarioEmail.text.Trim() : "";
+        var email = inputUsuarioEmail ? inputUsuarioEmail.text.Trim() : "";
         var pass = inputPassword ? inputPassword.text : "";
 
         if (string.IsNullOrEmpty(email) || string.IsNullOrEmpty(pass))
@@ -75,8 +86,9 @@ public class LoginUIController : MonoBehaviour
             return;
         }
 
-        StartCoroutine(CoLogin(email, pass));*/
-        photonConnector.conectarServidor();
+        // ⚠️ Importante: ya NO cambiamos de escena aquí.
+        // Solo iniciamos el login contra el backend.
+        StartCoroutine(CoLogin(email, pass));
     }
 
     private IEnumerator CoLogin(string email, string password)
@@ -97,15 +109,14 @@ public class LoginUIController : MonoBehaviour
         yield return req.SendWebRequest();
 
 #if UNITY_2020_2_OR_NEWER
-        bool hasTransportError = req.result != UnityWebRequest.Result.Success;
+        bool transportError = req.result != UnityWebRequest.Result.Success;
 #else
-        bool hasTransportError = req.isNetworkError || req.isHttpError;
+        bool transportError = req.isNetworkError || req.isHttpError;
 #endif
-
         var status = (int)req.responseCode;
         var body = req.downloadHandler.text;
 
-        if (hasTransportError || status < 200 || status >= 300)
+        if (transportError || status < 200 || status >= 300)
         {
             SetEstado(MapFriendlyError(status, body));
             if (inputPassword) inputPassword.text = "";
@@ -125,87 +136,75 @@ public class LoginUIController : MonoBehaviour
 
         if (resp == null || string.IsNullOrEmpty(resp.token))
         {
-            SetEstado("No se recibio el token. Intenta de nuevo.");
+            SetEstado("No se recibió token. Intenta de nuevo.");
             ToggleInteractable(true);
             yield break;
         }
 
-        // Guardar token y usuario
-        AuthState.SetToken(resp.token, resp.user?.username, resp.user?.email, rememberToken);
+        // Guardar token y user
+        AuthState.SetToken(resp.token, resp.user?.id ?? 0, resp.user?.username, resp.user?.email, rememberToken);
 
-        if (EndorsementUploader.Instance != null)
+        // Establece NickName y conecta Photon si procede
+        if (connectPhotonAfterLogin)
         {
-            EndorsementUploader.Instance.SetAuthToken(resp.token);
+            SetPhotonNick(resp.user?.username, resp.user?.email);
+            if (photonConnector != null) photonConnector.ConectarServidor();
         }
 
-        // Conectar a Photon
-        if (photonConnector != null)
-        {
-            PhotonNetwork.NickName = string.IsNullOrWhiteSpace(AuthState.Username) ? "Player" : AuthState.Username;
-            photonConnector.conectarServidor();
-        }
+        // ✅ Ahora sí: cambia de escena al Lobby (local)
+        if (NetworkManager.Instance != null)
+            NetworkManager.Instance.EntrarLobbyIndividual();
         else
-        {
-            Debug.LogWarning("[Login] No se asignó ConnectToServer en el Inspector.");
-        }
+            SceneManager.LoadScene("Lobby");
 
-        SetEstado("¡Listo! Conectando al servidor...");
+        SetEstado("¡Login correcto!");
         ToggleInteractable(true);
     }
 
-    // Handler de msj de error
+    private static void SetPhotonNick(string username, string email)
+    {
+        string nick = !string.IsNullOrWhiteSpace(username)
+            ? username
+            : (!string.IsNullOrWhiteSpace(email) ? email.Split('@')[0] : "Player");
+        PhotonNetwork.NickName = nick;
+        Debug.Log("[Login] NickName = " + PhotonNetwork.NickName);
+    }
+
     private string MapFriendlyError(int status, string body)
     {
         string detail = null;
-
         try
         {
             var s = JsonUtility.FromJson<DetailString>(body);
             if (s != null && !string.IsNullOrEmpty(s.detail)) detail = s.detail;
         }
-        catch { /* ignore */ }
+        catch { }
 
         if (string.IsNullOrEmpty(detail))
         {
             try
             {
                 var l = JsonUtility.FromJson<DetailList>(body);
-                if (l != null && l.detail != null && l.detail.Count > 0 && !string.IsNullOrEmpty(l.detail[0].msg))
+                if (l != null && l.detail != null && l.detail.Count > 0)
                     detail = l.detail[0].msg;
             }
-            catch { /* ignore */ }
+            catch { }
         }
 
-        if (!string.IsNullOrEmpty(detail))
-        {
-            var lower = detail.ToLowerInvariant();
+        var d = (detail ?? body ?? "").ToLowerInvariant();
 
-            if (lower.Contains("invalid email") || lower.Contains("correo") || lower.Contains("email"))
-                return "Credenciales incorrectas.";
-            if (lower.Contains("incorrect") && lower.Contains("password"))
-                return "Credenciales incorrectas.";
-            if (lower.Contains("user") && lower.Contains("not found"))
-                return "Credenciales incorrectas.";
-            if (lower.Contains("too many") || lower.Contains("rate"))
-                return "Demasiados intentos. Espera un momento.";
-            if (lower.Contains("password") && lower.Contains("length"))
-                return "Credenciales incorrectas.";
-        }
-
-        // Fallback por codigo
-        switch (status)
-        {
-            case 0: return "Sin conexión. Revisa tu red.";
-            case 400: return string.IsNullOrEmpty(detail) ? "Datos inválidos." : detail;
-            case 401: return string.IsNullOrEmpty(detail) ? "Credenciales incorrectas." : detail;
-            case 403: return "Acceso no permitido.";
-            case 404: return "Servicio no disponible.";
-            case 422: return string.IsNullOrEmpty(detail) ? "Revisa tu correo y contraseña." : detail;
-            case 429: return "Demasiados intentos. Intenta más tarde.";
-            case 500: return "Error del servidor. Intenta más tarde.";
-            case 503: return "Servidor en mantenimiento.";
-            default: return string.IsNullOrEmpty(detail) ? $"Error {status}. Intenta de nuevo." : detail;
-        }
+        if (d.Contains("password") || d.Contains("user") || d.Contains("email") ||
+            d.Contains("not found") || status == 401 || status == 403)
+            return "Credenciales incorrectas.";
+        if (status == 429 || d.Contains("too many"))
+            return "Demasiados intentos, espera un momento.";
+        if (status == 422)
+            return "Datos inválidos.";
+        if (status == 0)
+            return "Sin conexión a internet.";
+        if (status >= 500)
+            return "Error del servidor. Intenta más tarde.";
+        return "Error al iniciar sesión, intenta de nuevo.";
     }
 
     private void ToggleInteractable(bool on)
@@ -228,25 +227,29 @@ public class LoginUIController : MonoBehaviour
     }
 }
 
-/// Estado de autenticacion
+// ---- AuthState compartido con la Tienda ----
 public static class AuthState
 {
     public static string Token { get; private set; }
+    public static int UserId { get; private set; }
     public static string Username { get; private set; }
     public static string Email { get; private set; }
 
     private const string PP_TOKEN = "auth.token";
     private const string PP_USER = "auth.user";
+    private const string PP_USERID = "auth.userId";
 
-    public static void SetToken(string token, string username, string email, bool persist)
+    public static void SetToken(string token, int userId, string username, string email, bool persist)
     {
         Token = token;
+        UserId = userId;
         Username = username;
         Email = email;
 
         if (persist)
         {
             PlayerPrefs.SetString(PP_TOKEN, token);
+            PlayerPrefs.SetInt(PP_USERID, userId);
             PlayerPrefs.SetString(PP_USER, username ?? "");
             PlayerPrefs.Save();
         }
@@ -256,16 +259,21 @@ public static class AuthState
     {
         if (!PlayerPrefs.HasKey(PP_TOKEN)) return false;
         Token = PlayerPrefs.GetString(PP_TOKEN, "");
+        UserId = PlayerPrefs.GetInt(PP_USERID, 0);
         Username = PlayerPrefs.GetString(PP_USER, "");
-        return !string.IsNullOrEmpty(Token);
+        return !string.IsNullOrEmpty(Token) && UserId > 0;
     }
 
     public static void Clear()
     {
         Token = null;
+        UserId = 0;
         Username = null;
         Email = null;
         PlayerPrefs.DeleteKey(PP_TOKEN);
         PlayerPrefs.DeleteKey(PP_USER);
+        PlayerPrefs.DeleteKey(PP_USERID);
     }
 }
+
+

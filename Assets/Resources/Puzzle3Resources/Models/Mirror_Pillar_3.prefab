@@ -25,8 +25,8 @@ Transform:
   m_GameObject: {fileID: 710624861533625738}
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0.02206552, z: -0, w: 0.9997566}
-  m_LocalPosition: {x: -0.07, y: 0, z: 0.74}
-  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_LocalPosition: {x: -0.33, y: 0.62, z: 0.02}
+  m_LocalScale: {x: 0.25, y: 0.25, z: 0.25}
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 6494988723553939010}
@@ -49,13 +49,14 @@ GameObject:
   - component: {fileID: 4209615542211840114}
   - component: {fileID: 5272161205018282411}
   - component: {fileID: 3008418409117991496}
+  - component: {fileID: 3107708461802713921}
   m_Layer: 0
   m_Name: Mirror_Pillar_3
-  m_TagString: Untagged
+  m_TagString: MirrorPillar
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!4 &414785266073763936
 Transform:
   m_ObjectHideFlags: 0
@@ -64,14 +65,14 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 3950423415122172184}
   serializedVersion: 2
-  m_LocalRotation: {x: -0, y: 0.32556096, z: -0, w: 0.9455211}
+  m_LocalRotation: {x: 0, y: 0.30984685, z: 0, w: 0.9507865}
   m_LocalPosition: {x: 175.22845, y: -14.9, z: -81.34753}
   m_LocalScale: {x: 10, y: 80, z: 10}
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 4704212963148077479}
   m_Father: {fileID: 0}
-  m_LocalEulerAnglesHint: {x: 0, y: 37.999, z: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 36.1, z: 0}
 --- !u!33 &6475188831231985941
 MeshFilter:
   m_ObjectHideFlags: 0
@@ -160,15 +161,16 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 7fc320d7e312a544dbc66a085f21d35e, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  rotateAngle: 1
+  rotateAngle: 4.3
   rotateAxis: {x: 0, y: 1, z: 0}
-  maxRotationOffset: -17
+  maxRotationOffset: 30
   defaultMoveAmount: 0.2
   maxUpOffset: 40
   revertMoveSpeed: 5
-  revertDelay: 1
+  revertDelay: 20
   revertRotationSpeed: 0.5
-  forceMoveUpMode: 0
+  alignTarget: {fileID: 414785266073763936}
+  alignSpeed: 2
 --- !u!114 &5272161205018282411
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -225,6 +227,23 @@ MonoBehaviour:
     InterpolateOption: 0
     InterpolateMoveTowardsSpeed: 1
     InterpolateLerpSpeed: 0
+--- !u!114 &3107708461802713921
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3950423415122172184}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: bcce1a404159e8347bacb2645e493ffa, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  enabledOverride: 1
+  spatialBlend: 1
+  rolloff: 0
+  minDistance: 45
+  maxDistance: 100
 --- !u!1 &4131256596621525390
 GameObject:
   m_ObjectHideFlags: 0
@@ -581,7 +600,7 @@ MonoBehaviour:
   m_PreserveMeshAssetOnDestroy: 0
   assetGuid: 
   m_Mesh: {fileID: 0}
-  m_VersionIndex: 5844
+  m_VersionIndex: 5922
   m_IsSelectable: 1
   m_SelectedFaces: 
   m_SelectedEdges: []
