@@ -34,25 +34,13 @@ public class MazeStateMachine : MonoBehaviourPunCallbacks
         if (!PhotonNetwork.IsMasterClient || localPlayer == null) return;
         starting = true;
 
-        StateMachineStatus(MazeEnumState.Create);
+        StateMachineStatus(MazeEnumState.Init);
     }
 
     void Update()
     {
         
-        /*if (!PhotonNetwork.IsMasterClient || localPlayer == null) return;
-
-        float dist = Vector3.Distance(localPlayer.position, transform.position);
-        bool canInteract = dist <= interactionDistance;
-        panelUIBoton.SetActive(canInteract && !starting);
-        
-        if (canInteract && Input.GetKeyDown(teclaAbrir) && !starting && currentState == MazeEnumState.Init)
-        {
-            starting = true;
-            
-            StateMachineStatus(MazeEnumState.Create);
-            //StartCoroutine(TimeOut());
-        }*/
+       
         
         
         
@@ -107,6 +95,7 @@ public class MazeStateMachine : MonoBehaviourPunCallbacks
                 break;
             case MazeEnumState.Gameplay:
                 Debug.Log("Asingando");
+
                 Debug.Log("Asignación terminada");
                 break;
             case MazeEnumState.Destroy:

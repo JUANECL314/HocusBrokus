@@ -76,7 +76,7 @@ public class ButtonActivation : MonoBehaviourPun, ISubject
     {
         if (localPlayer == null) return;
         if (other.transform != localPlayer) return;
-
+        if (isEnabled) return;
 
 
         canInteract = true;
@@ -139,7 +139,7 @@ public class ButtonActivation : MonoBehaviourPun, ISubject
             if (isPressed)
             {
                 mat.EnableKeyword("_EMISSION");
-                mat.SetColor("_EmissionColor", Color.green * 1.4f);
+                mat.SetColor("_EmissionColor", Color.green * 3.4f);
             }
             else
             {
