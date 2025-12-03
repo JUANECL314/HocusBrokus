@@ -186,7 +186,7 @@ GameObject:
   m_Component:
   - component: {fileID: 8271418999838494414}
   - component: {fileID: 3070198262931260597}
-  - component: {fileID: 657796053145707986}
+  - component: {fileID: 619716922870260920}
   m_Layer: 0
   m_Name: 'Punto de interes '
   m_TagString: Untagged
@@ -265,7 +265,7 @@ SpriteRenderer:
   m_WasSpriteAssigned: 1
   m_MaskInteraction: 0
   m_SpriteSortPoint: 0
---- !u!114 &657796053145707986
+--- !u!114 &619716922870260920
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -274,11 +274,11 @@ MonoBehaviour:
   m_GameObject: {fileID: 707435103960233980}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 072f927b8df065442a5f544d66fafd96, type: 3}
+  m_Script: {fileID: 11500000, guid: d7bba8410adbe6d46a181ce4e6e62c89, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
   state: 0
   limitMov: 2
   speed: 2
-  text: Portal
   textElement: {fileID: 5565598958500934442}
+  text: Portal

@@ -1,7 +1,7 @@
 using System;
 using UnityEngine;
 
-public class EnemyBehabior : MonoBehaviour
+public class EnemyBehavior : MonoBehaviour
 {
     [Header("Detection")]
     public float detectionRadius = 10f;

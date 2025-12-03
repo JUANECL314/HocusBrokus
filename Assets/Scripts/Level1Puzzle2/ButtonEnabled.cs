@@ -5,6 +5,7 @@ public class ButtonEnabler : MonoBehaviour, IObserver
     public ButtonActivation activatorButton;
     public ButtonActivation targetButton;
     public GameObject puerta;
+    public GameObject pointInteracive;
     void Start()
     {
         if (activatorButton != null)
@@ -26,6 +27,7 @@ public class ButtonEnabler : MonoBehaviour, IObserver
             targetButton.GetComponent<Renderer>().material.color = Color.gray;
         }
         if (puerta != null) puerta.SetActive(true);
+        if (pointInteracive != null) pointInteracive.SetActive(false);
     }
 
     public void OnNotify(int id, bool state)
@@ -35,6 +37,7 @@ public class ButtonEnabler : MonoBehaviour, IObserver
             // Solo habilitamos el botón objetivo
             targetButton.SetEnabled(true);
             puerta.SetActive(false);
+            pointInteracive.SetActive(true);
             // Enviar RPC para actualizar visual a todos los clientes
             if (targetButton.photonView != null && targetButton.photonView.IsMine)
             {

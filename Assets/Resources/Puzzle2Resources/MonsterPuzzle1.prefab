@@ -22,7 +22,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: 56f359014abd00a40bc772888040eb4a, type: 3}
       propertyPath: m_LocalPosition.x
-      value: -4.9105234
+      value: 59.481873
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: 56f359014abd00a40bc772888040eb4a, type: 3}
       propertyPath: m_LocalPosition.y
@@ -30,7 +30,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: 56f359014abd00a40bc772888040eb4a, type: 3}
       propertyPath: m_LocalPosition.z
-      value: -365.53
+      value: 101.3058
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: 56f359014abd00a40bc772888040eb4a, type: 3}
       propertyPath: m_LocalRotation.w
@@ -104,6 +104,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: MonsterPuzzle1
       objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: 56f359014abd00a40bc772888040eb4a, type: 3}
+      propertyPath: m_TagString
+      value: Death
+      objectReference: {fileID: 0}
     - target: {fileID: 1370565460452202719, guid: 56f359014abd00a40bc772888040eb4a, type: 3}
       propertyPath: 'm_Materials.Array.data[0]'
       value: 
@@ -147,6 +151,15 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: 56f359014abd00a40bc772888040eb4a, type: 3}
       insertIndex: -1
       addedObject: {fileID: 4831983864866684239}
+    - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: 56f359014abd00a40bc772888040eb4a, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: -8359963867256893125}
+    - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: 56f359014abd00a40bc772888040eb4a, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 7175857059495691107}
+    - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: 56f359014abd00a40bc772888040eb4a, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: -1043478316430428279}
   m_SourcePrefab: {fileID: 100100000, guid: 56f359014abd00a40bc772888040eb4a, type: 3}
 --- !u!1 &1380256046780530926 stripped
 GameObject:
@@ -173,4 +186,60 @@ BoxCollider:
   m_Enabled: 1
   serializedVersion: 3
   m_Size: {x: 0.5336354, y: 0.941833, z: 0.63180816}
-  m_Center: {x: -0.006077529, y: -0.20087776, z: 0.0016251258}
+  m_Center: {x: -0.0060775094, y: -0.20087776, z: 0.0016251258}
+--- !u!114 &-8359963867256893125
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1380256046780530926}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d557481b0d056f545a48e4e0087b8b5b, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  detectionRadius: 10
+  moveSpeed: 3
+  randomWalkSpeed: 2
+  changeDirectionTime: 3
+  stunDuration: 3
+--- !u!114 &7175857059495691107
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1380256046780530926}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: aa584fbee541324448dd18d8409c7a41, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  ObservedComponentsFoldoutOpen: 1
+  Group: 0
+  prefixField: -1
+  Synchronization: 3
+  OwnershipTransfer: 0
+  observableSearch: 2
+  ObservedComponents:
+  - {fileID: -1043478316430428279}
+  sceneViewId: 0
+  InstantiationId: 0
+  isRuntimeInstantiated: 0
+--- !u!114 &-1043478316430428279
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1380256046780530926}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 627855c7f81362d41938ffe0b1475957, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  m_SynchronizePosition: 1
+  m_SynchronizeRotation: 1
+  m_SynchronizeScale: 0
+  m_UseLocal: 0

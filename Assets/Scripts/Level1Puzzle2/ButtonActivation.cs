@@ -43,6 +43,7 @@ public class ButtonActivation : MonoBehaviourPun, ISubject
         
     }
 
+
     IEnumerator FindLocalPlayer()
     {
         while (PhotonNetwork.LocalPlayer.TagObject == null)
@@ -62,7 +63,7 @@ public class ButtonActivation : MonoBehaviourPun, ISubject
             UIControllerPuzzle2.Instance.ShowButtonUI((canInteract && !isPressed), this);
 
         }
-        else if (Input.GetKeyUp(teclaAbrir))
+        else if (Input.GetKeyUp(teclaAbrir) && isEnabled)
         {
             isPressed = false;
             SetPressedRPC(isPressed);
@@ -74,10 +75,9 @@ public class ButtonActivation : MonoBehaviourPun, ISubject
 
     private void OnTriggerEnter(Collider other)
     {
-        if (localPlayer == null) return;
-        if (other.transform != localPlayer) return;
-        if (isEnabled) return;
 
+        if (!other.CompareTag("Player")) return;
+        if (!isEnabled) return;
 
         canInteract = true;
         UIControllerPuzzle2.Instance.ShowButtonUI(canInteract, this);
@@ -86,9 +86,7 @@ public class ButtonActivation : MonoBehaviourPun, ISubject
 
     private void OnTriggerExit(Collider other)
     {
-        if (localPlayer == null) return;
-        if (other.transform != localPlayer) return;
-
+        if (!isEnabled) return;
         canInteract = false;
         UIControllerPuzzle2.Instance.ShowButtonUI(canInteract, this);
 
