@@ -1,12 +1,16 @@
 using Photon.Pun;
+using System.Collections;
 using UnityEngine;
 
 public class HiddenPuzzle : MonoBehaviour
 {
     public Transform heightReference; // Objeto que determina la altura de activación
-    private MeshRenderer[] meshRenderers;
+    public GameObject padre;          // Padre de los objetos a ocultar
+    public MeshRenderer[] meshRenderers;
     private Transform localPlayer;
-    public GameObject padre;
+        
+    private bool lastShouldHide = false; // Para actualizar solo si cambia el estado
+
     void Start()
     {
         if (heightReference == null)
@@ -14,16 +18,11 @@ public class HiddenPuzzle : MonoBehaviour
             Debug.LogError("Debe asignarse un Height Reference GameObject.");
             return;
         }
-
-        // Obtener todos los MeshRenderer de los hijos
-        meshRenderers = padre.GetComponentsInChildren<MeshRenderer>();
-        if (meshRenderers.Length == 0)
-            Debug.LogWarning("No se encontraron MeshRenderers en los hijos.");
-
+        if(padre != null) meshRenderers = padre.GetComponentsInChildren<MeshRenderer>();
         StartCoroutine(FindLocalPlayer());
     }
 
-    System.Collections.IEnumerator FindLocalPlayer()
+    IEnumerator FindLocalPlayer()
     {
         while (PhotonNetwork.LocalPlayer.TagObject == null)
             yield return null;
@@ -33,15 +32,24 @@ public class HiddenPuzzle : MonoBehaviour
 
     void Update()
     {
-        if (localPlayer == null || heightReference == null) return;
+        if (localPlayer == null || heightReference == null || padre == null)
+            return;
+
+       
 
         // Comparar altura del jugador con la altura del objeto de referencia
         bool shouldHide = localPlayer.position.y > heightReference.position.y;
-        
-        foreach (var mr in meshRenderers)
+
+        // Solo actualizar si cambió el estado
+        if (shouldHide != lastShouldHide)
         {
-            if (mr != null)
-                mr.enabled = shouldHide; // ocultar/mostrar visualmente
+            foreach (var mr in meshRenderers)
+            {
+                if (mr != null)
+                    mr.enabled = shouldHide;
+            }
+
+            lastShouldHide = shouldHide;
         }
     }
 }
