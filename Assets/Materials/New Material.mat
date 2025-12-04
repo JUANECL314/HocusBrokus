@@ -11,7 +11,8 @@ Material:
   m_Shader: {fileID: 4800000, guid: 933532a4fcc9baf4fa0491de14d08ed7, type: 3}
   m_Parent: {fileID: 2100000, guid: f82284e431d33e8408d6a31e858c7b36, type: 2}
   m_ModifiedSerializedProperties: 16
-  m_ValidKeywords: []
+  m_ValidKeywords:
+  - _SPECULAR_SETUP
   m_InvalidKeywords: []
   m_LightmapFlags: 4
   m_EnableInstancingVariants: 0
@@ -29,9 +30,9 @@ Material:
     m_Floats:
     - _DstBlend: 0
     - _DstBlendAlpha: 0
-    - _Smoothness: 0.5
+    - _Smoothness: 0
     - _Surface: 0
-    - _WorkflowMode: 1
+    - _WorkflowMode: 0
     - _ZWrite: 1
     m_Colors:
     - _BaseColor: {r: 0.3433962, g: 0.2999857, b: 0.2999857, a: 1}

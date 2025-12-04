@@ -18,6 +18,7 @@ public class GridLayoutBase : MonoBehaviourPun
     public int columns = 15;
     public int tileSize = 4;
 
+
     // tiles[y][x]
     public List<List<GameObject>> tiles = new List<List<GameObject>>();
     public bool[,] visited;
@@ -32,6 +33,7 @@ public class GridLayoutBase : MonoBehaviourPun
 
     [Header("Obstacles")]
     public GameObject[] obstacles; // prefabs (local instantiation)
+    public string pathObstacles = "ObstaclePrefabs/";
     [Header("Obstacles Settings")]
     public float obstacleProbability = 0.15f;
     public int minObstacles = 4;
@@ -180,7 +182,7 @@ public class GridLayoutBase : MonoBehaviourPun
         mazeData[goalNode.y, goalNode.x] = 2;
 
         // 5) Spawn obstáculos SOLO en Master (no Network.Instantiate por cada uno)
-        SpawnObstacles_MasterOnly();
+        SpawnObstacles_MasterOnly_Networked();
 
         // 6) Enviar todo en un único RPC ligero (maze + obstacles)
         SendMazeToClients();
@@ -256,14 +258,14 @@ public class GridLayoutBase : MonoBehaviourPun
         // 3) Aplicar mazeData: reemplazar tiles correspondientes
         ApplyMazeData(mazeData);
 
-        // 4) Instanciar obstáculos localmente según arrays (sin PhotonNetwork.Instantiate)
-        InstantiateObstaclesLocal(obsTypes, obsXs, obsYs);
+        InstantiateObstaclesLocal_Safe(obsTypes, obsXs, obsYs);
+
     }
 
     // -------------------------
     // Obstáculos: Master los crea en datos y los instancia localmente
     // -------------------------
-    private void SpawnObstacles_MasterOnly()
+    private void SpawnObstacles_MasterOnly_Networked()
     {
         if (!PhotonNetwork.IsMasterClient) return;
         if (obstacles == null || obstacles.Length == 0) return;
@@ -289,7 +291,7 @@ public class GridLayoutBase : MonoBehaviourPun
                 int typeIndex = UnityEngine.Random.Range(0, obstacles.Length);
                 obstacleList.Add(new ObstacleData((byte)typeIndex, (byte)tile.x, (byte)tile.y));
                 // Instanciar localmente (Master)
-                PlaceObstacleLocal(tile.y, tile.x, typeIndex);
+                PlaceObstacle_Network(tile.y, tile.x, typeIndex);
                 placed++;
             }
         }
@@ -301,22 +303,25 @@ public class GridLayoutBase : MonoBehaviourPun
             Vector2Int tile = floorTiles[i];
             int typeIndex = UnityEngine.Random.Range(0, obstacles.Length);
             obstacleList.Add(new ObstacleData((byte)typeIndex, (byte)tile.x, (byte)tile.y));
-            PlaceObstacleLocal(tile.y, tile.x, typeIndex);
+            PlaceObstacle_Network(tile.y, tile.x, typeIndex);
             floorTiles.RemoveAt(i);
             placed++;
         }
     }
 
-    private void PlaceObstacleLocal(int y, int x, int typeIndex)
+    private void PlaceObstacle_Network(int y, int x, int typeIndex)
     {
         // colocar obstáculo en la posición del tile y,x (no modificamos mazeData: sigue siendo floor)
         GameObject tile = tiles[y][x];
         if (tile == null) return;
 
         GameObject prefab = obstacles[typeIndex];
+        if (prefab == null) return;
         Vector3 pos = new Vector3(tile.transform.position.x, tile.transform.position.y + 0.2f, tile.transform.position.z);
-        GameObject obs = Instantiate(prefab, pos, Quaternion.identity, transform);
-
+        GameObject obs = PhotonNetwork.Instantiate(pathObstacles+prefab.name, pos, Quaternion.identity);
+        obs.transform.SetParent(transform);
+      
+        
         // ajustes por tipo (mantengo tu switch)
         string name = prefab.name;
         Vector3 escala;
@@ -346,7 +351,7 @@ public class GridLayoutBase : MonoBehaviourPun
     }
 
     // para clientes
-    private void InstantiateObstaclesLocal(byte[] obsTypes, byte[] obsXs, byte[] obsYs)
+    private void InstantiateObstaclesLocal_Safe(byte[] obsTypes, byte[] obsXs, byte[] obsYs)
     {
         if (obsTypes == null || obsTypes.Length == 0) return;
         int n = obsTypes.Length;
@@ -355,11 +360,58 @@ public class GridLayoutBase : MonoBehaviourPun
             int type = obsTypes[i];
             int x = obsXs[i];
             int y = obsYs[i];
+
             if (type < 0 || type >= obstacles.Length) continue;
+
+            string expectedName = $"Obs_{type}_{x}_{y}";
+            if (GameObject.Find(expectedName) != null)
+            {
+                // ya existe (probablemente creado por PhotonNetwork.Instantiate)
+                continue;
+            }
+
+            // Si no existe, instanciamos LOCALMENTE (para clientes que se unen después)
             PlaceObstacleLocal(y, x, type);
         }
     }
 
+    // Función auxiliar para instanciación no-networked (solo utilizada por clientes tardíos si hace falta)
+    private void PlaceObstacleLocal(int y, int x, int typeIndex)
+    {
+        GameObject tile = tiles[y][x];
+        if (tile == null) return;
+
+        GameObject prefab = obstacles[typeIndex];
+        Vector3 pos = new Vector3(tile.transform.position.x, tile.transform.position.y + 0.2f, tile.transform.position.z);
+        GameObject obs = Instantiate(prefab, pos, Quaternion.identity, transform);
+
+        // ajustes por tipo
+        string name = prefab.name;
+        Vector3 escala;
+        switch (name)
+        {
+            case "VortexObstacle":
+                escala = new Vector3(0.7897533f, 0.5265021f, 0.3948766f);
+                break;
+            case "FieryObstacle":
+                escala = new Vector3(0.2151325f, 0.2151325f, 0.2151325f);
+                break;
+            case "RockObstacle":
+                escala = new Vector3(1f, 5.80744f, 1f);
+                float resto = 9.87f - tile.transform.position.y;
+                pos = new Vector3(tile.transform.position.x, tile.transform.position.y + resto, tile.transform.position.z - 2);
+                obs.transform.position = pos;
+                break;
+            case "TreeObstacle":
+                escala = new Vector3(1f, 2.9f, 1f);
+                break;
+            default:
+                escala = new Vector3(1f, 1f, 1f);
+                break;
+        }
+        obs.transform.localScale = escala;
+        obs.name = $"Obs_{typeIndex}_{x}_{y}";
+    }
     // -------------------------
     // CARVE DFS
     // -------------------------
@@ -404,10 +456,7 @@ public class GridLayoutBase : MonoBehaviourPun
         return y > 0 && y < rows - 1 && x > 0 && x < columns - 1;
     }
 
-    private void MarkGoalNode()
-    {
-        // ya hacemos ReplaceTile(goalNode.y, goalNode.x, goalPrefab) en GenerateMaster
-    }
+   
 
     // -------------------------
     // APPLY desde datos (clientes)

@@ -99,6 +99,8 @@ MonoBehaviour:
   - SendMazeData
   - RPC_ReceiveMaze
   - RPC_RequestMazeGeneration
+  - TimeoutFinishedRPC
+  - UpdateTimeoutRPC
   - RPC_DownForGood
   - RPC_ReturnToInitialPosition
   - RPC_ApplyElement
@@ -106,12 +108,17 @@ MonoBehaviour:
   - RPC_ReceiveMaze
   - RPC_RequestMazeGeneration
   - RpcEnterVictoryPose
-  - UpdateTimeoutRPC
   - RpcOnFinalPuzzleCompleted
-  - TimeoutFinishedRPC
   - RPC_SetTotals
   - RPC_SpawnObstacle
   - RPC_UpdateTotals
+  - RPC_AssignController
+  - RPC_ChangeRole
+  - RPC_RotatePositions
+  - RPC_OpenDoor
+  - UpdateUIRPC
+  - UpdateWizardsUIRPC
+  - RPC_TeleportPlayer
   DisableAutoOpenWizard: 1
   ShowSettings: 1
   DevRegionSetOnce: 1

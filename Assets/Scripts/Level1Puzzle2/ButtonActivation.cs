@@ -1,164 +1,153 @@
 using Photon.Pun;
-using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Threading;
-using Unity.VisualScripting;
 using UnityEngine;
+[RequireComponent(typeof(SphereCollider))]
 public class ButtonActivation : MonoBehaviourPun, ISubject
 {
     public int buttonID;
-
     public float interactionDistance = 2f;
-
     public bool isEnabled = true;
+    public bool isPressed = false;
+    private bool canInteract = false;
 
-    private bool isPressed = false;
     public KeyCode teclaAbrir = KeyCode.R;
     public Transform localPlayer;
-    public GameObject panelUI;
+    public GameObject[] pipes;
 
+    private Renderer rend;
     private List<IObserver> observers = new List<IObserver>();
 
-    public void AddObserver(IObserver obs ) => observers.Add( obs );
-
+    public void AddObserver(IObserver obs) => observers.Add(obs);
     public void RemoveObserver(IObserver obs) => observers.Remove(obs);
-    private Renderer rend;
-    public GameObject[] pipes;
+
     void Start()
     {
-        panelUI.SetActive(false);
-        StartCoroutine(FindLocalPlayer());
+
         rend = GetComponent<Renderer>();
 
+        if (rend != null) rend.material.color = isEnabled ? Color.red : Color.gray;
 
-        if (rend != null && isEnabled) rend.material.color = Color.red;
         foreach (GameObject pipe in pipes)
         {
-
-            pipe.GetComponent<Renderer>().material.color = Color.gray;
+            Renderer r = pipe.GetComponent<Renderer>();
+            if (r != null) r.material.color = Color.gray;
         }
-       
+
+        StartCoroutine(FindLocalPlayer());
+        var trigger = GetComponent<SphereCollider>();
+        trigger.isTrigger = true;
+        trigger.radius = 2f;
+        
     }
+
+
     IEnumerator FindLocalPlayer()
     {
         while (PhotonNetwork.LocalPlayer.TagObject == null)
-        {
-            yield return null; 
-        }
+            yield return null;
 
         localPlayer = PhotonNetwork.LocalPlayer.TagObject as Transform;
     }
 
     void Update()
     {
+        if(!canInteract || !isEnabled) return;
 
-        float dist = Vector3.Distance(localPlayer.position, transform.position);
-        bool canInteract = dist <= interactionDistance;
-        Debug.Log(canInteract);
-        panelUI.SetActive(canInteract);
-
-        if (canInteract && Input.GetKeyDown(teclaAbrir))
-        {
-            if (!isPressed)
-            {
-                isPressed = true;
-                photonView.RPC("RPC_SetPressed", RpcTarget.All, isPressed);
-                photonView.RPC("RPC_NotifyAll", RpcTarget.All, buttonID, isPressed);
-            }
-        }
-
-        if (Input.GetKeyUp(teclaAbrir) && isPressed)
-        {
-            isPressed = false;
-            photonView.RPC("RPC_SetPressed", RpcTarget.All, isPressed);
-            photonView.RPC("RPC_NotifyAll", RpcTarget.All, buttonID, isPressed);
-        }
-
-
-
-
-    }
-
-    IEnumerator CheckStatus()
-    {
-        yield return new WaitForSeconds(5f);
-        
-        float dist = Vector3.Distance(localPlayer.position, transform.position);
-
-        if (dist <= interactionDistance)
-        {
-            if (!panelUI.activeSelf)
-            { panelUI.SetActive(true); }
-            else if (panelUI.activeSelf)
-            { panelUI.SetActive(true); }
-        }
-        else
-        {
-            if (panelUI.activeSelf)
-            { panelUI.SetActive(false); }
-            else
-            {
-                panelUI.SetActive(false);
-            }
-        }
-
-        if (dist <= interactionDistance && Input.GetKeyDown(teclaAbrir))
+        if (Input.GetKeyDown(teclaAbrir) && isEnabled)
         {
             isPressed = true;
+            SetPressedRPC(isPressed);
+            UIControllerPuzzle2.Instance.ShowButtonUI((canInteract && !isPressed), this);
+
         }
-        else if (Input.GetKeyUp(teclaAbrir) && (dist <= interactionDistance || dist > interactionDistance))
+        else if (Input.GetKeyUp(teclaAbrir) && isEnabled)
         {
             isPressed = false;
-
-
+            SetPressedRPC(isPressed);
+            UIControllerPuzzle2.Instance.ShowButtonUI((canInteract && !isPressed), this);
         }
-        photonView.RPC("RPC_NotifyAll", RpcTarget.All, buttonID, isPressed);
-        if (isEnabled) photonView.RPC("RPC_SetEnabledAll", RpcTarget.All, true);
-        photonView.RPC("RPC_SetPressed", RpcTarget.All, isPressed);
-        StartCoroutine(CheckStatus());
+        
+
     }
 
+    private void OnTriggerEnter(Collider other)
+    {
+
+        if (!other.CompareTag("Player")) return;
+        if (!isEnabled) return;
+
+        canInteract = true;
+        UIControllerPuzzle2.Instance.ShowButtonUI(canInteract, this);
+
+    }
+
+    private void OnTriggerExit(Collider other)
+    {
+        if (!isEnabled) return;
+        canInteract = false;
+        UIControllerPuzzle2.Instance.ShowButtonUI(canInteract, this);
+
+
+    }
+    private void SetPressedRPC(bool state)
+    {
+       
+        photonView.RPC(nameof(RPC_SetPressed), RpcTarget.AllBuffered,state);
+       
+    }
     [PunRPC]
     void RPC_NotifyAll(int id, bool state)
     {
         foreach (var obs in observers)
             obs.OnNotify(id, state);
     }
+
     [PunRPC]
     void RPC_SetEnabledAll(bool state)
     {
+
         SetEnabled(state);
     }
-    public void SetEnabled(bool e)
+
+    public void SetEnabled(bool state)
     {
-        isEnabled = e;
-        rend.material.color = isEnabled ? Color.red : Color.gray;        
+
+        isEnabled = state;
+        if (rend != null)
+            rend.material.color = isEnabled ? Color.red : Color.gray;
     }
 
     [PunRPC]
     void RPC_SetPressed(bool state)
     {
-        SetPressed(state);
-    }
-    public void SetPressed(bool e)
-    {
-        rend.material.color = e ? Color.green : Color.red;
+       isPressed = state;
+
+        if (rend != null)
+            rend.material.color = isPressed ? Color.green : (isEnabled ? Color.red : Color.gray);
+
         foreach (GameObject pipe in pipes)
         {
-            Renderer renderer = pipe.GetComponent<Renderer>();
-            Material pipeMaterial = renderer.material;
-            if (e)
+            Renderer r = pipe.GetComponent<Renderer>();
+            if (r == null) continue;
+
+            Material mat = r.material;
+            if (isPressed)
             {
-                pipeMaterial.EnableKeyword("_EMISSION");
-                pipeMaterial.SetColor("_EmissionColor", Color.green * 1.4f);
+                mat.EnableKeyword("_EMISSION");
+                mat.SetColor("_EmissionColor", Color.green * 3.4f);
             }
             else
             {
-                pipeMaterial.DisableKeyword("_EMISSION");
-                pipeMaterial.SetColor("_EmissionColor", Color.black);
-            } 
+                mat.DisableKeyword("_EMISSION");
+                mat.SetColor("_EmissionColor", Color.black);
+            }
         }
-    }    
-}
 
+        if (isEnabled)
+            photonView.RPC(nameof(RPC_NotifyAll), RpcTarget.All, buttonID, isPressed);
+    }
+
+}

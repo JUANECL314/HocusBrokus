@@ -1,45 +1,45 @@
+﻿using System;
 using UnityEngine;
-
-public class DoorController : MonoBehaviour, IObserver
+using Photon.Pun;
+public class DoorController : MonoBehaviourPun, IObserver
 {
-    public ButtonActivation[] buttons;
-    
-    private bool[] buttonStates;
-
-    
+    public ButtonActivation[] mainButtons; // Solo los botones principales
+    private bool doorOpened = false;
 
     void Start()
     {
-        buttonStates = new bool[buttons.Length];
-        foreach (var b in buttons)
-        {
+        foreach (var b in mainButtons)
             b.AddObserver(this);
-        }
     }
 
     public void OnNotify(int id, bool state)
     {
-        if (id < 0 || id >= buttonStates.Length) return;
-
-        buttonStates[id] = state;
-
-        // si todos los botones est�n presionados
-        if (AllPressed())
+        if (!doorOpened && AllPressed())
         {
-            gameObject.SetActive(true);
-        }
-        else
-        {
-            gameObject.SetActive(false);
+            photonView.RPC(nameof(RPC_OpenDoor), RpcTarget.AllBuffered);
         }
     }
 
     private bool AllPressed()
     {
-        for (int i = 0; i < buttonStates.Length; i++)
-            if (!buttonStates[i])
+        foreach (ButtonActivation b in mainButtons)
+            if (!b.isEnabled || !b.isPressed)
                 return false;
-
         return true;
+    }
+
+    [PunRPC]
+    private void RPC_OpenDoor()
+    {
+        if (doorOpened) return;
+
+        doorOpened = true;
+
+        // Si hay animación, aquí iría
+        // animator.SetTrigger("Open"); 
+
+        // O desactivas el collider, o cambias el estado de la puerta:
+        Debug.Log("Puerta abierta sincronizada por Photon!");
+        gameObject.SetActive(false); // Desaparece la puerta al abrirse
     }
 }
