@@ -13,6 +13,8 @@ GameObject:
   - component: {fileID: 5766740567106635315}
   - component: {fileID: 459678922365101004}
   - component: {fileID: 8169149786965208361}
+  - component: {fileID: -2167749988957552930}
+  - component: {fileID: -5407308992883622802}
   m_Layer: 0
   m_Name: Fire
   m_TagString: Fire
@@ -126,6 +128,45 @@ MonoBehaviour:
   m_SynchronizeRotation: 1
   m_SynchronizeScale: 0
   m_UseLocal: 0
+--- !u!114 &-2167749988957552930
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8364429593344965258}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: aa584fbee541324448dd18d8409c7a41, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  ObservedComponentsFoldoutOpen: 1
+  Group: 0
+  prefixField: -1
+  Synchronization: 3
+  OwnershipTransfer: 0
+  observableSearch: 2
+  ObservedComponents:
+  - {fileID: 8169149786965208361}
+  sceneViewId: 0
+  InstantiationId: 0
+  isRuntimeInstantiated: 0
+--- !u!114 &-5407308992883622802
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8364429593344965258}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 9a57f3249262b2141a05ed2d5a34827d, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  idName: Fire
+  velocityMov: 30
+  weight: 4
+  elementType: 2
 --- !u!1001 &1270768969218892571
 PrefabInstance:
   m_ObjectHideFlags: 0
