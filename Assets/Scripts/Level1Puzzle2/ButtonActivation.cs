@@ -36,7 +36,6 @@ public class ButtonActivation : MonoBehaviourPun, ISubject
             if (r != null) r.material.color = Color.gray;
         }
 
-        StartCoroutine(FindLocalPlayer());
         var trigger = GetComponent<SphereCollider>();
         trigger.isTrigger = true;
         trigger.radius = 2f;
@@ -44,13 +43,6 @@ public class ButtonActivation : MonoBehaviourPun, ISubject
     }
 
 
-    IEnumerator FindLocalPlayer()
-    {
-        while (PhotonNetwork.LocalPlayer.TagObject == null)
-            yield return null;
-
-        localPlayer = PhotonNetwork.LocalPlayer.TagObject as Transform;
-    }
 
     void Update()
     {
@@ -77,6 +69,8 @@ public class ButtonActivation : MonoBehaviourPun, ISubject
     {
 
         if (!other.CompareTag("Player")) return;
+        PhotonView pv = other.GetComponent<PhotonView>();
+        if (pv == null || !pv.IsMine) return;
         if (!isEnabled) return;
 
         canInteract = true;
@@ -86,6 +80,9 @@ public class ButtonActivation : MonoBehaviourPun, ISubject
 
     private void OnTriggerExit(Collider other)
     {
+        if (!other.CompareTag("Player")) return;
+        PhotonView pv = other.GetComponent<PhotonView>();
+        if (pv == null || !pv.IsMine) return;
         if (!isEnabled) return;
         canInteract = false;
         UIControllerPuzzle2.Instance.ShowButtonUI(canInteract, this);

@@ -18,7 +18,7 @@ public class MagicPillarPuzzleManager : MonoBehaviourPun
 
     private List<string> currentInput = new List<string>();
     public float resetDelay = 2f;
-
+    public HiddenPathController hiddenPaths;
     // -------------------------------------------------------------
     //  Public: Buttons call THIS via RPC (MasterClient only)
     // -------------------------------------------------------------
@@ -30,7 +30,7 @@ public class MagicPillarPuzzleManager : MonoBehaviourPun
 
         RegisterInputInternal(element);
     }
-
+   
     // -------------------------------------------------------------
     //  INTERNAL SEQUENCE PROCESSING (MasterClient only)
     // -------------------------------------------------------------
@@ -137,6 +137,7 @@ public class MagicPillarPuzzleManager : MonoBehaviourPun
             if (mirror != null)
                 mirror.AlignToTarget();
         }
+        hiddenPaths.ShowPath();
     }
 
     // -------------------------------------------------------------

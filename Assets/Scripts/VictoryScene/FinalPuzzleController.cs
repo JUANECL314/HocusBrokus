@@ -30,8 +30,9 @@ public class FinalPuzzleController : MonoBehaviourPun
     private void OnTriggerEnter(Collider other)
     {
         if (alreadyTriggered) return;
+        Debug.Log("Detecta 2");
         if (!other.CompareTag("Player")) return;
-
+        Debug.Log("Detecta 1");
         alreadyTriggered = true;
 
         // Solo el master dispara el RPC global

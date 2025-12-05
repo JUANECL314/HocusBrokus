@@ -10,6 +10,13 @@ public class PlayerRespawn : MonoBehaviourPun
         rb = GetComponent<Rigidbody>();
     }
 
+    void Start()
+    {
+        if (photonView.IsMine)
+        {
+            PhotonNetwork.LocalPlayer.TagObject = this;
+        }
+    }
     // Trigger-based death (if Death has "Is Trigger" enabled)
     void OnTriggerEnter(Collider other)
     {
@@ -50,6 +57,11 @@ public class PlayerRespawn : MonoBehaviourPun
     public void ForceRespawn()
     {
         TeleportToSpawn();
+    }
+    [PunRPC]
+    public void RPC_ForceRespawn()
+    {
+        ForceRespawn();
     }
 
 }
