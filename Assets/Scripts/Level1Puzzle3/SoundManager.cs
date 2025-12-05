@@ -2,22 +2,22 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Audio;
+using UnityEngine.SceneManagement;
 
 public enum SfxKey
 {
     MirrorRotate,
     MirrorMoveUp,
     LaserHitMirror,
-    TargetFastPing,     
+    TargetFastPing,
     TargetIlluminate,
- // NUEVOS para escena de engranajes
-    GearStart,         // one-shot: arranque mec�nico
-    GearLoop,          // loop: engranajes girando
-    GearStop,          // one-shot: se detienen
-    GearFall,          // one-shot: ca�da/metalazo
-    GearCoolHiss,      // one-shot: agua que enfr�a (hiss)
-    FireIgniteLoop,    // loop: fuego en el activador
-    FireWindBoost,      // one-shot: soplo/ignite al sumar viento y activar
+    GearStart,
+    GearLoop,
+    GearStop,
+    GearFall,
+    GearCoolHiss,
+    FireIgniteLoop,
+    FireWindBoost,
     CorrectAnswerDing,
     WrongAnswerBuzz,
     RisingHiddenPath,
@@ -32,8 +32,9 @@ public enum SfxKey
     DissipatingVortex,
     FireHissing,
     BurningTree,
-    AliveVortex
-
+    AliveVortex,
+    MainMenuMusic,
+    LevelPuzzleMusic
 }
 
 public class SoundManager : MonoBehaviour
@@ -41,16 +42,14 @@ public class SoundManager : MonoBehaviour
     public static SoundManager Instance { get; private set; }
 
     [Header("Mixer")]
-    public AudioMixer mixer;                    // Asigna GameAudioMixer
-    public AudioMixerGroup sfxGroup;            // Asigna el Group SFX
-    [Tooltip("Nombre exacto del par�metro expuesto en Master")]
+    public AudioMixer mixer;
+    public AudioMixerGroup sfxGroup;
     public string masterVolParam = "MasterVol";
-    [Tooltip("Nombre exacto del par�metro expuesto en SFX")]
     public string sfxVolParam = "SFXVol";
 
-    [Header("Snapshots (opcional)")]
-    public AudioMixerSnapshot normalSnapshot;   // Asigna "Normal" (si lo creaste)
-    public AudioMixerSnapshot duckedSnapshot;   // Asigna "Ducked" (si lo creaste)
+    [Header("Snapshots (optional)")]
+    public AudioMixerSnapshot normalSnapshot;
+    public AudioMixerSnapshot duckedSnapshot;
     public float duckFade = 0.15f;
     public float duckHold = 0.6f;
 
@@ -64,11 +63,7 @@ public class SoundManager : MonoBehaviour
         public bool loopable = false;
         [Range(0f, 1f)] public float spatialBlend = 1f;
 
-        [Header("One-shot shaping")]
-        [Tooltip("Si > 0, el one-shot se cortar� tras este tiempo (segundos). �til si tu clip es largo.")]
         public float maxOneShotDuration = -1f;
-
-        [Tooltip("Rango aleatorio de pitch (min..max). Usa (1,1) para desactivar.")]
         public Vector2 pitchJitter = new Vector2(1f, 1f);
     }
 
@@ -77,6 +72,23 @@ public class SoundManager : MonoBehaviour
 
     [Header("Pool")]
     public int initialPool = 8;
+
+    // -------------------------------------------------------
+    // 🔊 NEW SECTION — SCENE MUSIC
+    // -------------------------------------------------------
+    [System.Serializable]
+    public class SceneMusicEntry
+    {
+        public string sceneName;
+        public SfxKey musicKey;
+    }
+
+    [Header("Scene Music Settings")]
+    public List<SceneMusicEntry> sceneMusic = new List<SceneMusicEntry>();
+
+    private AudioSource currentSceneMusic;
+    private SfxKey? currentSceneKey = null;
+    // -------------------------------------------------------
 
     private readonly Dictionary<SfxKey, SfxEntry> _map = new();
     private readonly List<AudioSource> _pool = new();
@@ -94,13 +106,70 @@ public class SoundManager : MonoBehaviour
         for (int i = 0; i < initialPool; i++)
             _pool.Add(CreateSource());
 
-        // Cargar vol�menes previos
         if (mixer != null)
         {
             if (PlayerPrefs.HasKey(masterVolParam)) mixer.SetFloat(masterVolParam, PlayerPrefs.GetFloat(masterVolParam));
             if (PlayerPrefs.HasKey(sfxVolParam)) mixer.SetFloat(sfxVolParam, PlayerPrefs.GetFloat(sfxVolParam));
         }
+
+        // 🔊 Listen to scene changes
+        SceneManager.sceneLoaded += OnSceneChanged;
     }
+
+    // -------------------------------------------------------
+    // 🔊 SCENE MUSIC HANDLING
+    // -------------------------------------------------------
+    void OnSceneChanged(Scene scene, LoadSceneMode mode)
+    {
+        string sceneName = scene.name;
+
+        // Check if this scene has assigned music
+        SceneMusicEntry entry = sceneMusic.Find(s => s.sceneName == sceneName);
+
+        if (entry != null)
+        {
+            // Scene has music → play it
+            PlaySceneMusic(entry.musicKey);
+        }
+        else
+        {
+            // No music assigned → stop previous
+            StopSceneMusic();
+        }
+    }
+
+    void PlaySceneMusic(SfxKey key)
+    {
+        if (!_map.TryGetValue(key, out var e)) return;
+        if (!e.loopable || e.clip == null) return;
+
+        // If it's already playing this track, do nothing
+        if (currentSceneKey == key) return;
+
+        StopSceneMusic();
+
+        currentSceneMusic = gameObject.AddComponent<AudioSource>();
+        currentSceneMusic.clip = e.clip;
+        currentSceneMusic.volume = e.volume;
+        currentSceneMusic.loop = true;
+        currentSceneMusic.spatialBlend = 0f;
+        currentSceneMusic.outputAudioMixerGroup = sfxGroup;
+
+        currentSceneMusic.Play();
+        currentSceneKey = key;
+    }
+
+    void StopSceneMusic()
+    {
+        if (currentSceneMusic != null)
+        {
+            currentSceneMusic.Stop();
+            Destroy(currentSceneMusic);
+        }
+        currentSceneMusic = null;
+        currentSceneKey = null;
+    }
+    // -------------------------------------------------------
 
     AudioSource CreateSource()
     {
@@ -108,7 +177,7 @@ public class SoundManager : MonoBehaviour
         go.transform.SetParent(transform);
         var src = go.AddComponent<AudioSource>();
         src.playOnAwake = false;
-        // Defaults 3D sensatos; se pueden sobrescribir por clip u objeto
+
         src.spatialBlend = 1f;
         src.rolloffMode = AudioRolloffMode.Logarithmic;
         src.minDistance = 1.5f;
@@ -127,7 +196,9 @@ public class SoundManager : MonoBehaviour
         return extra;
     }
 
-    // --- EXISTENTE: por posici�n (se mantiene) ---
+    // -----------------------------------
+    // PLAYING SFX (unchanged)
+    // -----------------------------------
     public void Play(SfxKey key, Vector3? worldPos = null, float pitch = 1f)
     {
         PlayInternal(key, worldPos, pitch, null);
@@ -138,7 +209,6 @@ public class SoundManager : MonoBehaviour
         StartLoopInternal(loopId, key, worldPos, null);
     }
 
-    // --- NUEVO: por Transform (aplica override por objeto si existe) ---
     public void Play(SfxKey key, Transform from, float pitch = 1f)
     {
         if (from == null) { Play(key, (Vector3?)null, pitch); return; }
@@ -148,30 +218,18 @@ public class SoundManager : MonoBehaviour
 
     public AudioSource PlayAndGetSource(SfxKey key, Transform from = null, float pitch = 1f)
     {
-        if (!_map.TryGetValue(key, out var e))
-        {
-            Debug.LogWarning($"[SoundManager] No clip entry for key '{key}'.");
-            return null;
-        }
-        if (e.clip == null)
-        {
-            Debug.LogWarning($"[SoundManager] Key '{key}' has no AudioClip assigned.");
-            return null;
-        }
+        if (!_map.TryGetValue(key, out var e)) return null;
+        if (e.clip == null) return null;
 
         var src = GetFreeSource();
         src.clip = e.clip;
         src.volume = e.volume;
         src.loop = false;
-
-        // Apply pitch rules
         ApplyPitch(src, e, pitch);
 
-        // Get area overrides if available
-        SfxAreaOverride area = (from != null) ? from.GetComponent<SfxAreaOverride>() : null;
+        SfxAreaOverride area = from != null ? from.GetComponent<SfxAreaOverride>() : null;
         Apply3D(src, e, area);
 
-        // Positioning
         if (from != null) src.transform.position = from.position;
         else src.transform.localPosition = Vector3.zero;
 
@@ -179,15 +237,12 @@ public class SoundManager : MonoBehaviour
         return src;
     }
 
-
-
     public void StartLoop(string loopId, SfxKey key, Transform from)
     {
         var area = from != null ? from.GetComponent<SfxAreaOverride>() : null;
         StartLoopInternal(loopId, key, from ? from.position : (Vector3?)null, area);
     }
 
-    // --- N�cleo com�n ---
     void ApplyPitch(AudioSource src, SfxEntry e, float pitch)
     {
         src.pitch = (e.pitchJitter.x != 1f || e.pitchJitter.y != 1f)
@@ -209,16 +264,9 @@ public class SoundManager : MonoBehaviour
 
     void PlayInternal(SfxKey key, Vector3? worldPos, float pitch, SfxAreaOverride area)
     {
-        if (!_map.TryGetValue(key, out var e))
-        {
-            Debug.LogWarning($"[SoundManager] No hay entrada de clip para key '{key}'. Agrega esta key en Clips.");
-            return;
-        }
-        if (e.clip == null)
-        {
-            Debug.LogWarning($"[SoundManager] La key '{key}' no tiene AudioClip asignado.");
-            return;
-        }
+        if (!_map.TryGetValue(key, out var e)) return;
+        if (e.clip == null) return;
+
         var src = GetFreeSource();
         src.clip = e.clip;
         src.volume = e.volume;
@@ -239,16 +287,9 @@ public class SoundManager : MonoBehaviour
     void StartLoopInternal(string loopId, SfxKey key, Vector3? worldPos, SfxAreaOverride area)
     {
         if (_loops.ContainsKey(loopId)) return;
-        if (!_map.TryGetValue(key, out var e))
-        {
-            Debug.LogWarning($"[SoundManager] No hay entrada de clip para key '{key}'.");
-            return;
-        }
-        if (e.clip == null || !e.loopable)
-        {
-            Debug.LogWarning($"[SoundManager] La key '{key}' {(e == null ? "no tiene entrada" : "no tiene clip o no es loopable")}.");
-            return;
-        }
+        if (!_map.TryGetValue(key, out var e)) return;
+        if (e.clip == null || !e.loopable) return;
+
         var src = GetFreeSource();
         src.clip = e.clip;
         src.volume = e.volume;
@@ -290,7 +331,9 @@ public class SoundManager : MonoBehaviour
             src.transform.position = worldPos;
     }
 
-    // ---------- Volumen (0..1 lineal -> dB) ----------
+    // -----------------------------------
+    // VOLUME (unchanged)
+    // -----------------------------------
     public void SetMasterVolume01(float v01) => SetExposedLinear(masterVolParam, v01);
     public void SetSfxVolume01(float v01) => SetExposedLinear(sfxVolParam, v01);
 
@@ -303,7 +346,9 @@ public class SoundManager : MonoBehaviour
         PlayerPrefs.SetFloat(param, dB);
     }
 
-    // ---------- Snapshots (opcional) ----------
+    // -----------------------------------
+    // SNAPSHOTS (unchanged)
+    // -----------------------------------
     public void PunchSuccessDuck()
     {
         if (duckedSnapshot == null || normalSnapshot == null) return;

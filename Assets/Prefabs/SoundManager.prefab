@@ -269,4 +269,31 @@ MonoBehaviour:
     spatialBlend: 1
     maxOneShotDuration: -1
     pitchJitter: {x: 1, y: 1}
+  - key: 27
+    clip: {fileID: 8300000, guid: 7331dd34f6200a14fbc161a8b4716256, type: 3}
+    volume: 0.3
+    spatial: 0
+    loopable: 1
+    spatialBlend: 1
+    maxOneShotDuration: -1
+    pitchJitter: {x: 1, y: 1}
+  - key: 28
+    clip: {fileID: 8300000, guid: e4b1c2bf1d8d90147a2c126e659000fa, type: 3}
+    volume: 0.3
+    spatial: 0
+    loopable: 1
+    spatialBlend: 1
+    maxOneShotDuration: -1
+    pitchJitter: {x: 1, y: 1}
   initialPool: 40
+  sceneMusic:
+  - sceneName: Multijugador
+    musicKey: 27
+  - sceneName: MainMenu
+    musicKey: 27
+  - sceneName: CavePuzzle1
+    musicKey: 28
+  - sceneName: CavePuzzle2
+    musicKey: 28
+  - sceneName: CavePuzzle3
+    musicKey: 28
