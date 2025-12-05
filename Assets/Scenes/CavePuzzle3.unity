@@ -38582,7 +38582,7 @@ Transform:
   m_GameObject: {fileID: 692423020}
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 99.9, y: 11.799999, z: -92}
+  m_LocalPosition: {x: 105.3, y: 11.799999, z: -92}
   m_LocalScale: {x: 1, y: 2.6863084, z: 4.578897}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -68857,6 +68857,7 @@ GameObject:
   - component: {fileID: 1557415769}
   - component: {fileID: 1557415768}
   - component: {fileID: 1557415770}
+  - component: {fileID: 1557415771}
   m_Layer: 0
   m_Name: MagicPillarPuzzleManager
   m_TagString: Untagged
@@ -68929,6 +68930,19 @@ MonoBehaviour:
   sceneViewId: 3
   InstantiationId: 0
   isRuntimeInstantiated: 0
+--- !u!114 &1557415771
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1557415767}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 13ef4ed88e350144ea806f3a6a1882e6, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  soundManagerPrefab: {fileID: 3495025106090995644, guid: cc1758a5c1b6b5c4bb8dbe2c00e111bb, type: 3}
 --- !u!1 &1558273982
 GameObject:
   m_ObjectHideFlags: 0
