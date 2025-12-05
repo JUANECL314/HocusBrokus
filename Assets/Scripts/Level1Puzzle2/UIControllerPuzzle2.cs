@@ -14,6 +14,7 @@ public class UIControllerPuzzle2 : MonoBehaviour
 
     public void ShowButtonUI(bool state, ButtonActivation btn)
     {
+
         if (state)
         {
             currentButton = btn;

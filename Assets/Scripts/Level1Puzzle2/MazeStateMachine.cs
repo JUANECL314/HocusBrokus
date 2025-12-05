@@ -33,8 +33,7 @@ public class MazeStateMachine : MonoBehaviourPunCallbacks
 
     private Coroutine timer;
 
-    public Transform heightReference;
-    public Transform respawnPoint;
+   
     [Header("Enemy")]
     public GameObject enemy;
     public string pathEnemy = "Puzzle2Resources/";
@@ -52,7 +51,7 @@ public class MazeStateMachine : MonoBehaviourPunCallbacks
 
         RestartUI();
         panelMagicLeft.SetActive(false);
-        enemy.SetActive(false);
+       
         //StateMachineStatus(MazeEnumState.Create);
     }
 
@@ -141,8 +140,9 @@ public class MazeStateMachine : MonoBehaviourPunCallbacks
             photonView.RPC(nameof(UpdateTimeoutRPC), RpcTarget.All, secondsTimeOut);
         }
 
-        if (secondsTimeOut <= 0)
+        if (secondsTimeOut <= 0 && starting)
             photonView.RPC(nameof(TimeoutFinishedRPC), RpcTarget.All);
+            
     }
 
 
@@ -173,11 +173,20 @@ public class MazeStateMachine : MonoBehaviourPunCallbacks
             magicBar.value = valueSecond;
         }
         
-        Respawn();
+        
         StateMachineStatus(MazeEnumState.Destroy);
     }
 
+    [PunRPC]
+    void RPC_SetObjectActive(bool state)
+    {
+        doorMaze.SetActive(state);
+    }
 
+    public void SetActiveMultiplayer(bool state)
+    {
+        photonView.RPC("RPC_SetObjectActive", RpcTarget.AllBuffered, state);
+    }
 
     void StateMachineStatus(MazeEnumState next)
     {
@@ -191,27 +200,24 @@ public class MazeStateMachine : MonoBehaviourPunCallbacks
                     starting = true;
                     grid.GenerateMazeMaster();
                     Invoke(nameof(StartGameplay), 0.1f);
-                    ObtainPuzzleStructure();
+                    photonView.RPC("RPC_HideStructure", RpcTarget.AllBuffered);
+                    
                 }
                 Debug.Log("Laberinto terminado");
                 break;
             case MazeEnumState.Gameplay:
                 Debug.Log("Empezar configuraciones de partida");
 
-                doorMaze.SetActive(false);
+                SetActiveMultiplayer(false);
+                   
                 
-                
-                if (PhotonNetwork.IsMasterClient)
-                {
-                    //PhotonNetwork.Instantiate(pathEnemy + enemy.name, enemy.transform.position, enemy.transform.rotation);
-                }
                 Debug.Log("Configuraciones terminadas");
                 break;
             case MazeEnumState.Destroy:
                 Debug.Log("Destruyendo el laberinto");
-
+        
                 grid.DestroyMaze();
-                doorMaze.SetActive(true);
+                SetActiveMultiplayer(true);
                 RestartUI();
                 Debug.Log("Laberinto destruido");
                 currentState = MazeEnumState.Init;
@@ -220,8 +226,8 @@ public class MazeStateMachine : MonoBehaviourPunCallbacks
                 Debug.Log("Laberinto completado");
                 if(timer != null) StopCoroutine(timer);
                 grid.DestroyMaze();
-                doorMaze.SetActive(false);
-                enemy.SetActive(false);
+                SetActiveMultiplayer(true);
+
                 starting = false;
                 break;
         }
@@ -258,48 +264,14 @@ public class MazeStateMachine : MonoBehaviourPunCallbacks
     }
 
 
-    void Respawn()
-    {
-        foreach (var player in PhotonNetwork.PlayerList)
-        {
-            if (player.TagObject == null) continue;
+    
+    
 
-            Transform playerTransform = player.TagObject as Transform;
-            if (playerTransform == null) continue;
-
-            // Solo si está debajo de la referencia de altura
-            if (playerTransform.position.y < heightReference.position.y)
-            {
-                PhotonView playerPV = playerTransform.GetComponent<PhotonView>();
-                if (playerPV != null)
-                {
-                    // Llamamos un RPC que solo se ejecuta en la máquina del dueño
-                    playerPV.RPC("RPC_TeleportPlayer", playerPV.Owner, respawnPoint.position, respawnPoint.rotation);
-                }
-            }
-        }
-    }
     [PunRPC]
-    public void RPC_TeleportPlayer(Vector3 pos, Quaternion rot)
+    public void RPC_HideStructure()
     {
-        // Solo mover si este cliente es el dueño del objeto
-        if (!photonView.IsMine) return;
-
-        Rigidbody rb = GetComponent<Rigidbody>();
-        if (rb != null)
-        {
-            rb.linearVelocity = Vector3.zero;
-            rb.angularVelocity = Vector3.zero;
-            rb.MovePosition(pos);
-            rb.MoveRotation(rot);
-        }
-        else
-        {
-            transform.position = pos;
-            transform.rotation = rot;
-        }
+        ObtainPuzzleStructure();
     }
-
     void ObtainPuzzleStructure()
     {
         if (hidePuzzle.padre == null) return;
