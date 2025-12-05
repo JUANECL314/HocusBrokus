@@ -51,7 +51,7 @@ public class MazeStateMachine : MonoBehaviourPunCallbacks
 
         RestartUI();
         panelMagicLeft.SetActive(false);
-        enemy.SetActive(false);
+       
         //StateMachineStatus(MazeEnumState.Create);
     }
 
